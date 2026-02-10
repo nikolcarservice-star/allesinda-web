@@ -1,0 +1,543 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Modern, vibrant color palette - Purple/Violet theme matching logo */
+  --background: oklch(0.99 0.002 264);
+  --foreground: oklch(0.15 0.01 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.01 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 264);
+  
+  /* Primary - Vibrant purple-violet matching logo */
+  --primary: oklch(0.48 0.22 285);
+  --primary-foreground: oklch(0.99 0 0);
+  
+  /* Secondary - Soft purple tint */
+  --secondary: oklch(0.96 0.008 285);
+  --secondary-foreground: oklch(0.25 0.01 264);
+  
+  /* Muted - Light purple tint */
+  --muted: oklch(0.97 0.006 285);
+  --muted-foreground: oklch(0.45 0.008 264);
+  
+  /* Accent - Bright purple/violet */
+  --accent: oklch(0.55 0.24 285);
+  --accent-foreground: oklch(0.99 0 0);
+  
+  /* Destructive - Modern red */
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  
+  /* Borders and inputs - Subtle but visible */
+  --border: oklch(0.90 0.006 264);
+  --input: oklch(0.94 0.004 264);
+  --ring: oklch(0.48 0.22 285);
+  
+  /* Chart colors - Purple-based palette */
+  --chart-1: oklch(0.52 0.22 285);
+  --chart-2: oklch(0.55 0.24 285);
+  --chart-3: oklch(0.50 0.20 270);
+  --chart-4: oklch(0.58 0.20 300);
+  --chart-5: oklch(0.45 0.18 280);
+
+  --radius: 0.75rem;
+  --sides: 1rem; /* Mobile-first: adequate padding for touch */
+  --modal-sides: 1rem;
+  --top-spacing: 4rem; /* Compact header spacing */
+  --height-fold: 100vh;
+  --height-fold: 100svh;
+  --section-padding: 2rem; /* Mobile-first: compact section padding */
+  --card-padding: 1rem; /* Mobile-first: compact card padding */
+  --gap-xs: 0.5rem;
+  --gap-sm: 0.75rem;
+  --gap-md: 1rem;
+  --gap-lg: 1.5rem;
+  --gap-xl: 2rem;
+  --sidebar: oklch(0.99 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: oklch(0.48 0.22 285);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0.008 285);
+  --sidebar-accent-foreground: oklch(0.25 0.01 264);
+  --sidebar-border: oklch(0.90 0.006 264);
+  --sidebar-ring: oklch(0.48 0.22 285);
+}
+
+.dark {
+  --background: oklch(0.11 0.01 264);
+  --foreground: oklch(0.98 0.002 264);
+  --card: oklch(0.14 0.01 264);
+  --card-foreground: oklch(0.98 0.002 264);
+  --popover: oklch(0.14 0.01 264);
+  --popover-foreground: oklch(0.98 0.002 264);
+  --primary: oklch(0.65 0.24 285);
+  --primary-foreground: oklch(0.11 0.01 264);
+  --secondary: oklch(0.20 0.01 264);
+  --secondary-foreground: oklch(0.98 0.002 264);
+  --muted: oklch(0.20 0.01 264);
+  --muted-foreground: oklch(0.65 0.008 264);
+  --accent: oklch(0.70 0.26 285);
+  --accent-foreground: oklch(0.11 0.01 264);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.98 0.002 264);
+  --border: oklch(0.24 0.01 264);
+  --input: oklch(0.24 0.01 264);
+  --ring: oklch(0.65 0.24 285);
+  --chart-1: oklch(0.68 0.24 285);
+  --chart-2: oklch(0.70 0.26 285);
+  --chart-3: oklch(0.65 0.22 270);
+  --chart-4: oklch(0.72 0.24 300);
+  --chart-5: oklch(0.62 0.20 280);
+  --sidebar: oklch(0.14 0.01 264);
+  --sidebar-foreground: oklch(0.98 0.002 264);
+  --sidebar-primary: oklch(0.65 0.24 285);
+  --sidebar-primary-foreground: oklch(0.11 0.01 264);
+  --sidebar-accent: oklch(0.20 0.01 264);
+  --sidebar-accent-foreground: oklch(0.98 0.002 264);
+  --sidebar-border: oklch(0.24 0.01 264);
+  --sidebar-ring: oklch(0.65 0.24 285);
+}
+
+@media (width >= 640px) {
+  :root {
+    --sides: 1.25rem;
+    --section-padding: 3rem;
+    --card-padding: 1.25rem;
+  }
+}
+
+@media (width >= 768px) {
+  :root {
+    --sides: 1.5rem;
+    --modal-sides: 1.25rem;
+    --top-spacing: 5rem;
+    --section-padding: 4rem;
+    --card-padding: 1.5rem;
+  }
+}
+
+@media (width >= 1024px) {
+  :root {
+    --modal-sides: 1.5rem;
+    --section-padding: 5rem;
+    --card-padding: 1.75rem;
+  }
+}
+
+@media (width >= 1280px) {
+  :root {
+    --section-padding: 6rem;
+  }
+}
+
+@theme inline {
+  /* Color */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Spacing */
+  --spacing-sides: var(--sides);
+  --spacing-modal-sides: var(--modal-sides);
+  --spacing-top-spacing: var(--top-spacing);
+  --spacing-fold: var(--height-fold);
+
+  /* Fonts */
+  --font-family-sans: var(--font-geist-sans), sans-serif;
+  --font-family-mono: var(--font-geist-mono), monospace;
+
+  /* Line Heights */
+  --text-xs--line-height: 1.5;
+  --text-sm--line-height: 1.5;
+  --text-base--line-height: 1.6;
+  --text-lg--line-height: 1.5;
+  --text-xl--line-height: 1.4;
+  --text-2xl--line-height: 1.3;
+
+  /* Letter Spacings */
+  --text-xs--letter-spacing: -0.01em;
+  --text-sm--letter-spacing: -0.01em;
+  --text-base--letter-spacing: -0.01em;
+  --text-lg--letter-spacing: -0.015em;
+  --text-xl--letter-spacing: -0.02em;
+  --text-2xl--letter-spacing: -0.025em;
+
+  /* Radius */
+  --radius: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-collapsible-down: collapsible-down 0.2s ease-out;
+  --animate-collapsible-up: collapsible-up 0.2s ease-out;
+}
+
+@keyframes collapsible-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  }
+  img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer utilities {
+  .base-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--sides);
+  }
+
+  .base-gap {
+    gap: var(--sides);
+  }
+
+  .px-sides {
+    padding-left: var(--sides);
+    padding-right: var(--sides);
+  }
+
+  /* Mobile-first spacing utilities */
+  .py-section {
+    padding-top: var(--section-padding);
+    padding-bottom: var(--section-padding);
+  }
+
+  .p-card {
+    padding: var(--card-padding);
+  }
+
+  /* Compact text sizes for mobile */
+  .text-mobile-xs {
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.4;
+  }
+
+  .text-mobile-sm {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.5;
+  }
+
+  /* Better touch targets on mobile */
+  @media (width < 640px) {
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Prose — rich text without @tailwindcss/typography */
+  .prose {
+    @apply text-xs leading-tight text-neutral-800;
+  }
+
+  /* Base flow & spacing */
+  .prose :where(p, ul, ol, pre, table, blockquote, figure):not(:where(.not-prose, .not-prose *)) {
+    @apply my-5;
+  }
+  .prose :where(h1, h2, h3, h4, h5, h6):not(:where(.not-prose, .not-prose *)) {
+    @apply scroll-mt-24 font-semibold leading-tight tracking-tight text-balance mt-10 mb-4;
+  }
+
+  /* Headings */
+  .prose :where(h1) {
+    @apply text-4xl md:text-5xl;
+  }
+  .prose :where(h2) {
+    @apply text-2xl md:text-3xl border-b border-neutral-200;
+  }
+  .prose :where(h3) {
+    @apply text-xl md:text-2xl;
+  }
+  .prose :where(h4) {
+    @apply text-lg md:text-xl;
+  }
+  .prose :where(h5) {
+    @apply text-base uppercase tracking-wide text-neutral-500;
+  }
+  .prose :where(h6) {
+    @apply text-sm uppercase tracking-wide text-neutral-500;
+  }
+
+  /* Paragraphs & small text */
+  .prose :where(p) {
+    @apply text-pretty;
+  }
+  .prose :where(small) {
+    @apply text-sm text-neutral-600;
+  }
+
+  /* Links */
+  .prose :where(a) {
+    @apply underline underline-offset-2 decoration-neutral-400 hover:decoration-neutral-700 text-inherit break-words;
+  }
+
+  /* Emphasis */
+  .prose :where(em) {
+    @apply italic;
+  }
+  .prose :where(strong) {
+    @apply font-semibold text-neutral-900;
+  }
+  .prose :where(mark) {
+    @apply bg-yellow-200 rounded px-1;
+  }
+  .prose :where(del, s) {
+    @apply line-through;
+  }
+  .prose :where(ins, u) {
+    @apply underline;
+  }
+  .prose :where(sub) {
+    font-size: 0.8em;
+    @apply align-sub;
+  }
+  .prose :where(sup) {
+    font-size: 0.8em;
+    @apply align-super;
+  }
+
+  /* Code (inline) */
+  .prose :where(code):not(:where(pre code)) {
+    font-size: 0.95em;
+    @apply rounded bg-neutral-100 px-1 py-0.5 font-mono;
+  }
+
+  /* Code blocks */
+  .prose :where(pre) {
+    @apply relative overflow-x-auto rounded-lg bg-neutral-950/95 text-neutral-100 p-4 leading-6;
+  }
+  .prose :where(pre code) {
+    @apply bg-transparent p-0 text-inherit font-mono;
+  }
+  .prose :where(pre[data-lang])::before {
+    content: attr(data-lang);
+    @apply absolute right-2 top-2 text-xs uppercase tracking-wide text-neutral-400;
+  }
+
+  /* Blockquotes */
+  .prose :where(blockquote) {
+    @apply border-l-4 border-neutral-300 pl-4 italic text-neutral-700;
+  }
+  .prose :where(blockquote > :last-child) {
+    @apply mb-0;
+  }
+  .prose :where(blockquote > :first-child) {
+    @apply mt-0;
+  }
+
+  /* Lists */
+  .prose :where(ul) {
+    @apply list-disc pl-6;
+  }
+  .prose :where(ol) {
+    @apply list-decimal pl-6;
+  }
+  .prose :where(li) {
+    @apply my-1;
+  }
+  .prose :where(li > ul) {
+    list-style-type: circle;
+  }
+  .prose :where(li > ol) {
+    list-style-type: lower-alpha;
+  }
+  .prose :where(input[type="checkbox"]) {
+    @apply mr-2 align-middle accent-neutral-700;
+  }
+
+  /* HR */
+  .prose :where(hr) {
+    @apply my-10 border-t border-neutral-200;
+  }
+
+  /* Images, video, embeds */
+  .prose :where(img, video, iframe) {
+    @apply rounded-lg max-w-full h-auto;
+  }
+  .prose :where(figure) {
+    @apply my-8;
+  }
+  .prose :where(figcaption) {
+    @apply mt-2 text-center text-sm text-neutral-600;
+  }
+
+  /* Tables */
+  .prose :where(table) {
+    @apply w-full overflow-hidden rounded-md border border-neutral-200;
+  }
+  .prose :where(thead) {
+    @apply bg-neutral-50;
+  }
+  .prose :where(thead th) {
+    @apply px-3 py-2 text-left text-sm font-semibold text-neutral-700;
+  }
+  .prose :where(tbody td) {
+    @apply px-3 py-2 align-top text-sm border-t border-neutral-200;
+  }
+  .prose :where(tbody tr:nth-child(odd)) {
+    @apply bg-neutral-50/40;
+  }
+
+  /* Details / Summary */
+  .prose :where(details) {
+    @apply my-4 rounded-md border border-neutral-200 p-3;
+  }
+  .prose :where(summary) {
+    @apply cursor-pointer font-medium select-none;
+  }
+
+  /* KBD */
+  .prose :where(kbd) {
+    @apply rounded border border-neutral-300 bg-neutral-100 px-1.5 py-0.5 text-xs font-medium shadow-inner;
+  }
+
+  /* Footnotes */
+  .prose :where(.footnotes) {
+    @apply text-sm text-neutral-600;
+  }
+  .prose :where(.footnotes hr) {
+    @apply mt-12;
+  }
+  .prose :where(a.footnote-ref, a.footnote-backref) {
+    @apply no-underline;
+  }
+
+  /* Anchors on headings */
+  .prose :where(.anchor) {
+    @apply invisible ml-1 no-underline;
+  }
+  .prose
+    :where(h1:hover .anchor, h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, h5:hover .anchor, h6:hover .anchor) {
+    @apply visible;
+  }
+
+  /* Misc spacing tweaks */
+  .prose :where(p > img:only-child) {
+    @apply my-6 mx-auto;
+  }
+  .prose :where(li > p) {
+    @apply my-2;
+  }
+
+  /* Code highlight */
+  .prose :where(pre code .hl) {
+    @apply block -mx-4 px-4 bg-neutral-800/70;
+  }
+
+  /* Callouts */
+  .prose :where(blockquote.info) {
+    @apply border-blue-400 bg-blue-50/50;
+  }
+  .prose :where(blockquote.warn) {
+    @apply border-amber-400 bg-amber-50/50;
+  }
+  .prose :where(blockquote.success) {
+    @apply border-emerald-400 bg-emerald-50/50;
+  }
+
+  /* First/last child */
+  .prose :where(:first-child) {
+    @apply mt-0;
+  }
+  .prose :where(:last-child) {
+    @apply mb-0;
+  }
+
+  /* Invert mode */
+  .invert .prose {
+    @apply text-neutral-100;
+  }
+  .invert .prose :where(a) {
+    @apply decoration-neutral-400 hover:decoration-neutral-200;
+  }
+}
+
+html,
+body,
+* {
+  overscroll-behavior: none;
+  scroll-behavior: smooth;
+}
