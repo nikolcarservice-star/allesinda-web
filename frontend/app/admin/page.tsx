@@ -318,7 +318,7 @@ export default function AdminPage() {
               </TabsTrigger>
               <TabsTrigger value="rentals" variant="modern" className="flex items-center justify-center gap-1.5">
                 <Wrench />
-                <span className="hidden xl:inline">Verleih</span>
+                <span className="hidden xl:inline">Mieten</span>
               </TabsTrigger>
               <TabsTrigger value="bookings" variant="modern" className="flex items-center justify-center gap-1.5">
                 <Calendar />
