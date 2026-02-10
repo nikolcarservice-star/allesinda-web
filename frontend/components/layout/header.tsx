@@ -1669,9 +1669,13 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                     <div className="space-y-6">
                       <nav className="space-y-3">
                         <nav className="space-y-3">
-  {NAV_ITEMS
-    .filter(item => item.type !== "product")
-    .map((item) => (
+{NAV_ITEMS
+  .filter(item => item.type !== "product")
+  .map((item) => (
+    <Link key={item.type}>
+      ...
+    </Link>
+  ))}
                           <button
                             key={item.type}
                             type="button"
