@@ -80,7 +80,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Meister", href: "/", type: "master" },
-  { label: "Produkt", href: "/", type: "product" },
+  //{ label: "Produkt", href: "/", type: "product" },
   { label: "Verleih", href: "/", type: "rental" },
 ]
 
