@@ -81,7 +81,7 @@ const TYPE_CONFIG: Record<
     explorePath: "/?types=product",
   },
   rental: {
-      label: "Verleih",
+      label: "Mieten",
     accent: "bg-purple-500 text-white",
     gradient: "from-purple-600/20 via-purple-500/10 to-transparent",
     bookingPath: (id) => `/booking/rental/${id}`,

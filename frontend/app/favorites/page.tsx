@@ -131,7 +131,7 @@ export default function FavoritesPage() {
               </TabsTrigger>
               <TabsTrigger variant="modern" value="rental" className="flex items-center justify-center gap-1.5">
                 <Home className="shrink-0" />
-                <span>Verleih</span>
+                <span>Mieten</span>
               </TabsTrigger>
             </TabsList>
 

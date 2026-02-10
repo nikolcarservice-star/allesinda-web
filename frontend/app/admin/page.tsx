@@ -133,7 +133,7 @@ export default function AdminPage() {
       badge: overview?.products_unapproved ? { label: `${overview.products_unapproved} ausstehend`, variant: "secondary" as const } : null,
     },
     {
-      metric: "Verleih",
+      metric: "Mieten"
       icon: Wrench,
       all: overview?.total_rentals || 0,
       approved: overview?.rentals_approved || 0,
@@ -219,7 +219,7 @@ export default function AdminPage() {
                       {activeTab === "masters" && "Profile"}
                       {activeTab === "services" && "Service"}
                       {activeTab === "products" && "Produkte"}
-                      {activeTab === "rentals" && "Verleih"}
+                      {activeTab === "rentals" && "Mieten"}
                       {activeTab === "bookings" && "Buchungen"}
                       {activeTab === "featured" && "Empfohlen"}
                       {activeTab === "users" && "Benutzer"}
@@ -262,7 +262,7 @@ export default function AdminPage() {
                 <SelectItem value="rentals">
                   <div className="flex items-center gap-2">
                     <Wrench className="h-4 w-4" />
-                    <span>Verleih</span>
+                    <span>Mieten</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="bookings">

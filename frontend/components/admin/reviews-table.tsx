@@ -279,7 +279,7 @@ export function ReviewsTable() {
                             <SelectItem value="all">Alle</SelectItem>
                             <SelectItem value="service">Dienstleistung</SelectItem>
                             <SelectItem value="product">Produkt</SelectItem>
-                            <SelectItem value="rental">Verleih</SelectItem>
+                            <SelectItem value="rental">Mieten</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -390,7 +390,7 @@ export function ReviewsTable() {
                   <SelectItem value="all">Alle</SelectItem>
                   <SelectItem value="service">Dienstleistung</SelectItem>
                   <SelectItem value="product">Produkt</SelectItem>
-                  <SelectItem value="rental">Verleih</SelectItem>
+                  <SelectItem value="rental">Mieten</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -509,7 +509,7 @@ export function ReviewsTable() {
                             >
                               {review.order_type === "service" ? "Dienstleistung" : 
                                review.order_type === "product" ? "Produkt" : 
-                               review.order_type === "rental" ? "Verleih" : 
+                               review.order_type === "rental" ? "Mieten" : 
                                review.order_type || "N/A"}
                             </Badge>
                             <span className="text-[9px] text-muted-foreground">Bestellung #{review.order_id}</span>
@@ -604,7 +604,7 @@ export function ReviewsTable() {
                             >
                               {review.order_type === "service" ? "Dienstleistung" : 
                                review.order_type === "product" ? "Produkt" : 
-                               review.order_type === "rental" ? "Verleih" : 
+                               review.order_type === "rental" ? "Mieten" : 
                                review.order_type || "N/A"}
                             </Badge>
                             <span className="text-[10px] text-muted-foreground">

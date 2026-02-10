@@ -81,7 +81,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Meister", href: "/", type: "master" },
  // { label: "Produkt", href: "/", type: "product" },
-  { label: "Verleih", href: "/", type: "rental" },
+  { label: "Mieten", href: "/", type: "rental" },
 ]
 
 const DEFAULT_NAV =

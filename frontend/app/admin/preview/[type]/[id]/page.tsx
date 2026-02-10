@@ -44,7 +44,7 @@ const TYPE_CONFIG: Record<
     gradient: "from-blue-600/20 via-blue-500/10 to-transparent",
   },
   rental: {
-    label: "Verleih",
+    label: "Mieten",
     accent: "bg-purple-500 text-white",
     gradient: "from-purple-600/20 via-purple-500/10 to-transparent",
   },

@@ -80,7 +80,7 @@ type RelationshipDisplay = {
 const TYPE_OPTIONS: { value: CategoryType; label: string }[] = [
   { value: "master", label: "Meister" },
   { value: "product", label: "Produkt" },
-  { value: "rental", label: "Verleih" },
+  { value: "rental", label: "Mieten" },
 ]
 
 export function RelationshipManager({ sourceType, sourceId, sourceLabel }: RelationshipManagerProps) {

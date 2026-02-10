@@ -840,7 +840,7 @@ export default function SellerDashboardPage() {
                       <span className="font-medium">
                         {activeTab === "overview" && "Übersicht"}
                         {activeTab === "products" && "Produkt"}
-                        {activeTab === "rentals" && "Verleih"}
+                        {activeTab === "rentals" && "Mieten"}
                         {activeTab === "orders" && "Bestellungen"}
                         {activeTab === "reviews" && "Bewertungen"}
                       </span>
@@ -850,7 +850,7 @@ export default function SellerDashboardPage() {
                 <SelectContent>
                   <SelectItem value="overview">Übersicht</SelectItem>
                   <SelectItem value="products">Produkt</SelectItem>
-                  <SelectItem value="rentals">Verleih</SelectItem>
+                  <SelectItem value="rentals">Mieten</SelectItem>
                   <SelectItem value="orders">Bestellungen</SelectItem>
                   <SelectItem value="reviews">Bewertungen</SelectItem>
                 </SelectContent>
@@ -870,7 +870,7 @@ export default function SellerDashboardPage() {
                 </TabsTrigger>
                 <TabsTrigger value="rentals" className="flex items-center gap-1.5 text-xs">
                   <Home className="h-3.5 w-3.5" />
-                  <span>Verleih</span>
+                  <span>Mieten</span>
                 </TabsTrigger>
                 <TabsTrigger value="orders" className="flex items-center gap-1.5 text-xs">
                   <ShoppingCart className="h-3.5 w-3.5" />
@@ -1097,7 +1097,7 @@ export default function SellerDashboardPage() {
                       <div className="flex items-center justify-between p-2 sm:p-3 rounded-lg border border-border/40 bg-muted/30">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
-                          <span className="text-xs sm:text-sm font-medium truncate">Verleih</span>
+                          <span className="text-xs sm:text-sm font-medium truncate">Mieten</span>
                         </div>
                         <span className="text-xs sm:text-sm font-bold shrink-0 ml-2">{stats.total_rentals}</span>
                       </div>

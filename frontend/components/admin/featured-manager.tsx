@@ -365,7 +365,7 @@ export function FeaturedManager() {
                         <SelectContent>
                           <SelectItem value="master">Meister</SelectItem>
                           <SelectItem value="product">Produkt</SelectItem>
-                          <SelectItem value="rental">Verleih</SelectItem>
+                          <SelectItem value="rental">Mieten</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -482,7 +482,7 @@ export function FeaturedManager() {
               <SelectContent>
                 <SelectItem value="master">Meister</SelectItem>
                 <SelectItem value="product">Produkt</SelectItem>
-                <SelectItem value="rental">Verleih</SelectItem>
+                <SelectItem value="rental">Mieten</SelectItem>
               </SelectContent>
             </Select>
           </div>

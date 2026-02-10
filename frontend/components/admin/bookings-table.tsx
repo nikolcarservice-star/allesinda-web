@@ -268,7 +268,7 @@ export function BookingsTable() {
                           <SelectItem value="all">Alle</SelectItem>
                           <SelectItem value="service">Dienstleistung</SelectItem>
                           <SelectItem value="product">Produkt</SelectItem>
-                          <SelectItem value="rental">Verleih</SelectItem>
+                          <SelectItem value="rental">Mieten</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -338,7 +338,7 @@ export function BookingsTable() {
                 <SelectItem value="all">Alle</SelectItem>
                 <SelectItem value="service">Dienstleistung</SelectItem>
                 <SelectItem value="product">Produkt</SelectItem>
-                <SelectItem value="rental">Verleih</SelectItem>
+                <SelectItem value="rental">Mieten</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -738,7 +738,7 @@ export function BookingsTable() {
                     >
                       {detailsSheet.orderDetails.order_type === "service" ? "Service" : 
                        detailsSheet.orderDetails.order_type === "product" ? "Produkt" : 
-                       detailsSheet.orderDetails.order_type === "rental" ? "Verleih" : 
+                       detailsSheet.orderDetails.order_type === "rental" ? "Mieten" : 
                        detailsSheet.orderDetails.order_type}
                     </Badge>
                   </div>

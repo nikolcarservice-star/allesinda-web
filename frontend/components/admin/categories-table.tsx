@@ -776,7 +776,7 @@ export function CategoriesTable() {
                             <SelectItem value="all">Alle</SelectItem>
                             <SelectItem value="master">Meister</SelectItem>
                             <SelectItem value="product">Produkte</SelectItem>
-                            <SelectItem value="rental">Verleih</SelectItem>
+                            <SelectItem value="rental">Mieten</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -847,7 +847,7 @@ export function CategoriesTable() {
                   <SelectItem value="all">Alle</SelectItem>
                   <SelectItem value="master">Meister</SelectItem>
                   <SelectItem value="product">Produkte</SelectItem>
-                  <SelectItem value="rental">Verleih</SelectItem>
+                  <SelectItem value="rental">Mieten</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1026,7 +1026,7 @@ export function CategoriesTable() {
                                 >
                                   {category.type === "master" ? "Meister" : 
                                  category.type === "product" ? "Produkt" : 
-                                 category.type === "rental" ? "Verleih" : 
+                                 category.type === "rental" ? "Mieten" : 
                                  category.type}
                                 </Badge>
                                 <Badge
@@ -1169,7 +1169,7 @@ export function CategoriesTable() {
                               >
                                 {category.type === "master" ? "Meister" : 
                                  category.type === "product" ? "Produkt" : 
-                                 category.type === "rental" ? "Verleih" : 
+                                 category.type === "rental" ? "Mieten" : 
                                  category.type}
                               </Badge>
                             </TableCell>
@@ -1593,7 +1593,7 @@ export function CategoriesTable() {
                 <SelectContent>
                   <SelectItem value="master">Meister</SelectItem>
                   <SelectItem value="product">Produkt</SelectItem>
-                  <SelectItem value="rental">Verleih</SelectItem>
+                  <SelectItem value="rental">Mieten</SelectItem>
                 </SelectContent>
               </Select>
             </div>

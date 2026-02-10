@@ -804,7 +804,7 @@ export function FeaturedPageContent() {
     const typeLabels: Record<CategoryType, string> = {
       master: "Meister",
       product: "Produkt",
-      rental: "Verleih",
+      rental: "Mieten",
     }
     items.push({
       label: typeLabels[activeType],

@@ -34,7 +34,7 @@ type HomePageContentProps = {
 const HERO_QUICK_LINKS: Array<{ label: string; value: CategoryType }> = [
   { label: "Meister", value: "master" },
   { label: "Produkt", value: "product" },
-  { label: "Verleih", value: "rental" },
+  { label: "Mieten", value: "rental" },
 ]
 
 const VALID_TYPES: readonly CategoryType[] = ["master", "product", "rental"]
