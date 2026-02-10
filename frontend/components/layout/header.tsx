@@ -80,7 +80,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Meister", href: "/", type: "master" },
-// label: "Produkt", href: "/", type: "product" },
+ { label: "Produkt", href: "/", type: "product" },
   { label: "Verleih", href: "/", type: "rental" },
 ]
 
@@ -1668,7 +1668,9 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                   {mobileNavView === "root" && (
                     <div className="space-y-6">
                       <nav className="space-y-3">
-                        {NAV_ITEMS.map((item) => (
+                        NAV_ITEMS
+  .filter(item => item.type !== "product")
+  .map((item) => (
                           <button
                             key={item.type}
                             type="button"
