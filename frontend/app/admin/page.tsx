@@ -133,7 +133,7 @@ export default function AdminPage() {
       badge: overview?.products_unapproved ? { label: `${overview.products_unapproved} ausstehend`, variant: "secondary" as const } : null,
     },
     {
-      metric: "Mieten"
+      metric: "Mieten",
       icon: Wrench,
       all: overview?.total_rentals || 0,
       approved: overview?.rentals_approved || 0,
