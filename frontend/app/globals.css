@@ -13,8 +13,8 @@
   --popover-foreground: oklch(0.15 0.01 264);
   
   /* Primary - Vibrant purple-violet matching logo */
-  --primary: oklch(0.48 0.22 285);
-  --primary-foreground: oklch(0.99 0 0);
+  --primary: #3adcd5;
+  --ring: #3adcd5;
   
   /* Secondary - Soft purple tint */
   --secondary: oklch(0.96 0.008 285);
@@ -25,7 +25,7 @@
   --muted-foreground: oklch(0.45 0.008 264);
   
   /* Accent - Bright purple/violet */
-  --accent: oklch(0.55 0.24 285);
+  --accent: #3adcd5;
   --accent-foreground: oklch(0.99 0 0);
   
   /* Destructive - Modern red */
@@ -59,12 +59,14 @@
   --gap-xl: 2rem;
   --sidebar: oklch(0.99 0 0);
   --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: oklch(0.48 0.22 285);
+  --sidebar-primary: #3adcd5;
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.96 0.008 285);
   --sidebar-accent-foreground: oklch(0.25 0.01 264);
   --sidebar-border: oklch(0.90 0.006 264);
   --sidebar-ring: oklch(0.48 0.22 285);
+  --link-hover: #3adcd5;
+
 }
 
 .dark {
@@ -541,3 +543,8 @@ body,
   overscroll-behavior: none;
   scroll-behavior: smooth;
 }
+
+a:hover {
+  color: var(--link-hover);
+}
+
