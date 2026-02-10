@@ -1668,9 +1668,10 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                   {mobileNavView === "root" && (
                     <div className="space-y-6">
                       <nav className="space-y-3">
-                        NAV_ITEMS
-  .filter(item => item.type !== "product")
-  .map((item) => (
+                        <nav className="space-y-3">
+  {NAV_ITEMS
+    .filter(item => item.type !== "product")
+    .map((item) => (
                           <button
                             key={item.type}
                             type="button"
