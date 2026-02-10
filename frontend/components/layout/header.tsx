@@ -84,7 +84,10 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Verleih", href: "/", type: "rental" },
 ]
 
-const DEFAULT_NAV = NAV_ITEMS.find((item) => item.type === "product") as NavItem
+const DEFAULT_NAV =
+  NAV_ITEMS.find((item) => item.type === "master") ??
+  NAV_ITEMS[0]
+
 
 const createEmptyTree = (): Record<CategoryType, CategoryTree[]> => ({
   master: [],
