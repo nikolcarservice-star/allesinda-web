@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, Fragment } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { cn, getOptimizedImageUrl, normalizeImageUrl } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
 import type { CategoryTree, CategoryType } from "@/lib/api"
 import { SubcategorySection } from "@/components/home/subcategory-section"
 
@@ -206,14 +206,9 @@ export function CategorySection({
 
           const hasImageError = imageErrors[category.id]
           const rawImageUrl = category.image_url && category.image_url.trim() ? category.image_url : null
-          const normUrl = rawImageUrl ? normalizeImageUrl(rawImageUrl) : ""
-          // Use relative /media path (no query params) + unoptimized for mobile compatibility
-          const useRelativeMedia = normUrl.startsWith("/media/files")
           const imageSrc = hasImageError || !rawImageUrl 
             ? PLACEHOLDER_IMAGE 
-            : useRelativeMedia 
-              ? normUrl
-              : getOptimizedImageUrl(rawImageUrl, 'thumbnail')
+            : getOptimizedImageUrl(rawImageUrl, 'thumbnail')
           const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//") && !imageSrc.startsWith("http")
           const isSelected = selectedCategory?.id === category.id
           const categoryName = category.name || "Unnamed Category"
@@ -273,7 +268,7 @@ export function CategorySection({
                         alt={categoryName}
                         fill
                         sizes="(max-width: 640px) 96px, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 80px"
-                        unoptimized={isLocalPath || hasImageError || useRelativeMedia}
+                        unoptimized={isLocalPath || hasImageError || shouldUseUnoptimized(imageSrc)}
                         className="object-cover transition-opacity duration-200"
                         onError={() => handleImageError(category.id)}
                         loading="lazy"
