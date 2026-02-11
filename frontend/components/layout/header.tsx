@@ -1576,8 +1576,11 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
   ]
 
   const renderHighlightCard = (tile: typeof tiles[0], position: number) => {
-    const imageSrc = getOptimizedImageUrl(tile.image, 'card') || "/placeholder.jpg"
-    const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
+    const imageSrc =
+      getOptimizedImageUrl(tile.image, "card") || "/placeholder.jpg"
+
+    const isLocalPath =
+      imageSrc.startsWith("/") && !imageSrc.startsWith("//")
 
     const cardClasses = cn(
       "group relative block w-full overflow-hidden rounded-none border border-neutral-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:border-primary/70 p-0.5",
@@ -1605,13 +1608,15 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
   }
 
   return tiles.map((tile, index) => (
-    <div key={tile.key} className="space-y-3 border-l border-neutral-200 pl-6">
+    <div
+      key={tile.key}
+      className="space-y-3 border-l border-neutral-200 pl-6"
+    >
       {renderHighlightCard(tile, index)}
     </div>
   ))
 })()}
               
-  
   return (
     <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
       {isDesktopMegaMenuOpen && headerHeight > 0 && (
@@ -2214,7 +2219,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
       </Sheet></></></>
         </div>
       </div>
-
+    
     </header>
   )
 }
