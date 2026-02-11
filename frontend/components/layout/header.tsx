@@ -1609,7 +1609,8 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                       {renderHighlightCard(tile, index)}
                     </div>
                   ))
-                })()}
+                })()
+
               </div>
             </div>
           </div>
