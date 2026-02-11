@@ -2055,7 +2055,9 @@ return (
 
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
                 <div className="flex items-center gap-1 rounded-sm border border-border/60 bg-muted/40 p-1">
-                  {NAV_ITEMS.map((item) => {
+                  {NAV_ITEMS
+                    .filter((item) => item.type !== "product") /* Product hidden in mobile */
+                    .map((item) => {
                     const isActive = selectedNavType === item.type;
                     return (
                       <button
