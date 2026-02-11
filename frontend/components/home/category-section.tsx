@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, Fragment } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { cn, getOptimizedImageUrl, normalizeImageUrl } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, normalizeImageUrl, toMediaRelativePath } from "@/lib/utils"
 import type { CategoryTree, CategoryType } from "@/lib/api"
 import { SubcategorySection } from "@/components/home/subcategory-section"
 
@@ -207,12 +207,13 @@ export function CategorySection({
           const hasImageError = imageErrors[category.id]
           const rawImageUrl = category.image_url && category.image_url.trim() ? category.image_url : null
           const normalizedRaw = rawImageUrl ? normalizeImageUrl(rawImageUrl) : ""
-          // Use same image logic as desktop header: prefer backend path with unoptimized so images load on mobile (via rewrite, no CORS)
-          const useRelativeBackendPath = normalizedRaw.startsWith("/media/")
+          // Always use relative /media/ path when possible so images load on mobile via rewrite (no CORS)
+          const relativeMediaPath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
+          const useRelativeBackendPath = relativeMediaPath.length > 0 && relativeMediaPath.startsWith("/")
           const imageSrc = hasImageError || !rawImageUrl
             ? PLACEHOLDER_IMAGE
             : useRelativeBackendPath
-              ? normalizedRaw
+              ? relativeMediaPath
               : getOptimizedImageUrl(rawImageUrl, "thumbnail")
           const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//") && !imageSrc.startsWith("http")
           const isSelected = selectedCategory?.id === category.id
@@ -266,7 +267,7 @@ export function CategorySection({
                         : "border-border/60 group-hover:border-primary/60 group-hover:shadow-md",
                     )}
                   >
-                    <span className="relative h-full w-full overflow-hidden rounded-sm bg-gradient-to-br from-muted/20 to-muted/5">
+                    <span className="relative h-full w-full min-h-[1px] min-w-[1px] overflow-hidden rounded-sm bg-gradient-to-br from-muted/20 to-muted/5">
                       <Image
                         key={`${category.id}-${category.updated_at || category.image_url || 'fallback'}`}
                         src={imageSrc}

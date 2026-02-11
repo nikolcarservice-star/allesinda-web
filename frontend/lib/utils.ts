@@ -115,6 +115,26 @@ export function normalizeImageUrl(url: string | undefined | null): string {
 }
 
 /**
+ * Converts any backend media URL (absolute or relative) to a relative path
+ * so the browser loads it via the app origin (rewrite), avoiding CORS on mobile.
+ */
+export function toMediaRelativePath(url: string | undefined | null): string {
+  if (!url) return '';
+  const normalized = normalizeImageUrl(url);
+  if (!normalized) return '';
+  if (normalized.startsWith('/') && !normalized.startsWith('//')) return normalized;
+  if (/^https?:\/\//i.test(normalized)) {
+    try {
+      const u = new URL(normalized);
+      if (u.pathname.includes('/media/')) return u.pathname + (u.search || '');
+    } catch {
+      // ignore
+    }
+  }
+  return normalized;
+}
+
+/**
  * Image optimization presets for different use cases
  */
 export type ImageOptimizationPreset = 
