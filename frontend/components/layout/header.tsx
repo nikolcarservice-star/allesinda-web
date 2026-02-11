@@ -1668,27 +1668,35 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-6 py-6">
-                  {mobileNavView === "root" && (
-                    <div className="space-y-6">
-                      <nav className="space-y-3">
-                        {NAV_ITEMS.map((item) => (
-                          <button
-                            key={item.type}
-                            type="button"
-                            onClick={() => {
-                              // Close sheet immediately
-                              setIsMobileMenuOpen(false)
-                              setSelectedNavType(item.type)
-                              // Navigate immediately without waiting for sheet close animation
-                              router.push(`/?types=${item.type}`, { scroll: false })
-                            }}
-                            className={mobileNavButtonClass}
-                          >
-                            <span>{item.label}</span>
-                            <ChevronRight className="h-4 w-4 text-neutral-500" aria-hidden="true" />
-                          </button>
-                        ))}
-                      </nav>
+  {mobileNavView === "root" && (
+    <div className="space-y-6">
+      <nav className="space-y-3">
+        {NAV_ITEMS
+          .filter((item) => item.type !== "product") 
+          .map((item) => (
+            <button
+              key={item.type}
+              type="button"
+              onClick={() => {
+                // Close sheet immediately
+                setIsMobileMenuOpen(false)
+                setSelectedNavType(item.type)
+                router.push(`/?types=${item.type}`, { scroll: false })
+              }}
+              className={mobileNavButtonClass}
+            >
+              <span>{item.label}</span>
+              <ChevronRight
+                className="h-4 w-4 text-neutral-500"
+                aria-hidden="true"
+              />
+            </button>
+          ))}
+      </nav>
+    </div>
+  )}
+</div>
+
 
                     <div className="space-y-4 border-t border-black/20 pt-4">
                       {loading ? (
