@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, Fragment } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { cn, getOptimizedImageUrl, normalizeImageUrl, toMediaRelativePath } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
 import type { CategoryTree, CategoryType } from "@/lib/api"
 import { SubcategorySection } from "@/components/home/subcategory-section"
 
@@ -23,6 +23,7 @@ interface CategorySectionProps {
   onCatalogCategoryClick?: (category: CategoryTree) => void
   onCloseSubcategory?: () => void
   isSubcategorySectionVisible?: boolean
+  isMobile?: boolean
 }
 
 export function CategorySection({
@@ -38,6 +39,7 @@ export function CategorySection({
   allCategories = [],
   onCatalogCategoryClick,
   onCloseSubcategory,
+  isMobile = false,
 }: CategorySectionProps) {
   const [imageErrors, setImageErrors] = useState<Record<string | number, boolean>>({})
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -206,10 +208,9 @@ export function CategorySection({
 
           const hasImageError = imageErrors[category.id]
           const rawImageUrl = category.image_url && category.image_url.trim() ? category.image_url : null
-          const normalizedRaw = rawImageUrl ? normalizeImageUrl(rawImageUrl) : ""
-          // Always use relative /media/ path when possible so images load on mobile via rewrite (no CORS)
+          // On mobile: use relative /media/ path so images load via rewrite (no CORS). On desktop: use optimized URL as before.
           const relativeMediaPath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
-          const useRelativeBackendPath = relativeMediaPath.length > 0 && relativeMediaPath.startsWith("/")
+          const useRelativeBackendPath = isMobile && relativeMediaPath.length > 0 && relativeMediaPath.startsWith("/")
           const imageSrc = hasImageError || !rawImageUrl
             ? PLACEHOLDER_IMAGE
             : useRelativeBackendPath

@@ -666,6 +666,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
                 allCategories={categoryTree.filter(cat => cat.id !== -1)}
                 onCatalogCategoryClick={handleCatalogCategoryClick}
                 onCloseSubcategory={handleCloseSubcategory}
+                isMobile={isMobile}
               />
             </div>
           ) : (
