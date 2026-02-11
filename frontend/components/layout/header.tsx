@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter, useSearchParams, type ReadonlyURLSearchParams } from "next/navigation"
+import type { MouseEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Menu,
@@ -240,7 +241,7 @@ export function Header() {
     if (pathname === "/") {
       const typeParam = searchParams?.get("types") ?? searchParams?.get("type")
       if (typeParam) {
-        const requestedType = typeParam.split(",").find((value) =>
+        const requestedType = typeParam.split(",").find((value: string) =>
           ["master", "product", "rental"].includes(value)
         ) as CategoryType | undefined
         if (requestedType) {
@@ -333,11 +334,11 @@ export function Header() {
   )
   const recentlyViewedHighlightLookup = useMemo(() => {
     const lookup = new Map<string, HighlightItem>()
-    for (const item of recentlyViewedHighlights) {
+    recentlyViewedHighlights.forEach((item: HighlightItem) => {
       if (item.href) {
         lookup.set(item.href, item)
       }
-    }
+    })
     return lookup
   }, [recentlyViewedHighlights])
 
@@ -423,7 +424,7 @@ export function Header() {
     // This ensures the UI reflects the URL state when navigating to a new URL
     // When user changes city in combobox, it updates state directly via onCityChange,
     // and then when they click Search, the URL is updated with the city_id, which triggers this effect
-    setSearchCityId((currentCityId) => {
+    setSearchCityId((currentCityId: number | undefined) => {
       if (newCityId !== currentCityId) {
         // Debug: Log cityId sync
         if (process.env.NODE_ENV === 'development') {
@@ -758,7 +759,7 @@ export function Header() {
       }
 
       if (trimmed) {
-        const nextEntries = [trimmed, ...recentSearches.filter((term) => term.toLowerCase() !== trimmed.toLowerCase())].slice(0, 8)
+        const nextEntries = [trimmed, ...recentSearches.filter((term: string) => term.toLowerCase() !== trimmed.toLowerCase())].slice(0, 8)
         persistRecentSearches(nextEntries)
       }
 
@@ -819,7 +820,7 @@ export function Header() {
       router.push(targetUrl)
       
       if (trimmed) {
-        const nextEntries = [trimmed, ...recentSearches.filter((term) => term.toLowerCase() !== trimmed.toLowerCase())].slice(0, 8)
+        const nextEntries = [trimmed, ...recentSearches.filter((term: string) => term.toLowerCase() !== trimmed.toLowerCase())].slice(0, 8)
         persistRecentSearches(nextEntries)
       }
       
@@ -850,7 +851,7 @@ export function Header() {
       router.push(targetUrl)
       
       if (trimmed) {
-        const nextEntries = [trimmed, ...recentSearches.filter((term) => term.toLowerCase() !== trimmed.toLowerCase())].slice(0, 8)
+        const nextEntries = [trimmed, ...recentSearches.filter((term: string) => term.toLowerCase() !== trimmed.toLowerCase())].slice(0, 8)
         persistRecentSearches(nextEntries)
       }
       
@@ -1246,7 +1247,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
         return
       }
 
-      setTrendingByType((prev) => ({
+      setTrendingByType((prev: TrendingState) => ({
         ...prev,
         [type]: {
           status: "loading",
@@ -1297,7 +1298,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
           }),
         )
 
-        setTrendingByType((prev) => ({
+        setTrendingByType((prev: TrendingState) => ({
           ...prev,
           [type]: {
             status: "ready",
@@ -1306,7 +1307,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
         }))
       } catch (error) {
         logger.error("Failed to load featured items:", error)
-        setTrendingByType((prev) => ({
+        setTrendingByType((prev: TrendingState) => ({
           ...prev,
           [type]: {
             status: "error",
@@ -1331,7 +1332,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
         return
       }
 
-      setCategoryHighlights((prev) => ({
+      setCategoryHighlights((prev: HighlightsState) => ({
         ...prev,
         [key]: {
           status: "loading",
@@ -1353,7 +1354,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
         })
         items = response.items.map(mapFeaturedItemToHighlight).slice(0, 2)
 
-        setCategoryHighlights((prev) => ({
+        setCategoryHighlights((prev: HighlightsState) => ({
           ...prev,
           [key]: {
             status: "ready",
@@ -1362,7 +1363,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
         }))
       } catch (error) {
         if (error instanceof ApiClientError && error.statusCode === 404) {
-          setCategoryHighlights((prev) => ({
+          setCategoryHighlights((prev: HighlightsState) => ({
             ...prev,
             [key]: {
               status: "ready",
@@ -1374,7 +1375,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
             category: category.slug,
             type: nav.type,
           })
-          setCategoryHighlights((prev) => ({
+          setCategoryHighlights((prev: HighlightsState) => ({
             ...prev,
             [key]: {
               status: "ready",
@@ -1383,7 +1384,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
           }))
         } else {
           logger.error("Failed to load top rated highlights:", error)
-          setCategoryHighlights((prev) => ({
+          setCategoryHighlights((prev: HighlightsState) => ({
             ...prev,
             [key]: {
               status: "error",
@@ -1406,11 +1407,11 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
       setActiveHighlightCategory(null)
       return
     }
-    setActiveHighlightCategory((prev) => {
-      if (prev && descendants.some((child) => child.id === prev.id)) {
+    setActiveHighlightCategory((prev: CategoryTree | null) => {
+      if (prev && descendants.some((child: CategoryTree) => child.id === prev.id)) {
         return prev
       }
-      return descendants.find((child) => child.slug) ?? descendants[0]
+      return descendants.find((child: CategoryTree) => child.slug) ?? descendants[0]
     })
   }, [hoveredCategory])
 
@@ -1466,9 +1467,9 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
 
     const nav = NAV_ITEMS.find((item) => item.type === hoveredNavType) ?? selectedNav
     const childCategories = hoveredCategory.children ?? []
-    const topCategories = childCategories.filter((child) => child.slug)
-    const popularSubcategories = childCategories.flatMap((child) =>
-      (child.children ?? []).filter((grand) => grand.slug)
+    const topCategories = childCategories.filter((child: CategoryTree) => child.slug)
+    const popularSubcategories = childCategories.flatMap((child: CategoryTree) =>
+      (child.children ?? []).filter((grand: CategoryTree) => grand.slug)
     )
     const combinedSubcategories = [...topCategories, ...popularSubcategories]
     const DISPLAY_SUBCATEGORY_LIMIT = 15
@@ -1483,8 +1484,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
 
 return (
   <div className="hidden lg:block absolute inset-x-0 top-full z-[60] bg-white">
-    <div
-      ref={megaMenuContainerRef}
+    <div ref={megaMenuContainerRef}
       className="container mx-auto px-sides"
       onMouseLeave={closeDesktopMegaMenu}
     >
@@ -1580,67 +1580,50 @@ return (
                 </div>
               )}
             </div>
+
+            {(() => {
+              const tiles = [
+                { key: "featured-items", image: "/featured.webp", title: "Featured Items", href: "/?sort=featured" },
+                { key: "trending-items", image: "/trending.webp", title: "Trending Items", href: "/?sort=trending_desc" },
+              ]
+              const renderHighlightCard = (tile: (typeof tiles)[0], position: number) => {
+                const imageSrc = getOptimizedImageUrl(tile.image, "card") || "/placeholder.jpg"
+                const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
+                const cardClasses = cn(
+                  "group relative block w-full overflow-hidden rounded-none border border-neutral-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:border-primary/70 p-0.5",
+                  position === 0 ? "" : "mt-0"
+                )
+                return (
+                  <Link key={tile.key} href={tile.href} className={cardClasses}>
+                    <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+                      <Image
+                        src={imageSrc}
+                        alt={tile.title}
+                        fill
+                        unoptimized={isLocalPath}
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        sizes="(max-width: 1024px) 100vw, 300px"
+                      />
+                    </div>
+                  </Link>
+                )
+              }
+              return tiles.map((tile, index) => (
+                <div key={tile.key} className="space-y-3 border-l border-neutral-200 pl-6">
+                  {renderHighlightCard(tile, index)}
+                </div>
+              ))
+            })()}
           </div>
         </div>
       </div>
     </div>
   </div>
 )
-
-{(() => {
-  const tiles = [
-    {
-      key: "featured-items",
-      image: "/featured.webp",
-      title: "Featured Items",
-      href: "/?sort=featured",
-    },
-    {
-      key: "trending-items",
-      image: "/trending.webp",
-      title: "Trending Items",
-      href: "/?sort=trending_desc",
-    },
-  ]
-
-  const renderHighlightCard = (tile: typeof tiles[0], position: number) => {
-    const imageSrc = getOptimizedImageUrl(tile.image, "card") || "/placeholder.jpg"
-    const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-
-    const cardClasses = cn(
-      "group relative block w-full overflow-hidden rounded-none border border-neutral-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:border-primary/70 p-0.5",
-      position === 0 ? "" : "mt-0"
-    )
-
-    const content = (
-      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
-        <Image
-          src={imageSrc}
-          alt={tile.title}
-          fill
-          unoptimized={isLocalPath}
-          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-          sizes="(max-width: 1024px) 100vw, 300px"
-        />
-      </div>
-    )
-
-    return (
-      <Link key={tile.key} href={tile.href} className={cardClasses}>
-        {content}
-      </Link>
-    )
   }
 
-  return tiles.map((tile, index) => (
-    <div key={tile.key} className="space-y-3 border-l border-neutral-200 pl-6">
-      {renderHighlightCard(tile, index)}
-    </div>
-  ))
-})()}
-     
-return (
-  <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
+  return (
+    <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
     {isDesktopMegaMenuOpen && headerHeight > 0 && (
       <div
         className="fixed inset-x-0 bottom-0 hidden lg:block z-[45] bg-black/55 transition-opacity duration-200 pointer-events-none"
@@ -1739,7 +1722,6 @@ return (
                         if (kind === "cart") {
                           return (
                             <AllesindaCartModal
-                              key="mobile-cart"
                               renderTrigger={({ onClick, totalItems }) => (
                                 <button
                                   type="button"
@@ -1852,7 +1834,7 @@ return (
               <Link
                 key={item.type}
                 href={`/?types=${item.type}`}
-                onClick={(event) => {
+                onClick={(event: MouseEvent<HTMLAnchorElement>) => {
                   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
                   event.preventDefault();
                   setSelectedNavType(item.type);
@@ -2043,7 +2025,7 @@ return (
         {/* Mobile Search Panel */}
         <Sheet
           open={isSearchPanelOpen}
-          onOpenChange={(next) => {
+          onOpenChange={(next: boolean) => {
             setIsSearchPanelOpen(next);
             if (next) {
               requestAnimationFrame(() => {
@@ -2133,5 +2115,4 @@ return (
     </div>
   </header>
 );
-  }
-};
+}
