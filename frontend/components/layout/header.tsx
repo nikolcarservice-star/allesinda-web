@@ -1698,6 +1698,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
 </div>
 
 
+
                     <div className="space-y-4 border-t border-black/20 pt-4">
                       {loading ? (
                         <div className="space-y-3">
