@@ -1595,6 +1595,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                         />
                       </div>
                     )
+                  }
 
                     return (
                       <Link key={tile.key} href={tile.href} className={cardClasses}>
@@ -2216,7 +2217,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
             </div>
           </div>
         </SheetContent>
-      </Sheet></></>
+      </Sheet></></></>
         </div>
       </div>
 
