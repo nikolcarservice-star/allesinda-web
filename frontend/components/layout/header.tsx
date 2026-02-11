@@ -1619,29 +1619,26 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
   }
 
   return (
-    <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
+    <><header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
       {isDesktopMegaMenuOpen && headerHeight > 0 && (
         <div
           className="fixed inset-x-0 bottom-0 hidden lg:block z-[45] bg-black/55 transition-opacity duration-200 pointer-events-none"
           style={{ top: `${headerHeight + megaMenuHeight}px` }}
           role="presentation"
-          aria-hidden="true"
-        />
+          aria-hidden="true" />
       )}
       {isDesktopSearchSuggestionsOpen && (
         <div
           className="fixed inset-0 hidden lg:block z-[55] bg-black/65"
           role="presentation"
-          aria-hidden="true"
-        />
+          aria-hidden="true" />
       )}
       {isSearchPanelOpen && (
         <div
           className="fixed inset-0 z-[65] bg-black/70"
           role="presentation"
           aria-hidden="true"
-          onClick={() => setIsSearchPanelOpen(false)}
-        />
+          onClick={() => setIsSearchPanelOpen(false)} />
       )}
       <div className="bg-white text-black">
         <div className="container mx-auto px-sides h-16 flex items-center gap-2 sm:gap-3">
@@ -1668,580 +1665,560 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-6 py-6">
-  {mobileNavView === "root" && (
-    <div className="space-y-6">
-      <nav className="space-y-3">
-        {NAV_ITEMS
-          .filter((item) => item.type !== "product")
-          .map((item) => (
-            <button
-              key={item.type}
-              type="button"
-              onClick={() => {
-                setIsMobileMenuOpen(false)
-                setSelectedNavType(item.type)
-                router.push(`/?types=${item.type}`, { scroll: false })
-              }}
-              className={mobileNavButtonClass}
-            >
-              <span>{item.label}</span>
-              <ChevronRight
-                className="h-4 w-4 text-neutral-500"
-                aria-hidden="true"
-              />
-            </button>
-          ))}
-      </nav>
-    </div>
-  )}
-</div>
-
-
-
-                    <div className="space-y-4 border-t border-black/20 pt-4">
-                      {loading ? (
-                        <div className="space-y-3">
-                          <div className="h-4 w-2/3 rounded bg-neutral-200 animate-pulse" />
-                          <div className="h-10 w-full rounded bg-neutral-200 animate-pulse" />
-                        </div>
-                      ) : (
-                        <nav className="space-y-2">
-                          {accountNavigationRows.map((row, index) => {
-                            const { kind } = row
-                              if (kind === "break") {
-                                return (
-                                  <div
-                                    key={`divider-${index}`}
-                                    className="my-2 border-t border-neutral-200"
-                                  />
-                                )
-                              }
-
-                              if (kind === "cart") {
-                                return (
-                                  <AllesindaCartModal
-                                    key="mobile-cart"
-                                    renderTrigger={({ onClick, totalItems }) => (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          // Open cart without closing mobile menu - cart will overlay it
-                                          onClick()
-                                        }}
-                                        className={mobileListItemWithIconClass}
-                                      >
-                                        <row.icon className="h-4 w-4 text-neutral-600" />
-                                        <span className="flex-1 text-left">{row.label}</span>
-                                        {totalItems > 0 && (
-                                          <Badge
-                                            variant="secondary"
-                                            className="ml-auto h-5 min-w-[1.25rem] px-2 text-[11px] font-semibold leading-none"
-                                          >
-                                            {totalItems > 9 ? "9+" : totalItems}
-                                          </Badge>
-                                        )}
-                                      </button>
-                                    )}
-                                  />
-                                )
-                              }
-
-                              if (kind === "auth" && !user) {
-                                return (
-                                  <SheetClose asChild key="mobile-sign-in">
-                                      <Link href="/login" className={mobileListItemWithIconClass}>
-                                      <LogIn className="h-4 w-4 text-neutral-600" />
-                                      <span className="flex-1 text-left">Anmelden</span>
-                                    </Link>
-                                  </SheetClose>
-                                )
-                              }
-
-                              if (kind === "role" && mobileRoleLink && RoleIcon) {
-                                return (
-                                  <SheetClose asChild key="mobile-role-link">
-                                    <Link href={mobileRoleLink.href} className={mobileListItemWithIconClass}>
-                                      <RoleIcon className="h-4 w-4 text-neutral-600" />
-                                      <span className="flex-1 text-left">{mobileRoleLink.label}</span>
-                                    </Link>
-                                  </SheetClose>
-                                )
-                              }
-
-                              if (kind === "role" || kind === "auth") {
-                                return null
-                              }
-
-                              return (
-                                <SheetClose asChild key={row.href}>
-                                  <Link href={row.href ?? "#"} className={mobileListItemWithIconClass}>
-                                    <row.icon className="h-4 w-4 text-neutral-600" />
-                                    <span className="flex-1 text-left">{row.label}</span>
-                                    {row.badge && (
-                                      <Badge variant="secondary" className="ml-auto h-5 px-2 text-[11px] font-semibold">
-                                        {row.badge}
-                                      </Badge>
-                                    )}
-                                  </Link>
-                                </SheetClose>
-                              )
-                            }
-                          )}
-                        </nav>
-                      )}
-                    </div>
+                  {mobileNavView === "root" && (
+                    <div className="space-y-6">
+                      <nav className="space-y-3">
+                        {NAV_ITEMS
+                          .filter((item) => item.type !== "product")
+                          .map((item) => (
+                            <button
+                              key={item.type}
+                              type="button"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false)
+                                setSelectedNavType(item.type)
+                                router.push(`/?types=${item.type}`, { scroll: false })
+                              } }
+                              className={mobileNavButtonClass}
+                            >
+                              <span>{item.label}</span>
+                              <ChevronRight
+                                className="h-4 w-4 text-neutral-500"
+                                aria-hidden="true" />
+                            </button>
+                          ))}
+                      </nav>
                     </div>
                   )}
-
                 </div>
-                {user && (
-                  <div className="border-t border-neutral-200 bg-neutral-50 px-6 py-5">
+
+
+
+                <div className="space-y-4 border-t border-black/20 pt-4">
+                  {loading ? (
                     <div className="space-y-3">
-                      <div className="space-y-1">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                          Angemeldet als
-                        </p>
-                        <p className="text-sm font-medium text-neutral-900 truncate">{user.email}</p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full rounded-md border-neutral-300 font-semibold"
-                        onClick={() => {
-                          logout()
-                          handleMobileMenuChange(false)
-                        }}
-                      >
-                        <LogOut className="h-4 w-4 mr-2" aria-hidden="true" /> Abmelden
-                      </Button>
+                      <div className="h-4 w-2/3 rounded bg-neutral-200 animate-pulse" />
+                      <div className="h-10 w-full rounded bg-neutral-200 animate-pulse" />
                     </div>
-                  </div>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
+                  ) : (
+                    <nav className="space-y-2">
+                      {accountNavigationRows.map((row, index) => {
+                        const { kind } = row
+                        if (kind === "break") {
+                          return (
+                            <div
+                              key={`divider-${index}`}
+                              className="my-2 border-t border-neutral-200" />
+                          )
+                        }
 
-          <Link href="/" className="flex items-center shrink-0 -ml-1 min-w-0">
-            <div className="relative h-8 w-[100px] xs:h-9 xs:w-[120px] sm:h-10 sm:w-[140px]">
-              <Image
-                src="/logo_dark.webp"
-                alt="Allesinda Logo"
-                fill
-                className="object-contain object-left"
-                priority
-                sizes="(max-width: 640px) 120px, 140px"
-              />
-            </div>
-          </Link>
+                        if (kind === "cart") {
+                          return (
+                            <AllesindaCartModal
+                              key="mobile-cart"
+                              renderTrigger={({ onClick, totalItems }) => (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    // Open cart without closing mobile menu - cart will overlay it
+                                    onClick()
+                                  } }
+                                  className={mobileListItemWithIconClass}
+                                >
+                                  <row.icon className="h-4 w-4 text-neutral-600" />
+                                  <span className="flex-1 text-left">{row.label}</span>
+                                  {totalItems > 0 && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="ml-auto h-5 min-w-[1.25rem] px-2 text-[11px] font-semibold leading-none"
+                                    >
+                                      {totalItems > 9 ? "9+" : totalItems}
+                                    </Badge>
+                                  )}
+                                </button>
+                              )} />
+                          )
+                        }
 
-          <nav
-            className="hidden lg:flex items-center gap-1.5 ml-4"
-            role="tablist"
-            aria-label="Empfohlene Navigation"
-          >
-            {NAV_ITEMS.map((item) => {
-              const isActive = selectedNavType === item.type
-              return (
-                <Link
-                  key={item.type}
-                  href={`/?types=${item.type}`}
-                  onClick={(event) => {
-                    if (
-                      event.defaultPrevented ||
-                      event.metaKey ||
-                      event.ctrlKey ||
-                      event.shiftKey ||
-                      event.altKey ||
-                      event.button !== 0
-                    ) {
-                      return
-                    }
+                        if (kind === "auth" && !user) {
+                          return (
+                            <SheetClose asChild key="mobile-sign-in">
+                              <Link href="/login" className={mobileListItemWithIconClass}>
+                                <LogIn className="h-4 w-4 text-neutral-600" />
+                                <span className="flex-1 text-left">Anmelden</span>
+                              </Link>
+                            </SheetClose>
+                          )
+                        }
 
-                    event.preventDefault()
+                        if (kind === "role" && mobileRoleLink && RoleIcon) {
+                          return (
+                            <SheetClose asChild key="mobile-role-link">
+                              <Link href={mobileRoleLink.href} className={mobileListItemWithIconClass}>
+                                <RoleIcon className="h-4 w-4 text-neutral-600" />
+                                <span className="flex-1 text-left">{mobileRoleLink.label}</span>
+                              </Link>
+                            </SheetClose>
+                          )
+                        }
 
-                    setSelectedNavType(item.type)
-                    router.push(`/?types=${item.type}`)
-                  }}
-                  className={cn(
-                    "flex h-10 items-center rounded-sm px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 cursor-pointer",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-black/70 hover:bg-primary/10 hover:text-primary"
-                  )}
-                  style={{ cursor: "pointer" }}
-                  role="tab"
-                  aria-selected={isActive}
-                >
-                  {item.label}
-                </Link>
-              )
-            })}
-          </nav>
+                        if (kind === "role" || kind === "auth") {
+                          return null
+                        }
 
-          <div className="hidden lg:flex flex-1 max-w-2xl ml-4">
-            <HeaderSearchBar
-              variant="desktop"
-              value={searchValue}
-              onValueChange={setSearchValue}
-              cityId={searchCityId}
-              onCityChange={setSearchCityId}
-              onSubmit={handleSearchSubmit}
-              recentSearches={recentSearches}
-              onRecentSelect={handleSearchSubmit}
-              onClearRecent={handleClearRecent}
-              trendingItems={trendingForSelected.items}
-              trendingStatus={trendingForSelected.status}
-              onTrendingSelect={handleTrendingSelect}
-              recentlyViewed={recentlyViewedDisplayItems}
-              onRecentlyViewedSelect={handleRecentlyViewedSelect}
-              onRecentlyViewedRemove={handleRemoveRecentlyViewedItem}
-              onClearRecentlyViewed={handleClearRecentlyViewed}
-              onExploreTrending={handleExploreTrending}
-              onOpenChange={setIsDesktopSearchSuggestionsOpen}
-            />
-          </div>
-
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none lg:hidden shrink-0"
-              aria-label="Suchpanel öffnen"
-              onClick={() => setIsSearchPanelOpen(true)}
-            >
-              <SearchIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-
-            {user && (
-              <Link
-                href="/favorites"
-                className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none lg:hidden shrink-0"
-                aria-label="Favoriten"
-              >
-                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Link>
-            )}
-
-            {user && (
-              <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
-                <AllesindaCartModal
-                  triggerClassName="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none shrink-0"
-                  iconClassName="text-current h-4 w-4 sm:h-5 sm:w-5"
-                />
-              </div>
-            )}
-
-            <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none shrink-0"
-                    aria-label="Kontomenü"
-                  >
-                    <User className="text-current h-[20px] w-[20px] sm:h-5 sm:w-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <nav className="min-w-[220px] py-2">
-                    {user ? (
-                      <>
-                        <div className="px-3 py-2 border-b border-border/60">
-                          <p className="text-sm font-semibold truncate">{user.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                        </div>
-                        <DropdownMenuItem asChild>
-                          <Link href="/profile" className="flex items-center gap-3 text-sm">
-                            <User className="h-4 w-4 text-neutral-500" />
-                            <span>Profil</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/favorites" className="flex items-center gap-3 text-sm">
-                            <Heart className="h-4 w-4 text-neutral-500" />
-                            <span>Favoriten</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/notifications" className="flex items-center gap-3 text-sm">
-                            <Bell className="h-4 w-4 text-neutral-500" />
-                            <span>Benachrichtigungen</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/bookings" className="flex items-center gap-3 text-sm">
-                            <CalendarCheck className="h-4 w-4 text-neutral-500" />
-                            <span>Buchungen</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/messages" className="flex items-center gap-3 text-sm">
-                            <MessageSquare className="h-4 w-4 text-neutral-500" />
-                            <span>Nachrichten</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        {user.role === "master" && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/dashboard/master" className="flex items-center gap-3 text-sm">
-                              <Award className="h-4 w-4 text-neutral-500" />
-                              <span>Mein Dashboard</span>
+                        return (
+                          <SheetClose asChild key={row.href}>
+                            <Link href={row.href ?? "#"} className={mobileListItemWithIconClass}>
+                              <row.icon className="h-4 w-4 text-neutral-600" />
+                              <span className="flex-1 text-left">{row.label}</span>
+                              {row.badge && (
+                                <Badge variant="secondary" className="ml-auto h-5 px-2 text-[11px] font-semibold">
+                                  {row.badge}
+                                </Badge>
+                              )}
                             </Link>
-                          </DropdownMenuItem>
-                        )}
-                        {user.role === "seller" && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/dashboard/seller" className="flex items-center gap-3 text-sm">
-                              <Store className="h-4 w-4 text-neutral-500" />
-                              <span>Mein Dashboard</span>
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
-                        {user.role === "admin" && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin" className="flex items-center gap-3 text-sm">
-                              <Shield className="h-4 w-4 text-neutral-500" />
-                              <span>Admin-Panel</span>
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => logout()}
-                          className="text-base focus:text-white flex items-center gap-3"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          <span>Abmelden</span>
-                        </DropdownMenuItem>
-                      </>
-                    ) : (
-                      <DropdownMenuItem asChild>
-                        <Link href="/login" className="flex items-center gap-3 text-sm">
-                          <LogIn className="h-4 w-4 text-neutral-500" />
-                          <span>Anmelden</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                  </nav>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {user && (
-              <div className="hidden items-center gap-2 lg:flex">
-                <AllesindaCartModal
-                  triggerClassName="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
-                  iconClassName="text-current"
-                />
-                <NotificationDropdown />
-                <Link
-                  href="/messages"
-                  className="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
-                  aria-label="Nachrichten"
-                >
-                  <MessageSquare className="h-5 w-5" />
-                </Link>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="hidden h-10 w-10 rounded-sm bg-black/10 animate-pulse lg:block" />
-            ) : (
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="hidden h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none lg:flex"
-                      aria-label="Kontomenü"
-                    >
-                      <User className="h-5 w-5" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <nav className="min-w-[220px] py-2">
-                    {user ? (
-                      <>
-                        <div className="px-3 py-2 border-b border-border/60">
-                          <p className="text-sm font-semibold truncate">{user.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                        </div>
-                        <DropdownMenuItem asChild>
-                          <Link href="/profile" className="flex items-center gap-3 text-sm">
-                            <User className="h-4 w-4 text-neutral-500" />
-                            <span>Profil</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/favorites" className="flex items-center gap-3 text-sm">
-                            <Heart className="h-4 w-4 text-neutral-500" />
-                            <span>Favoriten</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/notifications" className="flex items-center gap-3 text-sm">
-                            <Bell className="h-4 w-4 text-neutral-500" />
-                            <span>Benachrichtigungen</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/bookings" className="flex items-center gap-3 text-sm">
-                            <CalendarCheck className="h-4 w-4 text-neutral-500" />
-                            <span>Buchungen</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/messages" className="flex items-center gap-3 text-sm">
-                            <MessageSquare className="h-4 w-4 text-neutral-500" />
-                            <span>Nachrichten</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        {user.role === "master" && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/dashboard/master" className="flex items-center gap-3 text-sm">
-                              <Award className="h-4 w-4 text-neutral-500" />
-                              <span>Mein Dashboard</span>
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
-                        {user.role === "seller" && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/dashboard/seller" className="flex items-center gap-3 text-sm">
-                              <Store className="h-4 w-4 text-neutral-500" />
-                              <span>Mein Dashboard</span>
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
-                        {user.role === "admin" && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin" className="flex items-center gap-3 text-sm">
-                              <Shield className="h-4 w-4 text-neutral-500" />
-                              <span>Admin-Panel</span>
-                            </Link>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => logout()}
-                          className="text-base focus:text-white flex items-center gap-3"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          <span>Abmelden</span>
-                        </DropdownMenuItem>
-                      </>
-                    ) : (
-                      <DropdownMenuItem asChild>
-                        <Link href="/login" className="flex items-center gap-3 text-sm">
-                          <LogIn className="h-4 w-4 text-neutral-500" />
-                          <span>Anmelden</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
+                          </SheetClose>
+                        )
+                      }
+                      )}
                     </nav>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-
-          <Sheet
-            open={isSearchPanelOpen}
-            onOpenChange={(next) => {
-              setIsSearchPanelOpen(next)
-              if (next) {
-                requestAnimationFrame(() => {
-                  searchPanelInputRef.current?.focus()
-                })
-              }
-            }}
-          >
-            <SheetContent
-              side="right"
-              showClose={false}
-              className="z-[70] w-full max-w-sm sm:w-[420px] md:w-[440px] px-0"
-              overlayClassName="pointer-events-none z-[60] bg-transparent"
-            >
-              <div className="flex h-full flex-col bg-white">
-                <div className="relative border-b border-border/60 px-6 py-4 flex items-center justify-between">
-                  <div>
-                    <SheetTitle className="text-base font-semibold text-neutral-900">Suchen</SheetTitle>
-                    <SheetDescription className="sr-only">
-                      Geben Sie eine Abfrage ein und wählen Sie Meister, Produkt oder Verleih aus, um Ihre Ergebnisse zu verfeinern.
-                    </SheetDescription>
-                  </div>
-                  <SheetClose className="flex h-8 w-8 items-center justify-center rounded-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
-                    <span className="flex w-full justify-end pr-1">
-                      <X className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                    <span className="sr-only">Suchpanel schließen</span>
-                  </SheetClose>
-                </div>
-
-                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-                  <div className="flex items-center gap-1 rounded-sm border border-border/60 bg-muted/40 p-1">
-                    {NAV_ITEMS.map((item) => {
-                      const isActive = selectedNavType === item.type
-                      return (
-                        <button
-                          key={item.type}
-                          type="button"
-                          onClick={() => {
-                            setSelectedNavType(item.type)
-                            requestAnimationFrame(() => {
-                              searchPanelInputRef.current?.focus()
-                            })
-                          }}
-                          className={cn(
-                            "flex-1 rounded-sm px-3 py-1.5 text-center text-xs font-semibold transition-all duration-200",
-                            isActive ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-primary hover:bg-white/50"
-                          )}
-                        >
-                          {item.label}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  <HeaderSearchBar
-                    variant="desktop"
-                    value={searchValue}
-                    onValueChange={setSearchValue}
-                    cityId={searchCityId}
-                    onCityChange={setSearchCityId}
-                    showInlineCity={false}
-                    onSubmit={handleSearchSubmitAndClose}
-                    placeholder={`Suchen ${selectedNav.label.toLowerCase()}`}
-                    onInputRef={(node) => {
-                      searchPanelInputRef.current = node
-                    }}
-                    recentSearches={recentSearches}
-                    onRecentSelect={handleSearchSubmitAndClose}
-                    onClearRecent={handleClearRecent}
-                    trendingItems={trendingForSelected.items}
-                    trendingStatus={trendingForSelected.status}
-                    onTrendingSelect={(item) => {
-                      handleTrendingSelect(item)
-                      setIsSearchPanelOpen(false)
-                    }}
-                    recentlyViewed={recentlyViewedDisplayItems}
-                    onRecentlyViewedSelect={(item) => {
-                      handleRecentlyViewedSelect(item)
-                      setIsSearchPanelOpen(false)
-                    }}
-                    onRecentlyViewedRemove={(item) => {
-                      handleRemoveRecentlyViewedItem(item)
-                      setIsSearchPanelOpen(false)
-                    }}
-                    onClearRecentlyViewed={handleClearRecentlyViewed}
-                    onExploreTrending={() => {
-                      handleExploreTrending()
-                      setIsSearchPanelOpen(false)
-                    }}
-                  />
+                  )}
                 </div>
               </div>
-            </SheetContent>
-          </Sheet>
+              )}
+
+            </div>
+            {user && (
+              <div className="border-t border-neutral-200 bg-neutral-50 px-6 py-5">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Angemeldet als
+                    </p>
+                    <p className="text-sm font-medium text-neutral-900 truncate">{user.email}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full rounded-md border-neutral-300 font-semibold"
+                    onClick={() => {
+                      logout()
+                      handleMobileMenuChange(false)
+                    } }
+                  >
+                    <LogOut className="h-4 w-4 mr-2" aria-hidden="true" /> Abmelden
+                  </Button>
+                </div>
+              </div>
+            )}
+          </></div>
+      </SheetContent>
+    </Sheet><Link href="/" className="flex items-center shrink-0 -ml-1 min-w-0">
+        <div className="relative h-8 w-[100px] xs:h-9 xs:w-[120px] sm:h-10 sm:w-[140px]">
+          <Image
+            src="/logo_dark.webp"
+            alt="Allesinda Logo"
+            fill
+            className="object-contain object-left"
+            priority
+            sizes="(max-width: 640px) 120px, 140px" />
+        </div>
+      </Link><nav
+        className="hidden lg:flex items-center gap-1.5 ml-4"
+        role="tablist"
+        aria-label="Empfohlene Navigation"
+      >
+        {NAV_ITEMS.map((item) => {
+          const isActive = selectedNavType === item.type
+          return (
+            <Link
+              key={item.type}
+              href={`/?types=${item.type}`}
+              onClick={(event) => {
+                if (event.defaultPrevented ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey ||
+                  event.button !== 0) {
+                  return
+                }
+
+                event.preventDefault()
+
+                setSelectedNavType(item.type)
+                router.push(`/?types=${item.type}`)
+              } }
+              className={cn(
+                "flex h-10 items-center rounded-sm px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 cursor-pointer",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-black/70 hover:bg-primary/10 hover:text-primary"
+              )}
+              style={{ cursor: "pointer" }}
+              role="tab"
+              aria-selected={isActive}
+            >
+              {item.label}
+            </Link>
+          )
+        })}
+      </nav><div className="hidden lg:flex flex-1 max-w-2xl ml-4">
+        <HeaderSearchBar
+          variant="desktop"
+          value={searchValue}
+          onValueChange={setSearchValue}
+          cityId={searchCityId}
+          onCityChange={setSearchCityId}
+          onSubmit={handleSearchSubmit}
+          recentSearches={recentSearches}
+          onRecentSelect={handleSearchSubmit}
+          onClearRecent={handleClearRecent}
+          trendingItems={trendingForSelected.items}
+          trendingStatus={trendingForSelected.status}
+          onTrendingSelect={handleTrendingSelect}
+          recentlyViewed={recentlyViewedDisplayItems}
+          onRecentlyViewedSelect={handleRecentlyViewedSelect}
+          onRecentlyViewedRemove={handleRemoveRecentlyViewedItem}
+          onClearRecentlyViewed={handleClearRecentlyViewed}
+          onExploreTrending={handleExploreTrending}
+          onOpenChange={setIsDesktopSearchSuggestionsOpen} />
+      </div><div className="ml-auto flex items-center gap-1 sm:gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none lg:hidden shrink-0"
+          aria-label="Suchpanel öffnen"
+          onClick={() => setIsSearchPanelOpen(true)}
+        >
+          <SearchIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+        </Button>
+
+        {user && (
+          <Link
+            href="/favorites"
+            className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none lg:hidden shrink-0"
+            aria-label="Favoriten"
+          >
+            <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Link>
+        )}
+
+        {user && (
+          <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
+            <AllesindaCartModal
+              triggerClassName="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none shrink-0"
+              iconClassName="text-current h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+        )}
+
+        <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none shrink-0"
+                aria-label="Kontomenü"
+              >
+                <User className="text-current h-[20px] w-[20px] sm:h-5 sm:w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <nav className="min-w-[220px] py-2">
+                {user ? (
+                  <>
+                    <div className="px-3 py-2 border-b border-border/60">
+                      <p className="text-sm font-semibold truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="flex items-center gap-3 text-sm">
+                        <User className="h-4 w-4 text-neutral-500" />
+                        <span>Profil</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/favorites" className="flex items-center gap-3 text-sm">
+                        <Heart className="h-4 w-4 text-neutral-500" />
+                        <span>Favoriten</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/notifications" className="flex items-center gap-3 text-sm">
+                        <Bell className="h-4 w-4 text-neutral-500" />
+                        <span>Benachrichtigungen</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/bookings" className="flex items-center gap-3 text-sm">
+                        <CalendarCheck className="h-4 w-4 text-neutral-500" />
+                        <span>Buchungen</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/messages" className="flex items-center gap-3 text-sm">
+                        <MessageSquare className="h-4 w-4 text-neutral-500" />
+                        <span>Nachrichten</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    {user.role === "master" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/master" className="flex items-center gap-3 text-sm">
+                          <Award className="h-4 w-4 text-neutral-500" />
+                          <span>Mein Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {user.role === "seller" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/seller" className="flex items-center gap-3 text-sm">
+                          <Store className="h-4 w-4 text-neutral-500" />
+                          <span>Mein Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {user.role === "admin" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="flex items-center gap-3 text-sm">
+                          <Shield className="h-4 w-4 text-neutral-500" />
+                          <span>Admin-Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => logout()}
+                      className="text-base focus:text-white flex items-center gap-3"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Abmelden</span>
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link href="/login" className="flex items-center gap-3 text-sm">
+                      <LogIn className="h-4 w-4 text-neutral-500" />
+                      <span>Anmelden</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+              </nav>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {user && (
+          <div className="hidden items-center gap-2 lg:flex">
+            <AllesindaCartModal
+              triggerClassName="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
+              iconClassName="text-current" />
+            <NotificationDropdown />
+            <Link
+              href="/messages"
+              className="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
+              aria-label="Nachrichten"
+            >
+              <MessageSquare className="h-5 w-5" />
+            </Link>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="hidden h-10 w-10 rounded-sm bg-black/10 animate-pulse lg:block" />
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="hidden h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none lg:flex"
+                aria-label="Kontomenü"
+              >
+                <User className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <nav className="min-w-[220px] py-2">
+                {user ? (
+                  <>
+                    <div className="px-3 py-2 border-b border-border/60">
+                      <p className="text-sm font-semibold truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="flex items-center gap-3 text-sm">
+                        <User className="h-4 w-4 text-neutral-500" />
+                        <span>Profil</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/favorites" className="flex items-center gap-3 text-sm">
+                        <Heart className="h-4 w-4 text-neutral-500" />
+                        <span>Favoriten</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/notifications" className="flex items-center gap-3 text-sm">
+                        <Bell className="h-4 w-4 text-neutral-500" />
+                        <span>Benachrichtigungen</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/bookings" className="flex items-center gap-3 text-sm">
+                        <CalendarCheck className="h-4 w-4 text-neutral-500" />
+                        <span>Buchungen</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/messages" className="flex items-center gap-3 text-sm">
+                        <MessageSquare className="h-4 w-4 text-neutral-500" />
+                        <span>Nachrichten</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    {user.role === "master" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/master" className="flex items-center gap-3 text-sm">
+                          <Award className="h-4 w-4 text-neutral-500" />
+                          <span>Mein Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {user.role === "seller" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/seller" className="flex items-center gap-3 text-sm">
+                          <Store className="h-4 w-4 text-neutral-500" />
+                          <span>Mein Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {user.role === "admin" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="flex items-center gap-3 text-sm">
+                          <Shield className="h-4 w-4 text-neutral-500" />
+                          <span>Admin-Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => logout()}
+                      className="text-base focus:text-white flex items-center gap-3"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Abmelden</span>
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link href="/login" className="flex items-center gap-3 text-sm">
+                      <LogIn className="h-4 w-4 text-neutral-500" />
+                      <span>Anmelden</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+              </nav>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div><Sheet
+        open={isSearchPanelOpen}
+        onOpenChange={(next) => {
+          setIsSearchPanelOpen(next)
+          if (next) {
+            requestAnimationFrame(() => {
+              searchPanelInputRef.current?.focus()
+            })
+          }
+        } }
+      >
+        <SheetContent
+          side="right"
+          showClose={false}
+          className="z-[70] w-full max-w-sm sm:w-[420px] md:w-[440px] px-0"
+          overlayClassName="pointer-events-none z-[60] bg-transparent"
+        >
+          <div className="flex h-full flex-col bg-white">
+            <div className="relative border-b border-border/60 px-6 py-4 flex items-center justify-between">
+              <div>
+                <SheetTitle className="text-base font-semibold text-neutral-900">Suchen</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Geben Sie eine Abfrage ein und wählen Sie Meister, Produkt oder Verleih aus, um Ihre Ergebnisse zu verfeinern.
+                </SheetDescription>
+              </div>
+              <SheetClose className="flex h-8 w-8 items-center justify-center rounded-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
+                <span className="flex w-full justify-end pr-1">
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="sr-only">Suchpanel schließen</span>
+              </SheetClose>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              <div className="flex items-center gap-1 rounded-sm border border-border/60 bg-muted/40 p-1">
+                {NAV_ITEMS.map((item) => {
+                  const isActive = selectedNavType === item.type
+                  return (
+                    <button
+                      key={item.type}
+                      type="button"
+                      onClick={() => {
+                        setSelectedNavType(item.type)
+                        requestAnimationFrame(() => {
+                          searchPanelInputRef.current?.focus()
+                        })
+                      } }
+                      className={cn(
+                        "flex-1 rounded-sm px-3 py-1.5 text-center text-xs font-semibold transition-all duration-200",
+                        isActive ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-primary hover:bg-white/50"
+                      )}
+                    >
+                      {item.label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <HeaderSearchBar
+                variant="desktop"
+                value={searchValue}
+                onValueChange={setSearchValue}
+                cityId={searchCityId}
+                onCityChange={setSearchCityId}
+                showInlineCity={false}
+                onSubmit={handleSearchSubmitAndClose}
+                placeholder={`Suchen ${selectedNav.label.toLowerCase()}`}
+                onInputRef={(node) => {
+                  searchPanelInputRef.current = node
+                } }
+                recentSearches={recentSearches}
+                onRecentSelect={handleSearchSubmitAndClose}
+                onClearRecent={handleClearRecent}
+                trendingItems={trendingForSelected.items}
+                trendingStatus={trendingForSelected.status}
+                onTrendingSelect={(item) => {
+                  handleTrendingSelect(item)
+                  setIsSearchPanelOpen(false)
+                } }
+                recentlyViewed={recentlyViewedDisplayItems}
+                onRecentlyViewedSelect={(item) => {
+                  handleRecentlyViewedSelect(item)
+                  setIsSearchPanelOpen(false)
+                } }
+                onRecentlyViewedRemove={(item) => {
+                  handleRemoveRecentlyViewedItem(item)
+                  setIsSearchPanelOpen(false)
+                } }
+                onClearRecentlyViewed={handleClearRecentlyViewed}
+                onExploreTrending={() => {
+                  handleExploreTrending()
+                  setIsSearchPanelOpen(false)
+                } } />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet></>
         </div>
       </div>
 
