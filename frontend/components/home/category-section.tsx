@@ -256,9 +256,9 @@ export function CategorySection({
                     "w-full"
                   )}
                 >
-                  <span
-                    className={cn(
-                      "relative h-20 w-20 flex-shrink-0 rounded-sm border-1 bg-white transition-all duration-200",
+                    <span
+                      className={cn(
+                        "relative h-24 w-24 sm:h-20 sm:w-20 flex-shrink-0 rounded-sm border-1 bg-white transition-all duration-200",
                       "flex items-center justify-center p-0.5",
                       "shadow-sm",
                       isSelected
@@ -272,7 +272,7 @@ export function CategorySection({
                         src={imageSrc}
                         alt={categoryName}
                         fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 80px"
+                        sizes="(max-width: 640px) 96px, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 80px"
                         unoptimized={isLocalPath || hasImageError || useRelativeMedia}
                         className="object-cover transition-opacity duration-200"
                         onError={() => handleImageError(category.id)}
