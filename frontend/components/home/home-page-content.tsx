@@ -601,14 +601,14 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
       {/* Category and Subcategory Section */}
       <section className="bg-gray-200 border-none pt-3 pb-3 sm:pt-3 sm:pb-3 md:pt-4 md:pb-4 lg:pt-6 lg:pb-6">
         <div className="container mx-auto px-sides">
-          {/* Mobile Nav Type Selector - Only visible on small screens */}
+          {/* Mobile Nav Type Selector - Only visible on small screens (Product hidden) */}
           <div className="mb-4 md:hidden">
             <nav
               className="flex items-center justify-center gap-0.5 p-1 bg-muted/40 rounded-lg border border-border/60 shadow-sm"
               role="tablist"
               aria-label="Featured navigation"
             >
-              {HERO_QUICK_LINKS.map((link) => {
+              {HERO_QUICK_LINKS.filter((link) => link.value !== "product").map((link) => {
                 const isActive = isMounted && selectedNavType === link.value
                 return (
                   <button
