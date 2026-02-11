@@ -207,12 +207,12 @@ export function CategorySection({
           const hasImageError = imageErrors[category.id]
           const rawImageUrl = category.image_url && category.image_url.trim() ? category.image_url : null
           const normUrl = rawImageUrl ? normalizeImageUrl(rawImageUrl) : ""
-          // Use relative /media path + unoptimized for mobile compatibility (rewrite proxies to API; avoids Next.js image optimizer issues on mobile)
+          // Use relative /media path (no query params) + unoptimized for mobile compatibility
           const useRelativeMedia = normUrl.startsWith("/media/files")
           const imageSrc = hasImageError || !rawImageUrl 
             ? PLACEHOLDER_IMAGE 
             : useRelativeMedia 
-              ? `${normUrl}${normUrl.includes("?") ? "&" : "?"}w=300&h=300&q=80`
+              ? normUrl
               : getOptimizedImageUrl(rawImageUrl, 'thumbnail')
           const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//") && !imageSrc.startsWith("http")
           const isSelected = selectedCategory?.id === category.id
