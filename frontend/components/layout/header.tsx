@@ -1479,87 +1479,115 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
       effectiveHighlightCategory != null ? buildHighlightKey(nav, effectiveHighlightCategory) : null
     const highlightState = highlightKey ? categoryHighlights[highlightKey] : undefined
     const highlightItems = highlightState?.items ?? []
-    const highlightStatus = highlightState?.status ?? "idle"
+   const highlightStatus = highlightState?.status ?? "idle"
 
-    return (
-        <div className="hidden lg:block absolute inset-x-0 top-full z-[60] bg-white">
-        <div ref={megaMenuContainerRef}
-          className="container mx-auto px-sides"
-          onMouseLeave={closeDesktopMegaMenu}
-        >
-          <div className="bg-white border-t border-neutral-900/30">
-            <div className="px-4 py-3">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_240px_240px]">
-                <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
-                  {displaySubcategories.map((category) => {
-                    const rawImageUrl = (category.image_url && category.image_url.trim()) || (hoveredCategory.image_url && hoveredCategory.image_url.trim()) || null
-                    let imageSrc = rawImageUrl ? getOptimizedImageUrl(rawImageUrl, 'thumbnail') : PLACEHOLDER_IMAGE
-                    const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                    
-                    const isActive = activeHighlightCategory?.id === category.id
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => handleCategoryNavigate(nav, hoveredCategory, category.slug)}
-                        onMouseEnter={() => {
-                          setActiveHighlightCategory(category)
-                          setHoveredNavType(nav.type)
-                        }}
-                        onFocus={() => {
-                          setActiveHighlightCategory(category)
-                          setHoveredNavType(nav.type)
-                        }}
-                        className={cn(
-                          "group flex flex-col items-center gap-2 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "relative h-20 w-20 flex-shrink-0 rounded-full border-1 bg-white transition-all duration-200 flex items-center justify-center p-0.5",
-                            isActive
-                              ? "border-primary scale-105"
-                              : "border-border/60 group-hover:border-primary group-hover:scale-105",
-                          )}
-                        >
-                          <span className="relative h-full w-full overflow-hidden rounded-full">
-                            <Image
-                              key={`${category.id}-${category.updated_at || category.image_url}`}
-                              src={imageSrc}
-                              alt={category.name}
-                              fill
-                              sizes="80px"
-                              unoptimized={isLocalPath}
-                              className="object-cover transition-transform duration-200 group-hover:scale-105"
-                            />
-                          </span>
-                        </span>
-                        <p
-                          className={cn(
-                            "text-sm font-medium transition-colors duration-200",
-                            isActive ? "text-primary" : "text-neutral-800 group-hover:text-primary",
-                          )}
-                        >
-                          {category.name}
-                        </p>
-                      </button>
-                    )
-                  })}
-                  {remainingSubcategoryCount > 0 && (
-                    <div className="col-span-full flex w-full">
-                      <button
-                        type="button"
-                        onClick={() => handleCategoryNavigate(nav, hoveredCategory)}
-                        className="group flex w-full items-center justify-between gap-3 border-t border-dashed border-primary/60 pt-4 text-sm font-semibold uppercase tracking-wide text-primary transition hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                      >
-                        <span>View {remainingSubcategoryCount} more subcategor{remainingSubcategoryCount === 1 ? "y" : "ies"}</span>
-                        <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                      </button>
-                    </div>
-                  )}
+return (
+  <div className="hidden lg:block absolute inset-x-0 top-full z-[60] bg-white">
+    <div
+      ref={megaMenuContainerRef}
+      className="container mx-auto px-sides"
+      onMouseLeave={closeDesktopMegaMenu}
+    >
+      <div className="bg-white border-t border-neutral-900/30">
+        <div className="px-4 py-3">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_240px_240px]">
+            <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+              {displaySubcategories.map((category) => {
+                const rawImageUrl =
+                  (category.image_url && category.image_url.trim()) ||
+                  (hoveredCategory.image_url && hoveredCategory.image_url.trim()) ||
+                  null
+
+                let imageSrc = rawImageUrl
+                  ? getOptimizedImageUrl(rawImageUrl, "thumbnail")
+                  : PLACEHOLDER_IMAGE
+
+                const isLocalPath =
+                  imageSrc.startsWith("/") && !imageSrc.startsWith("//")
+
+                const isActive = activeHighlightCategory?.id === category.id
+
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() =>
+                      handleCategoryNavigate(nav, hoveredCategory, category.slug)
+                    }
+                    onMouseEnter={() => {
+                      setActiveHighlightCategory(category)
+                      setHoveredNavType(nav.type)
+                    }}
+                    onFocus={() => {
+                      setActiveHighlightCategory(category)
+                      setHoveredNavType(nav.type)
+                    }}
+                    className={cn(
+                      "group flex flex-col items-center gap-2 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "relative h-20 w-20 flex-shrink-0 rounded-full border-1 bg-white transition-all duration-200 flex items-center justify-center p-0.5",
+                        isActive
+                          ? "border-primary scale-105"
+                          : "border-border/60 group-hover:border-primary group-hover:scale-105"
+                      )}
+                    >
+                      <span className="relative h-full w-full overflow-hidden rounded-full">
+                        <Image
+                          key={`${category.id}-${category.updated_at || category.image_url}`}
+                          src={imageSrc}
+                          alt={category.name}
+                          fill
+                          sizes="80px"
+                          unoptimized={isLocalPath}
+                          className="object-cover transition-transform duration-200 group-hover:scale-105"
+                        />
+                      </span>
+                    </span>
+
+                    <p
+                      className={cn(
+                        "text-sm font-medium transition-colors duration-200",
+                        isActive
+                          ? "text-primary"
+                          : "text-neutral-800 group-hover:text-primary"
+                      )}
+                    >
+                      {category.name}
+                    </p>
+                  </button>
+                )
+              })}
+
+              {remainingSubcategoryCount > 0 && (
+                <div className="col-span-full flex w-full">
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryNavigate(nav, hoveredCategory)}
+                    className="group flex w-full items-center justify-between gap-3 border-t border-dashed border-primary/60 pt-4 text-sm font-semibold uppercase tracking-wide text-primary transition hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    <span>
+                      View {remainingSubcategoryCount} more subcategor
+                      {remainingSubcategoryCount === 1 ? "y" : "ies"}
+                    </span>
+                    <ChevronRight
+                      className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)
 
-                {(() => {
+{(() => {
   const tiles = [
     {
       key: "featured-items",
@@ -1576,11 +1604,8 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
   ]
 
   const renderHighlightCard = (tile: typeof tiles[0], position: number) => {
-    const imageSrc =
-      getOptimizedImageUrl(tile.image, "card") || "/placeholder.jpg"
-
-    const isLocalPath =
-      imageSrc.startsWith("/") && !imageSrc.startsWith("//")
+    const imageSrc = getOptimizedImageUrl(tile.image, "card") || "/placeholder.jpg"
+    const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
 
     const cardClasses = cn(
       "group relative block w-full overflow-hidden rounded-none border border-neutral-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:border-primary/70 p-0.5",
@@ -1608,14 +1633,12 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
   }
 
   return tiles.map((tile, index) => (
-    <div
-      key={tile.key}
-      className="space-y-3 border-l border-neutral-200 pl-6"
-    >
+    <div key={tile.key} className="space-y-3 border-l border-neutral-200 pl-6">
       {renderHighlightCard(tile, index)}
     </div>
   ))
 })()}
+
               
   return (
     <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
