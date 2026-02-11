@@ -2133,4 +2133,4 @@ return (
     </div>
   </header>
 );
-  }
+};
