@@ -1608,7 +1608,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                       {renderHighlightCard(tile, index)}
                     </div>
                   ))
-                })()
+                })()}
 
               </div>
             </div>
@@ -1616,8 +1616,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
         </div>
       </div>
     )
-  }
-
+  
   return (
     <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
       {isDesktopMegaMenuOpen && headerHeight > 0 && (
