@@ -1672,13 +1672,12 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
     <div className="space-y-6">
       <nav className="space-y-3">
         {NAV_ITEMS
-          .filter((item) => item.type !== "product") 
+          .filter((item) => item.type !== "product")
           .map((item) => (
             <button
               key={item.type}
               type="button"
               onClick={() => {
-                // Close sheet immediately
                 setIsMobileMenuOpen(false)
                 setSelectedNavType(item.type)
                 router.push(`/?types=${item.type}`, { scroll: false })
