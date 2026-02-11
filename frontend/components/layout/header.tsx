@@ -1483,8 +1483,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
 
     return (
         <div className="hidden lg:block absolute inset-x-0 top-full z-[60] bg-white">
-        <div
-          ref={megaMenuContainerRef}
+        <div ref={megaMenuContainerRef}
           className="container mx-auto px-sides"
           onMouseLeave={closeDesktopMegaMenu}
         >
