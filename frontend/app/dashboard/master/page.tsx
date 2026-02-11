@@ -3,7 +3,7 @@
 // Force dynamic rendering to avoid static generation issues
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -194,21 +194,18 @@ export default function MasterDashboardPage() {
   const [promotionDialogOpen, setPromotionDialogOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window !== 'undefined') {
-      return window.innerWidth < 640
+      return window.matchMedia('(max-width: 639px)').matches
     }
     return false
   })
 
   useEffect(() => {
-    // Check if mobile screen
     if (typeof window === 'undefined') return
-    
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640) // sm breakpoint
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    const mql = window.matchMedia('(max-width: 639px)')
+    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    setIsMobile(mql.matches)
+    mql.addEventListener('change', handleChange)
+    return () => mql.removeEventListener('change', handleChange)
   }, [])
 
   useEffect(() => {
@@ -262,6 +259,8 @@ export default function MasterDashboardPage() {
       clearTimeout(timer)
     }
   }, [cityQuery])
+
+  const loadDataRef = useRef<() => Promise<void>>(null as any)
 
   const loadData = async () => {
     try {
@@ -335,6 +334,7 @@ export default function MasterDashboardPage() {
       setLoading(false)
     }
   }
+  loadDataRef.current = loadData
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -476,25 +476,42 @@ export default function MasterDashboardPage() {
     }
   }
 
-  const handleDeleteMedia = async (mediaId: number) => {
+  const handleDeleteMedia = useCallback(async (mediaId: number) => {
     if (!confirm("Sind Sie sicher, dass Sie dieses Medium löschen möchten?")) return
-
     try {
       setLoading(true)
       await deleteMedia(mediaId)
-      setMedia(media.filter((m) => m.id !== mediaId))
+      setMedia((prev: Media[]) => prev.filter((m: Media) => m.id !== mediaId))
       toast.success("Medium erfolgreich gelöscht")
-      loadData()
+      loadDataRef.current?.()
     } catch (error: any) {
       toast.error(error?.message || "Fehler beim Löschen des Mediums")
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleVideoClick = (item: Media) => {
+  const handleVideoClick = useCallback((item: Media) => {
     setSelectedVideo(item)
-  }
+  }, [])
+
+  const onDeleteMediaItem = useCallback((mediaItem: Media) => {
+    handleDeleteMedia(mediaItem.id)
+  }, [handleDeleteMedia])
+
+  const handleCompleteOrder = useCallback(async (order: Order) => {
+    if (!confirm("Sind Sie sicher, dass Sie diese Bestellung als abgeschlossen markieren möchten?")) return
+    try {
+      setCompletingOrderId(order.id)
+      await completeOrder(order.id)
+      toast.success("Bestellung als abgeschlossen markiert")
+      loadDataRef.current?.()
+    } catch (error: any) {
+      toast.error(error?.message || "Fehler beim Abschließen der Bestellung")
+    } finally {
+      setCompletingOrderId(null)
+    }
+  }, [])
 
   const handleAddAvailability = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -1949,7 +1966,7 @@ export default function MasterDashboardPage() {
                           showStatusBadge={false}
                           showTypeBadge={true}
                           onVideoClick={item.media_type === "video" ? handleVideoClick : undefined}
-                          onDelete={(mediaItem) => handleDeleteMedia(mediaItem.id)}
+                          onDelete={onDeleteMediaItem}
                           isDeleting={loading}
                         />
                       ))}
@@ -2659,20 +2676,7 @@ export default function MasterDashboardPage() {
                                     <Button
                                       variant="default"
                                       size="sm"
-                                      onClick={async () => {
-                                        if (!confirm("Sind Sie sicher, dass Sie diese Bestellung als abgeschlossen markieren möchten?")) return
-                                        
-                                        try {
-                                          setCompletingOrderId(order.id)
-                                          await completeOrder(order.id)
-                                          toast.success("Bestellung als abgeschlossen markiert")
-                                          loadData()
-                                        } catch (error: any) {
-                                          toast.error(error?.message || "Fehler beim Abschließen der Bestellung")
-                                        } finally {
-                                          setCompletingOrderId(null)
-                                        }
-                                      }}
+                                      onClick={() => handleCompleteOrder(order)}
                                       disabled={completingOrderId === order.id}
                                       className="h-7 text-[10px] bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md transition-all px-2 disabled:opacity-50"
                                     >
@@ -2750,20 +2754,7 @@ export default function MasterDashboardPage() {
                                   <Button
                                       variant="default"
                                     size="sm"
-                                    onClick={async () => {
-                                        if (!confirm("Sind Sie sicher, dass Sie diese Bestellung als abgeschlossen markieren möchten?")) return
-                                        
-                                      try {
-                                          setCompletingOrderId(order.id)
-                                          await completeOrder(order.id)
-                                        toast.success("Bestellung als abgeschlossen markiert")
-                                        loadData()
-                                      } catch (error: any) {
-                                          toast.error(error?.message || "Fehler beim Abschließen der Bestellung")
-                                        } finally {
-                                          setCompletingOrderId(null)
-                                        }
-                                      }}
+                                    onClick={() => handleCompleteOrder(order)}
                                       disabled={completingOrderId === order.id}
                                       className="h-8 text-xs bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md transition-all disabled:opacity-50"
                                     >
