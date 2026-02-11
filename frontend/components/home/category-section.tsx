@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, Fragment } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { cn, getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
+import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import type { CategoryTree, CategoryType } from "@/lib/api"
 import { SubcategorySection } from "@/components/home/subcategory-section"
 
@@ -268,7 +268,7 @@ export function CategorySection({
                         alt={categoryName}
                         fill
                         sizes="(max-width: 640px) 96px, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 80px"
-                        unoptimized={isLocalPath || hasImageError || shouldUseUnoptimized(imageSrc)}
+                        unoptimized={isLocalPath || hasImageError}
                         className="object-cover transition-opacity duration-200"
                         onError={() => handleImageError(category.id)}
                         loading="lazy"
