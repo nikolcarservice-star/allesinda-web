@@ -243,7 +243,7 @@ export default function SellerDashboardPage() {
         })),
         getMyOrders({ page: 1, page_size: 50 }).catch(() => ({ items: [], total: 0, page: 1, page_size: 50, total_pages: 0 })),
         user ? getSellerReviews(user.id, { page: 1, page_size: 20 }).catch(() => ({ items: [], total: 0, page: 1, page_size: 20, total_pages: 0 })) : Promise.resolve({ items: [], total: 0, page: 1, page_size: 20, total_pages: 0 }),
-        getGermanCities().catch(() => ({ items: [] as Array<{ id: number; name: string }> } as any)),
+        getGermanCities({ limit: 500 }).catch(() => ({ items: [] as Array<{ id: number; name: string }> } as any)),
         getCategoriesByType('product', { activeOnly: true, rootOnly: true }).catch(() => []),
         getCategoriesByType('rental', { activeOnly: true, rootOnly: true }).catch(() => []),
       ])

@@ -43,13 +43,13 @@ export function CityCombobox({
 	}, [cities, value])
 	const displayLabel = selectedName || "Alle Städte"
 
-	// initial load
+	// initial load — request enough items for full German cities list
 	useEffect(() => {
 		let cancelled = false
 		;(async () => {
 			try {
 				setLoading(true)
-				const res = await getGermanCities()
+				const res = await getGermanCities({ limit: 500 })
 				if (cancelled) return
 				const items = ((res as any)?.items || []).map((c: any) => ({
 					id: c.id,
@@ -75,8 +75,8 @@ export function CityCombobox({
 				setLoading(true)
 				const params =
 					query && query.trim().length > 0
-						? ({ q: query.trim(), limit: 100 } as any)
-						: ({} as any)
+						? ({ q: query.trim(), limit: 500 } as any)
+						: ({ limit: 500 } as any)
 				const res = await getGermanCities(params)
 				if (cancelled) return
 				const items = ((res as any)?.items || []).map((c: any) => ({

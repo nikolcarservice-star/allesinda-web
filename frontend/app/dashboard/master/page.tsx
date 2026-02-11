@@ -220,7 +220,7 @@ export default function MasterDashboardPage() {
     ;(async () => {
       try {
         setCitiesLoading(true)
-        const res = await getGermanCities()
+        const res = await getGermanCities({ limit: 500 })
         const items = (res.items || []).map((c: any) => ({
           id: c.id,
           name: c.name,
@@ -242,7 +242,7 @@ export default function MasterDashboardPage() {
     const timer = setTimeout(async () => {
       try {
         setCitiesLoading(true)
-        const res = await getGermanCities(cityQuery && cityQuery.trim().length > 0 ? { q: cityQuery.trim(), limit: 100 } as any : {} as any)
+        const res = await getGermanCities(cityQuery && cityQuery.trim().length > 0 ? { q: cityQuery.trim(), limit: 500 } as any : { limit: 500 } as any)
         if (cancelled) return
         const items = (res.items || []).map((c: any) => ({
           id: c.id,
