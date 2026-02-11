@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, Fragment } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { cn, getOptimizedImageUrl } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, normalizeImageUrl } from "@/lib/utils"
 import type { CategoryTree, CategoryType } from "@/lib/api"
 import { SubcategorySection } from "@/components/home/subcategory-section"
 
@@ -206,9 +206,14 @@ export function CategorySection({
 
           const hasImageError = imageErrors[category.id]
           const rawImageUrl = category.image_url && category.image_url.trim() ? category.image_url : null
-          const imageSrc = hasImageError || !rawImageUrl 
-            ? PLACEHOLDER_IMAGE 
-            : getOptimizedImageUrl(rawImageUrl, 'thumbnail')
+          const normalizedRaw = rawImageUrl ? normalizeImageUrl(rawImageUrl) : ""
+          // Use same image logic as desktop header: prefer backend path with unoptimized so images load on mobile (via rewrite, no CORS)
+          const useRelativeBackendPath = normalizedRaw.startsWith("/media/")
+          const imageSrc = hasImageError || !rawImageUrl
+            ? PLACEHOLDER_IMAGE
+            : useRelativeBackendPath
+              ? normalizedRaw
+              : getOptimizedImageUrl(rawImageUrl, "thumbnail")
           const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//") && !imageSrc.startsWith("http")
           const isSelected = selectedCategory?.id === category.id
           const categoryName = category.name || "Unnamed Category"
@@ -268,7 +273,7 @@ export function CategorySection({
                         alt={categoryName}
                         fill
                         sizes="(max-width: 640px) 96px, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 80px"
-                        unoptimized={isLocalPath || hasImageError}
+                        unoptimized={isLocalPath || hasImageError || useRelativeBackendPath}
                         className="object-cover transition-opacity duration-200"
                         onError={() => handleImageError(category.id)}
                         loading="lazy"
