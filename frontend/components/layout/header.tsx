@@ -1620,6 +1620,7 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
 
   return (
     <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
+      
       {isDesktopMegaMenuOpen && headerHeight > 0 && (
         <div
           className="fixed inset-x-0 bottom-0 hidden lg:block z-[45] bg-black/55 transition-opacity duration-200 pointer-events-none"
