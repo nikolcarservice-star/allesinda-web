@@ -1560,63 +1560,57 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
                 </div>
 
                 {(() => {
-                  const tiles = [
-                    {
-                      key: "featured-items",
-                      image: "/featured.webp",
-                      title: "Featured Items",
-                      href: "/?sort=featured",
-                    },
-                    {
-                      key: "trending-items",
-                      image: "/trending.webp",
-                      title: "Trending Items",
-                      href: "/?sort=trending_desc",
-                    },
-                  ]
+  const tiles = [
+    {
+      key: "featured-items",
+      image: "/featured.webp",
+      title: "Featured Items",
+      href: "/?sort=featured",
+    },
+    {
+      key: "trending-items",
+      image: "/trending.webp",
+      title: "Trending Items",
+      href: "/?sort=trending_desc",
+    },
+  ]
 
-                  const renderHighlightCard = (tile: typeof tiles[0], position: number) => {
-                    const imageSrc = getOptimizedImageUrl(tile.image, 'card') || "/placeholder.jpg"
-                    const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                    const cardClasses = cn(
-                      "group relative block w-full overflow-hidden rounded-none border border-neutral-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:border-primary/70 p-0.5",
-                      position === 0 ? "" : "mt-0"
-                    )
+  const renderHighlightCard = (tile: typeof tiles[0], position: number) => {
+    const imageSrc = getOptimizedImageUrl(tile.image, 'card') || "/placeholder.jpg"
+    const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
 
-                    const content = (
-                      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
-                        <Image
-                          src={imageSrc}
-                          alt={tile.title}
-                          fill
-                          unoptimized={isLocalPath}
-                          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                          sizes="(max-width: 1024px) 100vw, 300px"
-                        />
-                      </div>
-                    )
-                  }
+    const cardClasses = cn(
+      "group relative block w-full overflow-hidden rounded-none border border-neutral-200 bg-white transition-transform duration-300 hover:-translate-y-1 hover:border-primary/70 p-0.5",
+      position === 0 ? "" : "mt-0"
+    )
 
-                    return (
-                      <Link key={tile.key} href={tile.href} className={cardClasses}>
-                        {content}
-                      </Link>
-                    )
-                  }
-
-                  return tiles.map((tile, index) => (
-                    <div key={tile.key} className="space-y-3 border-l border-neutral-200 pl-6">
-                      {renderHighlightCard(tile, index)}
-                    </div>
-                  ))
-                })()}
-
-              </div>
-            </div>
-          </div>
-        </div>
+    const content = (
+      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+        <Image
+          src={imageSrc}
+          alt={tile.title}
+          fill
+          unoptimized={isLocalPath}
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          sizes="(max-width: 1024px) 100vw, 300px"
+        />
       </div>
     )
+
+    return (
+      <Link key={tile.key} href={tile.href} className={cardClasses}>
+        {content}
+      </Link>
+    )
+  }
+
+  return tiles.map((tile, index) => (
+    <div key={tile.key} className="space-y-3 border-l border-neutral-200 pl-6">
+      {renderHighlightCard(tile, index)}
+    </div>
+  ))
+})()}
+              
   
   return (
     <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
