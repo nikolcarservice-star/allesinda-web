@@ -44,28 +44,82 @@ def _load_city_coordinates_from_db(db: Session) -> dict[str, Tuple[float, float]
         pass
     return coordinates
 
-# Small built-in fallback set to keep seed usable if DB is empty
+# Complete list of German cities (Großstädte, 100k+ inhabitants) with coordinates.
+# Source: Federal Statistical Office of Germany / Wikipedia. Used when DB is empty or to add missing cities.
 _CITY_COORDINATES_FALLBACK: dict[str, Tuple[float, float]] = {
+	"Aachen": (50.7753, 6.0839),
+	"Augsburg": (48.3715, 10.8983),
+	"Bergisch Gladbach": (50.9856, 7.1370),
 	"Berlin": (52.5200, 13.4050),
-	"Munich": (48.1351, 11.5820),
-	"Hamburg": (53.5511, 9.9937),
-	"Cologne": (50.9375, 6.9603),
-	"Frankfurt": (50.1109, 8.6821),
-	"Stuttgart": (48.7758, 9.1829),
-	"Düsseldorf": (51.2277, 6.7735),
-	"Dortmund": (51.5136, 7.4653),
-	"Essen": (51.4556, 7.0116),
-	"Leipzig": (51.3397, 12.3731),
-	"Dresden": (51.0504, 13.7373),
-	"Hannover": (52.3759, 9.7320),
-	"Nuremberg": (49.4521, 11.0767),
-	"Duisburg": (51.4344, 6.7623),
+	"Bielefeld": (52.0202, 8.5311),
 	"Bochum": (51.4818, 7.2162),
-	"Wuppertal": (51.2562, 7.1508),
-	"Bielefeld": (52.0302, 8.5325),
-	"Mannheim": (49.4875, 8.4660),
 	"Bonn": (50.7374, 7.0982),
+	"Bottrop": (51.5232, 6.9283),
+	"Braunschweig": (52.2689, 10.5269),
+	"Bremen": (53.0793, 8.8017),
+	"Bremerhaven": (53.5396, 8.5809),
+	"Chemnitz": (50.8324, 12.9252),
+	"Cologne": (50.9375, 6.9603),
+	"Darmstadt": (49.8728, 8.6512),
+	"Dortmund": (51.5136, 7.4653),
+	"Dresden": (51.0504, 13.7373),
+	"Duisburg": (51.4344, 6.7623),
+	"Düsseldorf": (51.2277, 6.7735),
+	"Erfurt": (50.9787, 11.0328),
+	"Essen": (51.4556, 7.0116),
+	"Frankfurt": (50.1109, 8.6821),
+	"Freiburg im Breisgau": (47.9990, 7.8421),
+	"Fürth": (49.4771, 10.9897),
+	"Gelsenkirchen": (51.5177, 7.0857),
+	"Göttingen": (51.5413, 9.9158),
+	"Hagen": (51.3670, 7.4632),
+	"Halle (Saale)": (51.4820, 11.9650),
+	"Hamburg": (53.5511, 9.9937),
+	"Hamm": (51.6800, 7.8200),
+	"Hannover": (52.3759, 9.7320),
+	"Heidelberg": (49.3988, 8.6724),
+	"Heilbronn": (49.1423, 9.2180),
+	"Herne": (51.5386, 7.2256),
+	"Hildesheim": (52.1500, 9.9500),
+	"Ingolstadt": (48.7636, 11.4257),
+	"Kassel": (51.3127, 9.4797),
+	"Karlsruhe": (49.0069, 8.4037),
+	"Kiel": (54.3233, 10.1228),
+	"Koblenz": (50.3569, 7.5890),
+	"Krefeld": (51.3388, 6.5853),
+	"Leverkusen": (51.0459, 6.9893),
+	"Leipzig": (51.3397, 12.3731),
+	"Lübeck": (53.8655, 10.6866),
+	"Ludwigshafen": (49.4811, 8.4353),
+	"Magdeburg": (52.1205, 11.6276),
+	"Mainz": (49.9929, 8.2473),
+	"Mannheim": (49.4875, 8.4660),
+	"Mönchengladbach": (51.1956, 6.4417),
+	"Mülheim": (51.4272, 6.8828),
+	"Munich": (48.1351, 11.5820),
 	"Münster": (51.9607, 7.6261),
+	"Neuss": (51.2042, 6.6879),
+	"Nuremberg": (49.4521, 11.0767),
+	"Oberhausen": (51.4960, 6.8514),
+	"Offenbach am Main": (50.0956, 8.7761),
+	"Oldenburg": (53.1435, 8.2146),
+	"Osnabrück": (52.2799, 8.0472),
+	"Paderborn": (51.7189, 8.7575),
+	"Pforzheim": (48.8922, 8.6942),
+	"Potsdam": (52.3906, 13.0645),
+	"Recklinghausen": (51.6138, 7.1974),
+	"Regensburg": (49.0134, 12.1016),
+	"Remscheid": (51.1790, 7.1897),
+	"Reutlingen": (48.4914, 9.2113),
+	"Rostock": (54.0924, 12.0991),
+	"Saarbrücken": (49.2354, 6.9966),
+	"Salzgitter": (52.1531, 10.3394),
+	"Solingen": (51.1652, 7.0670),
+	"Ulm": (48.4011, 9.9876),
+	"Wiesbaden": (50.0825, 8.2400),
+	"Wolfsburg": (52.4226, 10.7861),
+	"Wuppertal": (51.2562, 7.1508),
+	"Würzburg": (49.7913, 9.9534),
 }
 
 # Runtime-populated cache; prefer DB contents, fallback to small inline set
@@ -82,21 +136,28 @@ def refresh_city_coordinates_cache(db: Session) -> None:
 
 
 def seed_german_cities(db: Session) -> int:
-	"""Ensure German cities table is populated. Uses fallback set if empty."""
+	"""Ensure German cities table is populated. If DB is empty, inserts all from fallback.
+	If DB already has cities, inserts any fallback city that does not yet exist (by name)."""
 	created = 0
 	try:
 		existing_count = db.query(City).count()
 	except Exception:
-		# Table might not exist on first run; ensure metadata is created
 		Base.metadata.create_all(bind=engine)
 		existing_count = db.query(City).count()
+	# Build set of existing city names (case-insensitive) to avoid duplicates
+	existing_names: set[str] = set()
 	if existing_count > 0:
-		return 0
+		for row in db.execute(select(City.name)).all():
+			if row[0]:
+				existing_names.add(str(row[0]).strip().lower())
 	for name, (lat, lon) in _CITY_COORDINATES_FALLBACK.items():
-		city = City(name=name, state=None, latitude=lat, longitude=lon, is_active=True)
-		db.add(city)
-		created += 1
-	db.commit()
+		if name and name.strip().lower() not in existing_names:
+			city = City(name=name, state=None, latitude=lat, longitude=lon, is_active=True)
+			db.add(city)
+			existing_names.add(name.strip().lower())
+			created += 1
+	if created:
+		db.commit()
 	return created
 
 def _find_city_id(db: Session, name: Optional[str]) -> Optional[int]:
