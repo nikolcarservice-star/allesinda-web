@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect, Fragment } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { cn, getOptimizedImageUrl } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, normalizeImageUrl } from "@/lib/utils"
 import type { CategoryTree, CategoryType } from "@/lib/api"
 import { SubcategorySection } from "@/components/home/subcategory-section"
 
@@ -206,10 +206,14 @@ export function CategorySection({
 
           const hasImageError = imageErrors[category.id]
           const rawImageUrl = category.image_url && category.image_url.trim() ? category.image_url : null
-          // Use optimized URL consistently - thumbnail preset (300x300) is appropriate for 80px display
+          const normUrl = rawImageUrl ? normalizeImageUrl(rawImageUrl) : ""
+          // Use relative /media path + unoptimized for mobile compatibility (rewrite proxies to API; avoids Next.js image optimizer issues on mobile)
+          const useRelativeMedia = normUrl.startsWith("/media/files")
           const imageSrc = hasImageError || !rawImageUrl 
             ? PLACEHOLDER_IMAGE 
-            : getOptimizedImageUrl(rawImageUrl, 'thumbnail')
+            : useRelativeMedia 
+              ? `${normUrl}${normUrl.includes("?") ? "&" : "?"}w=300&h=300&q=80`
+              : getOptimizedImageUrl(rawImageUrl, 'thumbnail')
           const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//") && !imageSrc.startsWith("http")
           const isSelected = selectedCategory?.id === category.id
           const categoryName = category.name || "Unnamed Category"
@@ -269,7 +273,7 @@ export function CategorySection({
                         alt={categoryName}
                         fill
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 80px"
-                        unoptimized={isLocalPath || hasImageError}
+                        unoptimized={isLocalPath || hasImageError || useRelativeMedia}
                         className="object-cover transition-opacity duration-200"
                         onError={() => handleImageError(category.id)}
                         loading="lazy"
