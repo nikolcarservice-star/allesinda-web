@@ -177,7 +177,7 @@ export function CategorySection({
         <div 
           ref={scrollContainerRef}
           className={cn(
-            "flex gap-1 sm:gap-2 w-full",
+            "flex gap-1 sm:gap-2 w-full min-w-0 box-border",
             // On small/medium screens: horizontal scrolling carousel
             "flex-nowrap overflow-x-auto overflow-y-visible",
             "scrollbar-hide snap-x snap-mandatory",
@@ -238,37 +238,32 @@ export function CategorySection({
                 data-category-item
                 data-category-id={category.id}
                 className={cn(
-                  // On mobile/small/medium: 5 categories in a row, no overlap; right padding reserves space for scroll button
-                  "flex-shrink-0 snap-center",
-                  "min-w-0",
-                  "w-[calc((100%-4.5rem)/5)] sm:w-[calc((100%-5.75rem)/5)] md:w-[calc((100%-6rem)/5)]",
-                  // On large screens: original grid layout (flex-wrap handles wrapping)
-                  // For n items per row with gap g: calc((100% - (n-1) × g) / n)
-                  // lg: 5 items, gap 0.5rem (4 gaps) = calc((100% - 2rem) / 5)
-                  // xl: 6 items, gap 0.5rem (5 gaps) = calc((100% - 2.5rem) / 6)
-                  // 2xl: 8 items, gap 0.5rem (7 gaps) = calc((100% - 3.5rem) / 8)
-                  "lg:snap-none lg:w-[calc((100%-2rem)/5)] xl:w-[calc((100%-2.5rem)/6)] 2xl:w-[calc((100%-3.5rem)/8)]"
+                  // On mobile/small/medium: exactly 5 in a row, no overlap — flex basis so 5×basis + 4×gap fits
+                  "shrink-0 snap-center box-border overflow-hidden min-w-0",
+                  "basis-[calc((100%-1rem)/5)] sm:basis-[calc((100%-2rem)/5)] md:basis-[calc((100%-2rem)/5)]",
+                  "w-[calc((100%-1rem)/5)] sm:w-[calc((100%-2rem)/5)] md:w-[calc((100%-2rem)/5)]",
+                  // Large screens
+                  "lg:overflow-visible lg:snap-none lg:basis-auto lg:w-[calc((100%-2rem)/5)] xl:w-[calc((100%-2.5rem)/6)] 2xl:w-[calc((100%-3.5rem)/8)]"
                 )}
               >
                 <button
                   type="button"
                   onClick={() => onCategoryClick(category)}
                   className={cn(
-                    "group flex flex-col items-center gap-2 text-center transition-all duration-200",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
-                    "w-full"
+                    "group flex flex-col items-center gap-2 text-center transition-all duration-200 min-w-0 w-full overflow-hidden",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
                   )}
                 >
                     <span
                       className={cn(
-                        "relative h-24 w-24 sm:h-20 sm:w-20 flex-shrink-0 rounded-sm border-1 bg-white transition-all duration-200",
-                      "flex items-center justify-center p-0.5",
-                      "shadow-sm",
-                      isSelected
-                        ? "border-primary shadow-md"
-                        : "border-border/60 group-hover:border-primary/60 group-hover:shadow-md",
-                    )}
-                  >
+                        "relative flex-shrink-0 rounded-sm border border-border/60 bg-white transition-all duration-200",
+                        "flex items-center justify-center p-0.5 w-full aspect-square max-w-[4.5rem] sm:max-w-[4rem]",
+                        "shadow-sm",
+                        isSelected
+                          ? "border-primary shadow-md"
+                          : "group-hover:border-primary/60 group-hover:shadow-md",
+                      )}
+                    >
                     <span className="relative h-full w-full min-h-[1px] min-w-[1px] overflow-hidden rounded-sm bg-gradient-to-br from-muted/20 to-muted/5">
                       <Image
                         key={`${category.id}-${category.updated_at || category.image_url || 'fallback'}`}
