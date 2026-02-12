@@ -238,9 +238,9 @@ export function CategorySection({
                 data-category-item
                 data-category-id={category.id}
                 className={cn(
-                  // On small/medium screens: carousel items
+                  // On mobile/small/medium: show 5 categories at once (task 15)
                   "flex-shrink-0 snap-center",
-                  "w-[calc(50%-0.25rem)] sm:w-[calc(33.333%-0.5rem)] md:w-[calc(25%-0.5rem)]",
+                  "w-[calc((100%-1rem)/5)] sm:w-[calc((100%-2rem)/5)] md:w-[calc((100%-2rem)/5)]",
                   // On large screens: original grid layout (flex-wrap handles wrapping)
                   // For n items per row with gap g: calc((100% - (n-1) × g) / n)
                   // lg: 5 items, gap 0.5rem (4 gaps) = calc((100% - 2rem) / 5)
