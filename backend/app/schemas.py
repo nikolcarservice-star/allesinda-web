@@ -78,6 +78,7 @@ class ProfileIn(BaseModel):
     about: Optional[str] = None
     image_url: Optional[str] = Field(None, max_length=1024)
     category_id: Optional[int] = Field(None, ge=1, description="Category ID (foreign key)")
+    keywords: Optional[str] = Field(None, description="Optional comma-separated keywords describing the master")
     response_time_hours: Optional[int] = Field(None, ge=0, le=168)
 
 class ProfileOut(ProfileIn):

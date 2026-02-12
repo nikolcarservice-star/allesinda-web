@@ -89,6 +89,8 @@ export interface Profile {
   image_url?: string | null; // Profile image URL (stored in uploads/profiles/)
   category_id?: number | null; // Category ID (preferred)
   category?: string; // Category slug (deprecated, for backward compatibility)
+  // Optional free-form keywords to improve search and discovery (e.g. "Elektriker, Notdienst, Berlin")
+  keywords?: string | null;
   verified: boolean;
   rating: number;
   total_reviews: number;
@@ -114,6 +116,8 @@ export interface ProfileInput {
   image_url?: string; // Profile image URL
   category_id?: number; // Category ID (preferred)
   category?: string; // Category slug (deprecated, for backward compatibility)
+  // Optional comma-separated keywords entered by master
+  keywords?: string;
   response_time_hours?: number;
 }
 

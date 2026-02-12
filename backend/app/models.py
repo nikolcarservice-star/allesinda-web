@@ -69,6 +69,8 @@ class Profile(Base):
     about: Mapped[Optional[str]] = mapped_column(Text())
     image_url: Mapped[Optional[str]] = mapped_column(String(1024))
     category_id: Mapped[Optional[int]] = mapped_column(ForeignKey("categories.id"), nullable=True, index=True)  # Category ID (foreign key)
+    # Optional free-form keywords to improve search and discovery (e.g. "Elektriker, Notdienst, Berlin")
+    keywords: Mapped[Optional[str]] = mapped_column(Text())
     verified: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     rating: Mapped[float] = mapped_column(Float, default=0.0)
     total_reviews: Mapped[int] = mapped_column(Integer, default=0)

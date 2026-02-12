@@ -99,6 +99,7 @@ import { getOptimizedImageUrl, shouldUseUnoptimized, cn } from "@/lib/utils"
 import { getMyPromotions, createPromotion, deletePromotion } from "@/lib/api/promotions"
 import { getMyOrders, updateOrder, completeOrder } from "@/lib/api/orders"
 import { getSellerReviews } from "@/lib/api/reviews"
+import { getCategoriesByType } from "@/lib/api/categories"
 import type {
   Profile,
   ProfileInput,
@@ -159,8 +160,12 @@ export default function MasterDashboardPage() {
   const [profileForm, setProfileForm] = useState<ProfileInput>({
     city_id: undefined,
     about: "",
+    category_id: undefined,
+    keywords: "",
     response_time_hours: undefined,
   })
+  const [profileCategories, setProfileCategories] = useState<Array<{ id: number; name: string }>>([])
+  const [profileCategoriesLoading, setProfileCategoriesLoading] = useState(false)
   const selectedCityName = useMemo(() => {
     const cid = (profileForm as any).city_id as number | undefined
     const found = cid ? cities.find((c) => c.id === cid) : undefined
@@ -229,6 +234,17 @@ export default function MasterDashboardPage() {
         // ignore
       } finally {
         setCitiesLoading(false)
+      }
+      // Load master root categories for profile selection
+      try {
+        setProfileCategoriesLoading(true)
+        const cats = await getCategoriesByType("master", { activeOnly: true, rootOnly: true })
+        setProfileCategories(cats || [])
+      } catch (error) {
+        console.error("Failed to load master categories for profile:", error)
+        setProfileCategories([])
+      } finally {
+        setProfileCategoriesLoading(false)
       }
     })()
   }, [user])
