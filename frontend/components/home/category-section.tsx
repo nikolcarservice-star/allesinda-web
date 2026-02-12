@@ -181,7 +181,7 @@ export function CategorySection({
             // On small/medium screens: horizontal scrolling carousel
             "flex-nowrap overflow-x-auto overflow-y-visible",
             "scrollbar-hide snap-x snap-mandatory",
-            "px-2 sm:px-3 md:px-4",
+            "pl-2 pr-12 sm:pl-3 sm:pr-12 md:pl-4 md:pr-12",
             // Add minimal vertical padding for compact layout
             "py-2 sm:py-3 md:py-4",
             // On large screens: original grid layout (no scrolling)
@@ -238,9 +238,10 @@ export function CategorySection({
                 data-category-item
                 data-category-id={category.id}
                 className={cn(
-                  // On mobile/small/medium: show 5 categories at once (task 15)
+                  // On mobile/small/medium: 5 categories in a row, no overlap; right padding reserves space for scroll button
                   "flex-shrink-0 snap-center",
-                  "w-[calc((100%-1rem)/5)] sm:w-[calc((100%-2rem)/5)] md:w-[calc((100%-2rem)/5)]",
+                  "min-w-0",
+                  "w-[calc((100%-4.5rem)/5)] sm:w-[calc((100%-5.75rem)/5)] md:w-[calc((100%-6rem)/5)]",
                   // On large screens: original grid layout (flex-wrap handles wrapping)
                   // For n items per row with gap g: calc((100% - (n-1) × g) / n)
                   // lg: 5 items, gap 0.5rem (4 gaps) = calc((100% - 2rem) / 5)
