@@ -22,6 +22,9 @@ export interface UserCreate {
   name: string;
   role: Role;
   phone?: string;
+  // Optional master profile fields (used when role == 'master')
+  category_id?: number;
+  keywords?: string;
 }
 
 export interface LoginRequest {

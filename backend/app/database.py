@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from sqlalchemy.engine import Engine
+from sqlalchemy import inspect, text
 from .config import settings
 import logging
 
@@ -116,6 +117,24 @@ def init_db():
     from .models import Base
     Base.metadata.create_all(bind=engine)
     logger.info("Database initialized")
+
+def ensure_schema():
+    """
+    Lightweight schema upgrader for projects without migrations.
+    Adds missing columns in-place when safe.
+    """
+    try:
+        insp = inspect(engine)
+        if "profiles" in insp.get_table_names():
+            cols = {c.get("name") for c in insp.get_columns("profiles")}
+            if "keywords" not in cols:
+                with engine.begin() as conn:
+                    # SQLite and Postgres both support this simple ADD COLUMN
+                    conn.execute(text("ALTER TABLE profiles ADD COLUMN keywords TEXT"))
+                logger.info("Schema updated: added profiles.keywords column")
+    except Exception as e:
+        # Never crash startup if schema checks fail
+        logger.warning(f"Schema ensure failed: {e}")
 
 def drop_db():
     """Drop all tables - use with caution!"""

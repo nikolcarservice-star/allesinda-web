@@ -10,6 +10,24 @@ from ..utils.notifications import create_review_notification
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
+@router.get("/my", response_model=dict)
+def get_my_reviews(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+):
+    """List reviews created by the current (buyer) user"""
+    query = (
+        db.query(Review)
+        .join(Order)
+        .filter(Order.buyer_id == user.id)
+        .order_by(Review.created_at.desc())
+    )
+    items, total = paginate_query(query, page, page_size)
+    review_out_items = [ReviewOut.model_validate(item) for item in items]
+    return create_paginated_response(review_out_items, total, page, page_size)
+
 @router.post("", response_model=ReviewOut, status_code=201)
 def create_review(
     data: ReviewIn,

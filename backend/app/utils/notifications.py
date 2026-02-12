@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..models import Notification, User
+from ..utils.email import send_message_notification_email
 
 logger = logging.getLogger(__name__)
 
@@ -81,17 +82,34 @@ def create_message_notification(
         related_id=conversation_id
     )
     
-    # Send SMS notification if enabled and user has phone
+    user = None
     try:
         user = db.get(User, user_id)
-        if user and user.phone:
+    except Exception as e:
+        logger.error(f"Failed to load user for message notification {conversation_id}: {e}")
+
+    # Send SMS notification if enabled and user has phone
+    if user and user.phone:
+        try:
             from ..utils.sms import send_message_notification_sms
             send_message_notification_sms(
                 phone=user.phone,
                 sender_name=sender_name
             )
-    except Exception as e:
-        logger.error(f"Failed to send SMS notification for message {conversation_id}: {e}")
+        except Exception as e:
+            logger.error(f"Failed to send SMS notification for message {conversation_id}: {e}")
+
+    # Send email notification if SMTP configured
+    if user and user.email:
+        try:
+            send_message_notification_email(
+                email=user.email,
+                recipient_name=user.name or "there",
+                sender_name=sender_name,
+                conversation_id=conversation_id,
+            )
+        except Exception as e:
+            logger.error(f"Failed to send email notification for message {conversation_id}: {e}")
     
     return notification
 

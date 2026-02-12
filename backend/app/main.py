@@ -8,7 +8,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from .database import Base, engine, init_db
+from .database import Base, engine, init_db, ensure_schema
 from .routers import auth, masters, sellers, products, rentals, media, orders, reviews, search, admin, payments, chat, gallery, favorites, featured, relationships,notifications, categories, users, trending, cities
 from .config import settings
 from .utils.image_optimizer import cleanup_image_cache
@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 try:
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables verified/created successfully")
+    ensure_schema()
 except Exception as e:
     logger.error(f"Error creating database tables: {e}")
     # Don't crash on startup - tables might already exist or DB might not be ready yet

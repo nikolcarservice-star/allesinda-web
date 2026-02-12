@@ -1,7 +1,7 @@
 "use client"
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { getOptimizedImageUrl } from "@/lib/utils"
+import { getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
 import type { Media } from "@/lib/api/types"
 
 interface VideoPlayerDialogProps {
@@ -13,7 +13,8 @@ interface VideoPlayerDialogProps {
 export function VideoPlayerDialog({ video, isOpen, onClose }: VideoPlayerDialogProps) {
   if (!video || !video.url) return null
 
-  const videoUrl = getOptimizedImageUrl(video.url, 'original')
+  // Important: don't run image optimization on video URLs (can break playback)
+  const videoUrl = toMediaRelativePath(video.url)
   const thumbnailUrl = video.thumbnail_url ? getOptimizedImageUrl(video.thumbnail_url, 'gallery') : undefined
 
   return (

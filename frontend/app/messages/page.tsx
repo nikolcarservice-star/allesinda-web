@@ -286,6 +286,15 @@ function MessagesPageContent() {
     }
   }, [currentUserId])
 
+  // In-page "push" notifications (Browser Notification API)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (!("Notification" in window)) return
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {})
+    }
+  }, [])
+
   // Handle seller_id query parameter after conversations are loaded
   useEffect(() => {
     const sellerIdParam = searchParams?.get("seller_id")
@@ -319,6 +328,18 @@ function MessagesPageContent() {
       
       setConversations(mappedConversations)
       
+      // Prefer selecting by conversation_id param (e.g. from email notifications)
+      const conversationIdParam = searchParams?.get("conversation_id")
+      if (conversationIdParam && mappedConversations.length > 0) {
+        const found = mappedConversations.find((c) => String(c.id) === String(conversationIdParam))
+        if (found) {
+          setSelectedConversation(found)
+          setShowMobileChat(true)
+          router.replace("/messages", { scroll: false })
+          return
+        }
+      }
+
       // Select first conversation if available and no seller_id param
       const sellerIdParam = searchParams?.get("seller_id")
       if (!sellerIdParam && mappedConversations.length > 0 && !selectedConversation) {
@@ -730,6 +751,26 @@ function MessagesPageContent() {
 
             if (data.sender_id !== currentUserId && typeof window !== "undefined") {
               window.dispatchEvent(new CustomEvent("notifications:refresh"))
+            }
+
+            // If tab is hidden, show browser notification (permission required)
+            try {
+              if (
+                typeof window !== "undefined" &&
+                "Notification" in window &&
+                Notification.permission === "granted" &&
+                document.hidden &&
+                data.sender_id !== currentUserId
+              ) {
+                const senderLabel = (selectedConversation?.id === conversationId
+                  ? selectedConversation?.name
+                  : conversations.find((c) => String(c.id) === String(conversationId))?.name) || "Jemand"
+                new Notification("Neue Nachricht", {
+                  body: `Neue Nachricht von ${senderLabel}`,
+                })
+              }
+            } catch {
+              // ignore
             }
           } else if (data.type === "read_receipt") {
             const targetConversationId = String(data.conversation_id)
@@ -1381,8 +1422,12 @@ function MessagesPageContent() {
         }
       }, 50)
 
-      window.open(callUrl, "_blank", "noopener,noreferrer")
-      toast.success("Videoanruf-Link gesendet")
+      const opened = window.open(callUrl, "_blank", "noopener,noreferrer")
+      if (!opened) {
+        toast.warning("Popup blockiert. Bitte erlauben Sie Popups oder öffnen Sie den Link aus der Nachricht.")
+      } else {
+        toast.success("Videoanruf-Link gesendet")
+      }
     } catch (error: any) {
       logger.error("Failed to start video call:", error)
       toast.error(error?.message || "Failed to start video call")

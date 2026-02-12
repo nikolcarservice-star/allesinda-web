@@ -15,6 +15,9 @@ class UserCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=255)
     role: Role
     phone: Optional[str] = Field(None, max_length=20)
+    # Optional master profile fields (used when role == master)
+    category_id: Optional[int] = Field(None, ge=1, description="Master category_id (optional)")
+    keywords: Optional[str] = Field(None, description="Optional comma-separated keywords for master")
 
 class UserOut(BaseModel):
     id: int

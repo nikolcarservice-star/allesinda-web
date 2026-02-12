@@ -74,6 +74,7 @@ import {
   Camera,
   Building2,
   FileText,
+  Tag,
 } from "lucide-react"
 import { RelationshipManager } from "@/components/dashboard/relationship-manager"
 import { ModernMediaUpload } from "@/components/dashboard/modern-media-upload"
@@ -297,6 +298,8 @@ export default function MasterDashboardPage() {
         setProfileForm({
           city_id: (profileData as any).city_id,
           about: profileData.about || "",
+          category_id: (profileData as any).category_id ?? undefined,
+          keywords: (profileData as any).keywords ?? "",
           response_time_hours: profileData.response_time_hours,
         })
       }
@@ -1352,6 +1355,37 @@ export default function MasterDashboardPage() {
                         />
                       </div>
                         <div className="space-y-2">
+                          <Label htmlFor="category_id" className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                            <span>Kategorie</span>
+                          </Label>
+                          <Select
+                            value={profileForm.category_id ? String(profileForm.category_id) : ""}
+                            onValueChange={(value) => {
+                              const parsed = Number(value)
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                category_id: Number.isFinite(parsed) && parsed > 0 ? parsed : undefined,
+                              }))
+                            }}
+                            disabled={loading || profileCategoriesLoading}
+                          >
+                            <SelectTrigger size="default" className="text-sm h-10 sm:h-11">
+                              <SelectValue placeholder={profileCategoriesLoading ? "Lädt…" : "Kategorie auswählen"} />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-md border">
+                              {profileCategories.map((cat) => (
+                                <SelectItem key={cat.id} value={String(cat.id)}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">
+                            Ihre Hauptkategorie hilft Kunden, Sie besser zu finden.
+                          </p>
+                        </div>
+                        <div className="space-y-2">
                           <Label htmlFor="response_time_hours" className="text-xs sm:text-sm font-semibold flex items-center gap-2">
                             <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                             <span>Antwortzeit</span>
@@ -1375,6 +1409,24 @@ export default function MasterDashboardPage() {
                             <span className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-xs sm:text-sm text-muted-foreground">h</span>
                     </div>
                           <p className="text-[10px] sm:text-xs text-muted-foreground">Stunden bis zur Beantwortung von Kundenanfragen</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="keywords" className="text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                            <span>Schlüsselwörter</span>
+                          </Label>
+                          <Input
+                            id="keywords"
+                            value={profileForm.keywords || ""}
+                            onChange={(e) => setProfileForm((prev) => ({ ...prev, keywords: e.target.value }))}
+                            placeholder="z.B. Elektriker, Notdienst, Renovierung"
+                            className="text-sm h-10 sm:h-11"
+                            disabled={loading}
+                            autoComplete="off"
+                          />
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">
+                            Durch Kommas trennen. Diese werden in der Suche genutzt.
+                          </p>
                         </div>
                       </div>
 

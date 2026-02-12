@@ -3,7 +3,7 @@
 // Force dynamic rendering to avoid static generation issues
 export const dynamic = 'force-dynamic'
 
-import { useState, FormEvent } from "react"
+import { useEffect, useState, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,8 @@ import { Loader2, Mail, Lock, User, Phone, AlertCircle, UserPlus } from "lucide-
 import { register, login, getCurrentUser } from "@/lib/api/auth"
 import { useAuth } from "@/lib/context/auth-context"
 import { toast } from "sonner"
-import type { Role } from "@/lib/api/types"
+import type { Role, Category } from "@/lib/api/types"
+import { getCategoriesByType } from "@/lib/api/categories"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -34,10 +35,33 @@ export default function SignupPage() {
     name: "",
     phone: "",
     role: "client" as Role,
+    category_id: "" as string, // master only
+    keywords: "", // master only
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [masterCategories, setMasterCategories] = useState<Category[]>([])
+  const [masterCategoriesLoading, setMasterCategoriesLoading] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (formData.role !== "master") return
+      try {
+        setMasterCategoriesLoading(true)
+        const cats = await getCategoriesByType("master", { activeOnly: true, rootOnly: true })
+        if (!cancelled) setMasterCategories(cats || [])
+      } catch {
+        if (!cancelled) setMasterCategories([])
+      } finally {
+        if (!cancelled) setMasterCategoriesLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [formData.role])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -68,6 +92,13 @@ export default function SignupPage() {
       newErrors.phone = "Ungültiges Telefonnummernformat"
     }
 
+    if (formData.role === "master") {
+      const parsedCategoryId = Number(formData.category_id)
+      if (!Number.isFinite(parsedCategoryId) || parsedCategoryId <= 0) {
+        newErrors.category_id = "Kategorie ist erforderlich"
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -85,7 +116,17 @@ export default function SignupPage() {
 
     try {
       const { confirmPassword, ...registerData } = formData
-      await register(registerData)
+      // Normalize master-only fields
+      const payload: any = { ...registerData }
+      if (payload.role === "master") {
+        const parsedCategoryId = Number(payload.category_id)
+        payload.category_id = Number.isFinite(parsedCategoryId) && parsedCategoryId > 0 ? parsedCategoryId : undefined
+        payload.keywords = typeof payload.keywords === "string" ? payload.keywords.trim() : undefined
+      } else {
+        delete payload.category_id
+        delete payload.keywords
+      }
+      await register(payload)
       // Auto-login after registration
       await login({ email: formData.email, password: formData.password })
       const user = await getCurrentUser()
@@ -225,6 +266,55 @@ export default function SignupPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {formData.role === "master" && (
+                <>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="category_id" className="text-xs sm:text-sm font-semibold">
+                      Kategorie <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.category_id}
+                      onValueChange={(value) => handleChange("category_id", value)}
+                      disabled={loading || masterCategoriesLoading}
+                    >
+                      <SelectTrigger size="default" className="text-sm sm:text-base">
+                        <SelectValue placeholder={masterCategoriesLoading ? "Lädt Kategorien..." : "Kategorie auswählen"} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-md border">
+                        {masterCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={String(cat.id)}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.category_id && (
+                      <p className="text-[10px] sm:text-xs text-destructive font-medium">{errors.category_id}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="keywords" className="text-xs sm:text-sm font-semibold">
+                      Schlüsselwörter (Optional)
+                    </Label>
+                    <Input
+                      id="keywords"
+                      type="text"
+                      placeholder="z.B. Elektriker, Notdienst, Renovierung"
+                      value={formData.keywords}
+                      onChange={(e) => handleChange("keywords", e.target.value)}
+                      size="default"
+                      className="text-sm sm:text-base"
+                      disabled={loading}
+                      autoComplete="off"
+                    />
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      Durch Kommas trennen. Hilft Kunden, Sie besser zu finden.
+                    </p>
+                  </div>
+                </>
+              )}
 
               <div className="space-y-1.5 sm:space-y-2">
                 <Label htmlFor="password" className="text-xs sm:text-sm font-semibold">Passwort</Label>

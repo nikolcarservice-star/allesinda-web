@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
-import { getOptimizedImageUrl } from "@/lib/utils"
+import { getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
 
 interface VideoPlayerProps {
   videoUrl: string
@@ -19,7 +19,8 @@ export function VideoPlayer({
   isOpen,
   onClose,
 }: VideoPlayerProps) {
-  const normalizedUrl = videoUrl ? getOptimizedImageUrl(videoUrl, 'original') : null
+  // Important: don't run image optimization on video URLs (can break playback)
+  const normalizedUrl = videoUrl ? toMediaRelativePath(videoUrl) : null
   const normalizedThumbnail = thumbnailUrl ? getOptimizedImageUrl(thumbnailUrl, 'gallery') : undefined
 
   return (

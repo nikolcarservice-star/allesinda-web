@@ -45,11 +45,19 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
         hashed_password=get_password_hash(data.password),
         verification_token=verification_token,
         verification_token_expires=verification_expires,
-        email_verified=False
+        email_verified=False,
+        phone=data.phone
     )
     db.add(user)
     db.flush()
-    db.add(Profile(user_id=user.id))
+    # Create empty profile; for masters allow setting category_id/keywords during registration
+    profile_kwargs = {}
+    if data.role == Role.master:
+        if getattr(data, "category_id", None):
+            profile_kwargs["category_id"] = data.category_id
+        if getattr(data, "keywords", None):
+            profile_kwargs["keywords"] = data.keywords
+    db.add(Profile(user_id=user.id, **profile_kwargs))
     db.commit()
     db.refresh(user)
     

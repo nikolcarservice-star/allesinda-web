@@ -3,8 +3,8 @@
 // Force dynamic rendering to avoid static generation issues
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, Suspense } from "react"
-import { Calendar, Clock, MapPin, MoreVertical, MessageSquare, CheckCircle2, XCircle, CalendarClock, CheckCircle, X, Loader2 } from "lucide-react"
+import { useMemo, useState, useEffect, Suspense } from "react"
+import { Calendar, Clock, MapPin, MoreVertical, MessageSquare, CheckCircle2, XCircle, CalendarClock, CheckCircle, X, Loader2, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -14,6 +14,10 @@ import { getMyOrders, cancelOrder } from "@/lib/api/orders"
 import type { Order } from "@/lib/api/types"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { createReview, getMyReviews } from "@/lib/api/reviews"
 
 interface BookingDisplay {
   id: number
@@ -99,6 +103,14 @@ function BookingsPageContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const [reviewedOrderIds, setReviewedOrderIds] = useState<number[]>([])
+  const reviewedOrderIdSet = useMemo(() => new Set(reviewedOrderIds), [reviewedOrderIds])
+
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewTarget, setReviewTarget] = useState<BookingDisplay | null>(null)
+  const [reviewRating, setReviewRating] = useState<number>(5)
+  const [reviewText, setReviewText] = useState<string>("")
 
   useEffect(() => {
     loadBookings()
@@ -109,9 +121,13 @@ function BookingsPageContent() {
     try {
       setLoading(true)
       setError(null)
-      const response = await getMyOrders({ page_size: 100 })
-      const transformed = response.items.map(transformOrderToBooking)
+      const [ordersRes, myReviewsRes] = await Promise.all([
+        getMyOrders({ page_size: 100 }),
+        getMyReviews({ page_size: 200 }).catch(() => ({ items: [] } as any)),
+      ])
+      const transformed = ordersRes.items.map(transformOrderToBooking)
       setBookings(transformed)
+      setReviewedOrderIds(((myReviewsRes as any)?.items || []).map((r: any) => Number(r.order_id)).filter((id: any) => Number.isFinite(id)))
     } catch (err: any) {
       setError(err.message || "Fehler beim Laden der Buchungen")
       toast.error("Fehler beim Laden der Buchungen")
@@ -137,6 +153,41 @@ function BookingsPageContent() {
   async function handleMessage(booking: BookingDisplay) {
     // Navigate to messages/conversation with seller
     router.push(`/messages?order=${booking.id}`)
+  }
+
+  function handleOpenReview(booking: BookingDisplay) {
+    setReviewTarget(booking)
+    setReviewRating(5)
+    setReviewText("")
+    setReviewDialogOpen(true)
+  }
+
+  async function handleSubmitReview() {
+    if (!reviewTarget) return
+    if (reviewedOrderIdSet.has(reviewTarget.id)) {
+      toast.info("Sie haben diese Buchung bereits bewertet.")
+      setReviewDialogOpen(false)
+      return
+    }
+    if (reviewRating < 1 || reviewRating > 5) {
+      toast.error("Bitte wählen Sie eine Bewertung von 1 bis 5.")
+      return
+    }
+    try {
+      setReviewSubmitting(true)
+      await createReview({
+        order_id: reviewTarget.id,
+        rating: reviewRating,
+        text: reviewText.trim().length > 0 ? reviewText.trim() : undefined,
+      })
+      toast.success("Vielen Dank! Ihre Bewertung wurde gespeichert.")
+      setReviewedOrderIds((prev) => Array.from(new Set([...prev, reviewTarget.id])))
+      setReviewDialogOpen(false)
+    } catch (err: any) {
+      toast.error(err?.message || "Bewertung konnte nicht gespeichert werden")
+    } finally {
+      setReviewSubmitting(false)
+    }
   }
 
   if (loading) {
@@ -180,6 +231,74 @@ function BookingsPageContent() {
             <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground/90">Verwalten Sie Ihre bevorstehenden und vergangenen Buchungen</p>
           </div>
         </div>
+
+        {/* Review dialog (client -> seller) */}
+        <Dialog
+          open={reviewDialogOpen}
+          onOpenChange={(open) => {
+            if (!reviewSubmitting) setReviewDialogOpen(open)
+          }}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Buchung bewerten</DialogTitle>
+              <DialogDescription>
+                Teilen Sie Ihre Erfahrung. Bewertungen helfen anderen Kunden bei der Auswahl.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Bewertung</Label>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="p-1 rounded hover:bg-muted"
+                      aria-label={`${star} Sterne`}
+                    >
+                      <Star
+                        className={
+                          star <= reviewRating
+                            ? "h-5 w-5 text-yellow-500 fill-yellow-500"
+                            : "h-5 w-5 text-muted-foreground"
+                        }
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-2 text-sm text-muted-foreground">{reviewRating}/5</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="review_text">Kommentar (optional)</Label>
+                <Textarea
+                  id="review_text"
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Was war gut? Was könnte besser sein?"
+                  rows={4}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setReviewDialogOpen(false)}
+                  disabled={reviewSubmitting}
+                >
+                  Abbrechen
+                </Button>
+                <Button type="button" onClick={handleSubmitReview} disabled={reviewSubmitting || !reviewTarget}>
+                  {reviewSubmitting ? "Wird gesendet…" : "Senden"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <Tabs defaultValue="upcoming" className="space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
           <TabsList variant="modern" className="grid w-full grid-cols-3 mb-4 sm:mb-6 md:mb-8">
@@ -357,9 +476,26 @@ function BookingsPageContent() {
                             <p className="text-[9px] sm:text-[10px] md:text-xs lg:text-sm text-muted-foreground/90">Gesamtpreis</p>
                             <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">€{booking.price.toFixed(2)}</p>
                           </div>
-                          <Badge variant="secondary" className="text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 font-semibold bg-emerald-500/10 text-emerald-600 shadow-sm border-0">
-                            Abgeschlossen
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            {reviewedOrderIdSet.has(booking.id) ? (
+                              <Badge variant="secondary" className="text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 font-semibold bg-blue-500/10 text-blue-600 shadow-sm border-0">
+                                Bewertet
+                              </Badge>
+                            ) : (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs"
+                                onClick={() => handleOpenReview(booking)}
+                              >
+                                Bewerten
+                              </Button>
+                            )}
+                            <Badge variant="secondary" className="text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 font-semibold bg-emerald-500/10 text-emerald-600 shadow-sm border-0">
+                              Abgeschlossen
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     </div>

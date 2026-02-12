@@ -147,3 +147,33 @@ def send_password_reset_email(email: str, name: str, token: str):
     
     return send_email(email, subject, html_body, text_body)
 
+def send_message_notification_email(email: str, recipient_name: str, sender_name: str, conversation_id: int):
+    """Send email notification for a new chat message."""
+    messages_url = f"{settings.FRONTEND_URL}/messages?conversation_id={conversation_id}"
+    subject = "New message on Allesinda"
+    html_body = f"""
+    <html>
+      <body>
+        <h2>New message</h2>
+        <p>Hello {recipient_name},</p>
+        <p>You have a new message from <strong>{sender_name}</strong>.</p>
+        <p>
+          <a href="{messages_url}" style="background-color:#4CAF50;color:white;padding:10px 16px;text-decoration:none;border-radius:6px;">
+            Open messages
+          </a>
+        </p>
+        <p>Or copy and paste this URL into your browser:</p>
+        <p>{messages_url}</p>
+      </body>
+    </html>
+    """
+    text_body = f"""New message
+
+Hello {recipient_name},
+
+You have a new message from {sender_name}.
+
+Open messages: {messages_url}
+"""
+    return send_email(email, subject, html_body, text_body)
+

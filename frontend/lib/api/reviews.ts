@@ -25,6 +25,16 @@ export async function getReviews(params?: {
 }
 
 /**
+ * Get current user's (buyer) reviews
+ */
+export async function getMyReviews(params?: {
+  page?: number;
+  page_size?: number;
+}): Promise<PaginatedResponse<Review>> {
+  return apiGet<PaginatedResponse<Review>>('/reviews/my', params);
+}
+
+/**
  * Get review by ID
  */
 export async function getReview(reviewId: number): Promise<Review> {
