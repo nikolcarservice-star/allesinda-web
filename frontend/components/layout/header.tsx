@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Star,
   X,
-  ShoppingCart,
   LogIn,
   Bell,
   CalendarCheck,
@@ -44,7 +43,6 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/context/auth-context"
-import { AllesindaCartModal } from "@/components/cart/allesinda-cart-modal"
 import { NotificationDropdown } from "@/components/layout/notification-dropdown"
 import { cn, formatPrice, getOptimizedImageUrl } from "@/lib/utils"
 import { ApiClientError, getCategoryTreeByType } from "@/lib/api"
@@ -902,13 +900,11 @@ export function Header() {
     { label: "Nachrichten", href: "/messages", icon: MessageSquare },
   ]
   const accountNavigationRows: Array<
-    | { kind: "cart"; icon: LucideIcon; label: string }
     | { kind: "link"; icon: LucideIcon; label: string; href: string; badge?: string }
     | { kind: "role" }
     | { kind: "auth" }
     | { kind: "break" }
   > = user ? [
-    { kind: "cart", icon: ShoppingCart, label: "Warenkorb" },
     ...accountNavigationLinks.map((link) => ({
       kind: "link" as const,
       icon: link.icon,
@@ -1719,31 +1715,6 @@ return (
                           return <div key={`divider-${index}`} className="my-2 border-t border-neutral-200" />;
                         }
 
-                        if (kind === "cart") {
-                          return (
-                            <AllesindaCartModal
-                              renderTrigger={({ onClick, totalItems }) => (
-                                <button
-                                  type="button"
-                                  onClick={onClick}
-                                  className={mobileListItemWithIconClass}
-                                >
-                                  <row.icon className="h-4 w-4 text-neutral-600" />
-                                  <span className="flex-1 text-left">{row.label}</span>
-                                  {totalItems > 0 && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="ml-auto h-5 min-w-[1.25rem] px-2 text-[11px] font-semibold leading-none"
-                                    >
-                                      {totalItems > 9 ? "9+" : totalItems}
-                                    </Badge>
-                                  )}
-                                </button>
-                              )}
-                            />
-                          );
-                        }
-
                         if (kind === "auth" && !user) {
                           return (
                             <SheetClose asChild key="mobile-sign-in">
@@ -1900,10 +1871,13 @@ return (
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
               <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
-                <AllesindaCartModal
-                  triggerClassName="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
-                  iconClassName="text-current h-4 w-4 sm:h-5 sm:w-5"
-                />
+                <Link
+                  href="/messages"
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+                  aria-label="Nachrichten"
+                >
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Link>
               </div>
             </>
           )}
@@ -2006,11 +1980,6 @@ return (
           {/* Desktop Only Actions */}
           {user && (
             <div className="hidden items-center gap-2 lg:flex">
-              <AllesindaCartModal
-                triggerClassName="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10"
-                iconClassName="text-current"
-              />
-              <NotificationDropdown />
               <Link
                 href="/messages"
                 className="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10"
@@ -2018,6 +1987,7 @@ return (
               >
                 <MessageSquare className="h-5 w-5" />
               </Link>
+              <NotificationDropdown />
             </div>
           )}
         </div>
