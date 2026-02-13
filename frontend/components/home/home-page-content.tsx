@@ -31,13 +31,14 @@ type HomePageContentProps = {
   initialContent: HomeContent
 }
 
+// Раздел «Продукты» отключён — убран из меню
 const HERO_QUICK_LINKS: Array<{ label: string; value: CategoryType }> = [
   { label: "Meister", value: "master" },
-  { label: "Produkt", value: "product" },
+  // { label: "Produkt", value: "product" },
   { label: "Mieten", value: "rental" },
 ]
 
-const VALID_TYPES: readonly CategoryType[] = ["master", "product", "rental"]
+const VALID_TYPES: readonly CategoryType[] = ["master", "rental"] // "product" отключён
 
 function mapRecentlyViewedItemToDisplay(item: RecentlyViewedItem): RecentlyViewedDisplayItem {
   const parsedPrice = item.price ?? parsePriceLabel(item.priceLabel)

@@ -1,40 +1,22 @@
-import { storeCatalog } from '@/lib/store/constants';
-import ProductList from './components/product-list';
-import { Metadata } from 'next';
-import { Suspense } from 'react';
-import ResultsControls from './components/results-controls';
-import { ProductGrid } from './components/product-grid';
-import { ProductCardSkeleton } from './components/product-card-skeleton';
+import { Metadata } from "next";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: 'Allesinda | Shop',
-  description: 'Allesinda marketplace - your one-stop shop for repair services, products, and rentals.',
+  title: "Allesinda | Shop",
+  description: "Allesinda marketplace.",
 };
 
-// Enable ISR with 1 minute revalidation
-export const revalidate = 60;
-
-export default async function Shop(props: {
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const searchParams = await props.searchParams;
-
+/** Раздел «Продукты» отключён — показываем заглушку вместо каталога */
+export default function ShopPage() {
   return (
-    <>
-      <Suspense
-        fallback={
-          <>
-            <ResultsControls className="max-md:hidden" collections={[]} products={[]} />
-            <ProductGrid>
-              {Array.from({ length: 12 }).map((_, index) => (
-                <ProductCardSkeleton key={index} />
-              ))}
-            </ProductGrid>
-          </>
-        }
-      >
-        <ProductList collection={storeCatalog.rootCategoryId} searchParams={searchParams} />
-      </Suspense>
-    </>
+    <div className="container mx-auto px-sides py-12 sm:py-16 text-center">
+      <p className="text-muted-foreground mb-6">
+        Der Bereich „Produkte“ ist temporär deaktiviert.
+      </p>
+      <Button asChild variant="default">
+        <Link href="/">Zur Startseite</Link>
+      </Button>
+    </div>
   );
 }

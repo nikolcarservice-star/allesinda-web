@@ -86,11 +86,13 @@ export function Footer() {
                       Meister finden
                     </Link>
                   </li>
+                  {/* Раздел «Продукты» отключён
                   <li>
                     <Link href="/products" className="text-xs sm:text-sm md:text-base text-slate-300 dark:text-slate-400 hover:text-primary transition-all inline-block hover:translate-x-1 font-medium">
                       Produkt einkaufen
                     </Link>
                   </li>
+                  */}
                   <li>
                     <Link href="/rentals" className="text-xs sm:text-sm md:text-base text-slate-300 dark:text-slate-400 hover:text-primary transition-all inline-block hover:translate-x-1 font-medium">
                       Geräteverleih

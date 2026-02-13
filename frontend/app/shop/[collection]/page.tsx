@@ -1,44 +1,22 @@
-import { Metadata } from 'next';
-import { getCollection, getCollections } from '@/lib/store';
-import { logger } from '@/lib/logger';
-import { notFound } from 'next/navigation';
-import ProductList from '../components/product-list';
+import { Metadata } from "next";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-// Generate static params for all collections at build time
-export async function generateStaticParams() {
-  try {
-    const collections = await getCollections();
+export const metadata: Metadata = {
+  title: "Allesinda | Shop",
+  description: "Allesinda marketplace.",
+};
 
-    return collections.map(collection => ({
-      collection: collection.handle,
-    }));
-  } catch (error) {
-    logger.error('Error generating static params:', error);
-    return [];
-  }
-}
-
-// Enable ISR with 1 minute revalidation
-export const revalidate = 60;
-
-export async function generateMetadata(props: { params: Promise<{ collection: string }> }): Promise<Metadata> {
-  const params = await props.params;
-  const collection = await getCollection(params.collection);
-
-  if (!collection) return notFound();
-
-  return {
-    title: `Allesinda | ${collection.seo?.title || collection.title}`,
-    description: collection.seo?.description || collection.description || `${collection.title} products on Allesinda`,
-  };
-}
-
-export default async function ShopCategory(props: {
-  params: Promise<{ collection: string }>;
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const params = await props.params;
-  const searchParams = await props.searchParams;
-
-  return <ProductList collection={params.collection} searchParams={searchParams} />;
+/** Раздел «Продукты» отключён — показываем заглушку вместо категории */
+export default async function ShopCollectionPage() {
+  return (
+    <div className="container mx-auto px-sides py-12 sm:py-16 text-center">
+      <p className="text-muted-foreground mb-6">
+        Раздел «Продукты» temporär deaktiviert.
+      </p>
+      <Button asChild variant="default">
+        <Link href="/">Zur Startseite</Link>
+      </Button>
+    </div>
+  );
 }

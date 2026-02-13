@@ -15,7 +15,7 @@ import { useAuth } from "@/lib/context/auth-context"
 import { CategoriesTable } from "@/components/admin/categories-table"
 import { MastersTable } from "@/components/admin/masters-table"
 import { ServicesTable } from "@/components/admin/services-table"
-import { ProductsTable } from "@/components/admin/products-table"
+// Раздел «Продукты» отключён // import { ProductsTable } from "@/components/admin/products-table"
 import { RentalsTable } from "@/components/admin/rentals-table"
 import { BookingsTable } from "@/components/admin/bookings-table"
 import { FeaturedManager } from "@/components/admin/featured-manager"
@@ -123,6 +123,7 @@ export default function AdminPage() {
       description: "Von Meistern angebotene Service",
       badge: overview?.total_services_unapproved ? { label: `${overview.total_services_unapproved} ausstehend`, variant: "secondary" as const } : null,
     },
+    /* Раздел «Продукты» отключён
     {
       metric: "Produkte",
       icon: Package,
@@ -132,6 +133,7 @@ export default function AdminPage() {
       description: "Von Verkäufern gelistete Produkte",
       badge: overview?.products_unapproved ? { label: `${overview.products_unapproved} ausstehend`, variant: "secondary" as const } : null,
     },
+    */
     {
       metric: "Mieten",
       icon: Wrench,
@@ -253,12 +255,14 @@ export default function AdminPage() {
                     <span>Service</span>
                   </div>
                 </SelectItem>
+                {/* Раздел «Продукты» отключён
                 <SelectItem value="products">
                   <div className="flex items-center gap-2">
                     <Package className="h-4 w-4" />
                     <span>Produkte</span>
                   </div>
                 </SelectItem>
+                */}
                 <SelectItem value="rentals">
                   <div className="flex items-center gap-2">
                     <Wrench className="h-4 w-4" />
@@ -295,7 +299,7 @@ export default function AdminPage() {
 
           {/* Desktop: Modern Tabs */}
           <div className="hidden md:block mb-3 sm:mb-4 md:mb-6">
-            <TabsList variant="modern" className="w-full grid grid-cols-10 gap-1 overflow-x-auto">
+            <TabsList variant="modern" className="w-full grid grid-cols-9 gap-1 overflow-x-auto">
               <TabsTrigger value="overview" variant="modern" className="flex items-center justify-center gap-1.5">
                 <BarChart3 />
                 <span className="hidden xl:inline">Übersicht</span>
@@ -312,10 +316,12 @@ export default function AdminPage() {
                 <Briefcase />
                 <span className="hidden xl:inline">Service</span>
               </TabsTrigger>
+              {/* Раздел «Продукты» отключён
               <TabsTrigger value="products" variant="modern" className="flex items-center justify-center gap-1.5">
                 <Package />
                 <span className="hidden xl:inline">Produkte</span>
               </TabsTrigger>
+              */}
               <TabsTrigger value="rentals" variant="modern" className="flex items-center justify-center gap-1.5">
                 <Wrench />
                 <span className="hidden xl:inline">Mieten</span>
@@ -465,9 +471,11 @@ export default function AdminPage() {
           <TabsContent value="services" className="mt-0">
             <ServicesTable />
           </TabsContent>
+          {/* Раздел «Продукты» отключён
           <TabsContent value="products" className="mt-0">
             <ProductsTable />
           </TabsContent>
+          */}
           <TabsContent value="rentals" className="mt-0">
             <RentalsTable />
           </TabsContent>
