@@ -1974,7 +1974,7 @@ return (
 
           {/* Desktop Only Actions */}
           {user && (
-            <div className="hidden items-center gap-2 lg:flex">
+            <div className="hidden items-center gap-2 overflow-visible lg:flex">
               <MessagesLinkWithBadge variant="desktop" aria-label="Nachrichten" />
               <NotificationDropdown />
             </div>

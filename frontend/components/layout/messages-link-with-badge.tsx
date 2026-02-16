@@ -65,24 +65,26 @@ export function MessagesLinkWithBadge({
   const iconSize = isMobile ? "h-4 w-4 sm:h-5 sm:w-5" : "h-5 w-5"
 
   return (
-    <Link
-      href="/messages"
-      className={cn(
-        "relative flex items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0",
-        sizeClass,
-        className
-      )}
-      aria-label={ariaLabel}
-    >
-      <MessageSquare className={cn(iconSize, iconClassName)} />
+    <span className="relative inline-flex overflow-visible shrink-0">
+      <Link
+        href="/messages"
+        className={cn(
+          "relative flex items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10",
+          sizeClass,
+          className
+        )}
+        aria-label={ariaLabel}
+      >
+        <MessageSquare className={cn(iconSize, iconClassName)} />
+      </Link>
       {unreadCount > 0 && (
         <Badge
           variant="destructive"
-          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-bold min-w-5"
+          className="absolute -top-1 -right-1 z-10 h-5 w-5 flex items-center justify-center p-0 text-xs font-bold min-w-5 rounded-full pointer-events-none"
         >
           {unreadCount > 99 ? "99+" : unreadCount}
         </Badge>
       )}
-    </Link>
+    </span>
   )
 }
