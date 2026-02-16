@@ -5,8 +5,9 @@ import { createPortal } from "react-dom"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { getApiBaseUrl } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
-import { getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
+import { getOptimizedImageUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
 
 type GalleryItem = {
   before_url?: string | null
@@ -251,8 +252,17 @@ interface VideoFullscreenModalProps {
   onClose: () => void
 }
 
+function getVideoSrc(pathOrUrl: string): string {
+  if (!pathOrUrl) return ""
+  const path = toMediaRelativePath(pathOrUrl)
+  if (!path) return ""
+  if (path.startsWith("http://") || path.startsWith("https://")) return path
+  const base = getApiBaseUrl().replace(/\/$/, "")
+  return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`
+}
+
 export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenModalProps) {
-  const videoUrl = item.url ? getOptimizedImageUrl(item.url, 'original') : null
+  const videoUrl = item.url ? getVideoSrc(item.url) : null
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

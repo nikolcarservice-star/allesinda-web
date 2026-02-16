@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { getApiBaseUrl } from "@/lib/api/client"
 import { getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
 
 interface VideoPlayerProps {
@@ -12,6 +13,18 @@ interface VideoPlayerProps {
   onClose: () => void
 }
 
+/** Build a URL the browser can load for video (same-origin rewrite or direct API URL). */
+function getVideoSrc(pathOrUrl: string): string {
+  if (!pathOrUrl) return ""
+  const path = toMediaRelativePath(pathOrUrl)
+  if (!path) return ""
+  // If it's already a full URL, use as-is
+  if (path.startsWith("http://") || path.startsWith("https://")) return path
+  // Use API base URL so video loads from backend (rewrite may not apply to video in some setups)
+  const base = getApiBaseUrl().replace(/\/$/, "")
+  return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`
+}
+
 export function VideoPlayer({
   videoUrl,
   thumbnailUrl,
@@ -19,8 +32,7 @@ export function VideoPlayer({
   isOpen,
   onClose,
 }: VideoPlayerProps) {
-  // Important: don't run image optimization on video URLs (can break playback)
-  const normalizedUrl = videoUrl ? toMediaRelativePath(videoUrl) : null
+  const videoSrc = videoUrl ? getVideoSrc(videoUrl) : ""
   const normalizedThumbnail = thumbnailUrl ? getOptimizedImageUrl(thumbnailUrl, 'gallery') : undefined
 
   return (
@@ -30,10 +42,10 @@ export function VideoPlayer({
           <DialogTitle>{title ?? "Video"}</DialogTitle>
           <DialogDescription>Video player dialog</DialogDescription>
         </VisuallyHidden>
-        {normalizedUrl ? (
+        {videoSrc ? (
           <div className="relative w-full aspect-video bg-black rounded-sm overflow-hidden">
             <video
-              src={normalizedUrl}
+              src={videoSrc}
               controls
               autoPlay
               className="w-full h-full object-contain rounded-sm"
@@ -44,7 +56,7 @@ export function VideoPlayer({
           </div>
         ) : (
           <div className="relative w-full aspect-video bg-black flex items-center justify-center text-white rounded-sm">
-            <p>No video URL provided</p>
+            <p>{videoUrl ? "Video URL konnte nicht geladen werden" : "No video URL provided"}</p>
           </div>
         )}
       </DialogContent>

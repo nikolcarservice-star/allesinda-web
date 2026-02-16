@@ -1,8 +1,18 @@
 "use client"
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { getApiBaseUrl } from "@/lib/api/client"
 import { getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
 import type { Media } from "@/lib/api/types"
+
+function getVideoSrc(pathOrUrl: string): string {
+  if (!pathOrUrl) return ""
+  const path = toMediaRelativePath(pathOrUrl)
+  if (!path) return ""
+  if (path.startsWith("http://") || path.startsWith("https://")) return path
+  const base = getApiBaseUrl().replace(/\/$/, "")
+  return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`
+}
 
 interface VideoPlayerDialogProps {
   video: Media | null
@@ -13,8 +23,7 @@ interface VideoPlayerDialogProps {
 export function VideoPlayerDialog({ video, isOpen, onClose }: VideoPlayerDialogProps) {
   if (!video || !video.url) return null
 
-  // Important: don't run image optimization on video URLs (can break playback)
-  const videoUrl = toMediaRelativePath(video.url)
+  const videoSrc = getVideoSrc(video.url)
   const thumbnailUrl = video.thumbnail_url ? getOptimizedImageUrl(video.thumbnail_url, 'gallery') : undefined
 
   return (
@@ -23,7 +32,7 @@ export function VideoPlayerDialog({ video, isOpen, onClose }: VideoPlayerDialogP
         <DialogTitle className="sr-only">{video.title || "Video"}</DialogTitle>
         <div className="relative aspect-video w-full bg-black">
           <video
-            src={videoUrl}
+            src={videoSrc}
             controls
             autoPlay
             className="h-full w-full object-contain"
