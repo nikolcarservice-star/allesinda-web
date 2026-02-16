@@ -131,6 +131,6 @@ export async function getMyMedia(params?: {
  * Delete media
  */
 export async function deleteMedia(mediaId: number): Promise<void> {
-  return apiDelete<void>(`/media/${mediaId}`);
+  return apiDelete<void>(`/media/me/${mediaId}`);
 }
 
