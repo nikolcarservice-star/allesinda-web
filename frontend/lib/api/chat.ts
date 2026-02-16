@@ -12,6 +12,13 @@ import type {
 } from './types';
 
 /**
+ * Get total unread messages count (for header badge). Lightweight, like notifications count.
+ */
+export async function getUnreadMessagesCount(): Promise<{ count: number }> {
+  return apiGet<{ count: number }>('/chat/unread/count');
+}
+
+/**
  * List user's conversations
  */
 export async function getConversations(params?: {

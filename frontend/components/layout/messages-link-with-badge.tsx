@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { MessageSquare } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { getConversations } from "@/lib/api/chat"
+import { getUnreadMessagesCount } from "@/lib/api/chat"
 import { getAuthToken } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
@@ -34,10 +34,8 @@ export function MessagesLinkWithBadge({
       return
     }
     try {
-      const res = await getConversations({ page: 1, page_size: 50 })
-      const items = res?.items ?? []
-      const total = items.reduce((sum: number, c: { unread?: number }) => sum + (c.unread ?? 0), 0)
-      setUnreadCount(total)
+      const res = await getUnreadMessagesCount()
+      setUnreadCount(res?.count ?? 0)
     } catch {
       setUnreadCount(0)
     }
@@ -45,7 +43,7 @@ export function MessagesLinkWithBadge({
 
   useEffect(() => {
     loadUnread()
-    const interval = setInterval(loadUnread, 30000)
+    const interval = setInterval(loadUnread, 5000)
     const onRefresh = () => loadUnread()
     window.addEventListener("notifications:refresh", onRefresh)
     document.addEventListener("visibilitychange", () => {

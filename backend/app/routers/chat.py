@@ -322,6 +322,25 @@ def get_message_detail(message: Message, current_user_id: int) -> dict:
         "attachments": attachments,
     }
 
+@router.get("/unread/count")
+def get_unread_messages_count(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Total count of unread messages for the current user (for header badge)."""
+    count = (
+        db.query(Message)
+        .join(Conversation, Message.conversation_id == Conversation.id)
+        .filter(
+            or_(Conversation.buyer_id == user.id, Conversation.seller_id == user.id),
+            Message.sender_id != user.id,
+            Message.is_read == False,
+        )
+        .count()
+    )
+    return {"count": count}
+
+
 @router.get("/conversations", response_model=dict)
 def list_conversations(
     user: User = Depends(get_current_user),
