@@ -111,6 +111,11 @@ export function normalizeImageUrl(url: string | undefined | null): string {
     normalized = `/${normalized}`;
   }
 
+  // Backend may return path as /files/... or files/... — rewrite expects /media/:path*
+  if (normalized.startsWith('/files/') && !normalized.startsWith('/media/')) {
+    normalized = '/media' + normalized;
+  }
+
   return normalized;
 }
 

@@ -299,7 +299,15 @@ function GalleryCardInner({
 export const GalleryCard = memo(GalleryCardInner)
 
 function safeUrl(u: unknown): string | undefined | null {
-  return typeof u === "string" ? u : undefined
+  if (u == null) return undefined
+  if (typeof u === "string") return u.trim() || undefined
+  return undefined
+}
+
+/** Get URL from media item (API may return url or file_url) */
+function getMediaUrl(item: GalleryItem): string | undefined {
+  const url = safeUrl(item?.url) ?? safeUrl((item as { file_url?: string })?.file_url)
+  return url || undefined
 }
 
 function getItemImage(item: GalleryItem) {
@@ -314,7 +322,7 @@ function getItemImage(item: GalleryItem) {
   }
   if (item?.media_type === "video") {
     const thumb = safeUrl(item?.thumbnail_url)
-    const url = safeUrl(item?.url)
+    const url = getMediaUrl(item)
     const thumbPath = toMediaRelativePath(thumb) || toMediaRelativePath(url)
     const thumbOptimized = getOptimizedImageUrl(thumb, 'gallery') || getOptimizedImageUrl(url, 'gallery')
     return {
@@ -322,7 +330,7 @@ function getItemImage(item: GalleryItem) {
       thumbnail: thumbPath || thumbOptimized,
     }
   }
-  const rawUrl = safeUrl(item?.url)
+  const rawUrl = getMediaUrl(item)
   const imagePath = toMediaRelativePath(rawUrl)
   const imageOptimized = getOptimizedImageUrl(rawUrl, 'gallery')
   return { type: "image" as const, image: imagePath || imageOptimized }
