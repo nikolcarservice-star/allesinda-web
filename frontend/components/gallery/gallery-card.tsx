@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, type MouseEvent } from "react"
+import { useState, useEffect, useMemo, memo, type MouseEvent } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
@@ -34,7 +34,7 @@ interface GalleryCardProps {
   currentIndex?: number
 }
 
-export function GalleryCard({ 
+function GalleryCardInner({ 
   item, 
   href, 
   onVideoClick, 
@@ -294,6 +294,8 @@ export function GalleryCard({
     </>
   )
 }
+
+export const GalleryCard = memo(GalleryCardInner)
 
 function safeUrl(u: unknown): string | undefined | null {
   return typeof u === "string" ? u : undefined

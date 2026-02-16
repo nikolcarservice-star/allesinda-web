@@ -142,6 +142,9 @@ export default function MasterDashboardPage() {
   const [orderFilter, setOrderFilter] = useState<OrderStatus | "all" | "pending">("all")
   const [mediaFilter, setMediaFilter] = useState<"all" | "approved" | "pending" | "rejected">("all")
   const [searchQuery, setSearchQuery] = useState("")
+  const [deletingMediaId, setDeletingMediaId] = useState<number | null>(null)
+  const [mediaVisibleCount, setMediaVisibleCount] = useState(24)
+  const mediaSentinelRef = useRef<HTMLDivElement>(null)
 
   const [stats, setStats] = useState({
     total_orders: 0,
@@ -498,7 +501,7 @@ export default function MasterDashboardPage() {
   const handleDeleteMedia = useCallback(async (mediaId: number) => {
     if (!confirm("Sind Sie sicher, dass Sie dieses Medium löschen möchten?")) return
     try {
-      setLoading(true)
+      setDeletingMediaId(mediaId)
       await deleteMedia(mediaId)
       setMedia((prev: Media[]) => prev.filter((m: Media) => m.id !== mediaId))
       toast.success("Medium erfolgreich gelöscht")
@@ -506,7 +509,7 @@ export default function MasterDashboardPage() {
     } catch (error: any) {
       toast.error(error?.message || "Fehler beim Löschen des Mediums")
     } finally {
-      setLoading(false)
+      setDeletingMediaId(null)
     }
   }, [])
 
@@ -632,6 +635,27 @@ export default function MasterDashboardPage() {
     if (mediaFilter === "all") return list
     return list.filter(m => m.status === mediaFilter)
   }, [media, mediaFilter])
+
+  const visibleMedia = useMemo(() => filteredMedia.slice(0, mediaVisibleCount), [filteredMedia, mediaVisibleCount])
+
+  useEffect(() => {
+    setMediaVisibleCount(24)
+  }, [mediaFilter])
+
+  useEffect(() => {
+    const sentinel = mediaSentinelRef.current
+    if (!sentinel || filteredMedia.length <= mediaVisibleCount) return
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setMediaVisibleCount((prev) => Math.min(prev + 16, filteredMedia.length))
+        }
+      },
+      { rootMargin: "200px", threshold: 0 }
+    )
+    obs.observe(sentinel)
+    return () => obs.disconnect()
+  }, [filteredMedia.length, mediaVisibleCount])
 
   const filteredServices = useMemo(() => {
     if (!searchQuery) return services
@@ -2026,19 +2050,26 @@ export default function MasterDashboardPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
-                      {filteredMedia.map((item) => (
-                        <GalleryCard
+                      {visibleMedia.map((item) => (
+                        <div
                           key={item.id}
-                          item={item}
-                          href={`/gallery/${item.id}`}
-                          hideProfile={true}
-                          showStatusBadge={false}
-                          showTypeBadge={true}
-                          onVideoClick={item.media_type === "video" ? handleVideoClick : undefined}
-                          onDelete={onDeleteMediaItem}
-                          isDeleting={loading}
-                        />
+                          className="min-h-[280px] [content-visibility:auto] [contain-intrinsic-size:0_280px]"
+                        >
+                          <GalleryCard
+                            item={item}
+                            href={`/gallery/${item.id}`}
+                            hideProfile={true}
+                            showStatusBadge={false}
+                            showTypeBadge={true}
+                            onVideoClick={item.media_type === "video" ? handleVideoClick : undefined}
+                            onDelete={onDeleteMediaItem}
+                            isDeleting={deletingMediaId === item.id}
+                          />
+                        </div>
                       ))}
+                      {filteredMedia.length > visibleMedia.length && (
+                        <div ref={mediaSentinelRef} className="col-span-full h-4" aria-hidden />
+                      )}
                                 </div>
                   )}
                 </CardContent>
