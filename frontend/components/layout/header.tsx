@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/context/auth-context"
 import { NotificationDropdown } from "@/components/layout/notification-dropdown"
+import { MessagesLinkWithBadge } from "@/components/layout/messages-link-with-badge"
 import { cn, formatPrice, getOptimizedImageUrl } from "@/lib/utils"
 import { ApiClientError, getCategoryTreeByType } from "@/lib/api"
 import { logger } from "@/lib/logger"
@@ -1871,13 +1872,7 @@ return (
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
               <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
-                <Link
-                  href="/messages"
-                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
-                  aria-label="Nachrichten"
-                >
-                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Link>
+                <MessagesLinkWithBadge variant="mobile" aria-label="Nachrichten" />
               </div>
             </>
           )}
@@ -1980,13 +1975,7 @@ return (
           {/* Desktop Only Actions */}
           {user && (
             <div className="hidden items-center gap-2 lg:flex">
-              <Link
-                href="/messages"
-                className="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10"
-                aria-label="Nachrichten"
-              >
-                <MessageSquare className="h-5 w-5" />
-              </Link>
+              <MessagesLinkWithBadge variant="desktop" aria-label="Nachrichten" />
               <NotificationDropdown />
             </div>
           )}

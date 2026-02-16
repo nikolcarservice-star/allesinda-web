@@ -1,0 +1,88 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { MessageSquare } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { getConversations } from "@/lib/api/chat"
+import { getAuthToken } from "@/lib/api/client"
+import { cn } from "@/lib/utils"
+
+interface MessagesLinkWithBadgeProps {
+  className?: string
+  iconClassName?: string
+  /** Mobile: smaller. Desktop: default. */
+  variant?: "mobile" | "desktop"
+  ariaLabel?: string
+}
+
+/**
+ * Ссылка «Сообщения» с индикатором непрочитанных (как у колокольчика).
+ * Обновляется по событию notifications:refresh и по интервалу.
+ */
+export function MessagesLinkWithBadge({
+  className,
+  iconClassName,
+  variant = "desktop",
+  ariaLabel = "Nachrichten",
+}: MessagesLinkWithBadgeProps) {
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  const loadUnread = async () => {
+    if (!getAuthToken()) {
+      setUnreadCount(0)
+      return
+    }
+    try {
+      const res = await getConversations({ page: 1, page_size: 50 })
+      const items = res?.items ?? []
+      const total = items.reduce((sum: number, c: { unread?: number }) => sum + (c.unread ?? 0), 0)
+      setUnreadCount(total)
+    } catch {
+      setUnreadCount(0)
+    }
+  }
+
+  useEffect(() => {
+    loadUnread()
+    const interval = setInterval(loadUnread, 30000)
+    const onRefresh = () => loadUnread()
+    window.addEventListener("notifications:refresh", onRefresh)
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) loadUnread()
+    })
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener("notifications:refresh", onRefresh)
+      document.removeEventListener("visibilitychange", onRefresh)
+    }
+  }, [])
+
+  const isMobile = variant === "mobile"
+  const sizeClass = isMobile
+    ? "h-9 w-9 sm:h-10 sm:w-10"
+    : "h-10 w-10"
+  const iconSize = isMobile ? "h-4 w-4 sm:h-5 sm:w-5" : "h-5 w-5"
+
+  return (
+    <Link
+      href="/messages"
+      className={cn(
+        "relative flex items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0",
+        sizeClass,
+        className
+      )}
+      aria-label={ariaLabel}
+    >
+      <MessageSquare className={cn(iconSize, iconClassName)} />
+      {unreadCount > 0 && (
+        <Badge
+          variant="destructive"
+          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-bold min-w-5"
+        >
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </Badge>
+      )}
+    </Link>
+  )
+}
