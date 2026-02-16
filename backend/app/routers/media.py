@@ -562,3 +562,20 @@ async def my_media(
     media_out_items = [MediaOut.model_validate(item) for item in items]
     
     return create_paginated_response(media_out_items, total, page, page_size)
+
+
+@router.delete("/{media_id}", status_code=204)
+def delete_media(
+    media_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete a media item. Only the owner can delete."""
+    media = db.get(Media, media_id)
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+    if media.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Not allowed to delete this media")
+    db.delete(media)
+    db.commit()
+    return None
