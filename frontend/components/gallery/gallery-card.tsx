@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useMemo, memo, type MouseEvent } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { BeforeAfterCard } from "./before-after-card"
 import { Play, Video, ImageIcon, Trash2 } from "lucide-react"
 import type { Media } from "@/lib/api/types"
-import { getOptimizedImageUrl, toMediaRelativePath, shouldUseUnoptimized, cn } from "@/lib/utils"
+import { getOptimizedImageUrl, toMediaRelativePath, getMediaAbsoluteUrl, cn } from "@/lib/utils"
 import { BeforeAfterFullscreenModal, VideoFullscreenModal } from "./gallery-fullscreen-modal"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 
@@ -88,10 +87,9 @@ function GalleryCardInner({
     }
   }, [showImageModal, allItems, currentIndex, imageItems, item.id])
   
-  // Use unoptimized for external CDN or for same-origin relative paths (load via rewrite, no optimizer)
-  const isRelativePath = (u: string) => u.startsWith("/") && !u.startsWith("//")
-  const isExternalImage = imageData.type === "image" && imageData.image ? (shouldUseUnoptimized(imageData.image) || isRelativePath(imageData.image)) : false
-  const isExternalThumbnail = imageData.type === "video" && imageData.thumbnail ? (shouldUseUnoptimized(imageData.thumbnail) || isRelativePath(imageData.thumbnail)) : false
+  // Prefer direct API URL for media so images load reliably (no rewrite/optimizer)
+  const imageSrc = imageData.type === "image" ? (getMediaAbsoluteUrl(imageData.image) || imageData.image || "/placeholder.svg") : ""
+  const thumbSrc = imageData.type === "video" ? (getMediaAbsoluteUrl(imageData.thumbnail) || imageData.thumbnail || "/placeholder.svg") : ""
 
   const handleCardClick = (event: MouseEvent) => {
     if (imageData.type === "before-after") {
@@ -146,15 +144,12 @@ function GalleryCardInner({
           </div>
         ) : imageData.type === "video" ? (
           <div className="relative aspect-square bg-muted cursor-pointer rounded-none overflow-hidden" onClick={handleVideoOverlayClick}>
-            <Image
-              src={imageData.thumbnail || "/placeholder.svg"}
+            <img
+              src={thumbSrc}
               alt={item.title || "Video"}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-none"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              quality={90}
-              unoptimized={isExternalThumbnail}
-              {...(priority ? { priority: true } : { loading: "lazy" })}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-none"
+              loading={priority ? "eager" : "lazy"}
+              referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors duration-300">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -173,15 +168,12 @@ function GalleryCardInner({
           </div>
         ) : (
           <div className="relative aspect-square bg-muted cursor-pointer" onClick={handleCardClick}>
-            <Image
-              src={imageData.image || "/placeholder.svg"}
+            <img
+              src={imageSrc}
               alt={item.title || "Arbeit"}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              quality={90}
-              unoptimized={isExternalImage}
-              {...(priority ? { priority: true } : { loading: "lazy" })}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading={priority ? "eager" : "lazy"}
+              referrerPolicy="no-referrer"
             />
             {/* Type Badge overlay */}
             {showTypeBadge && (

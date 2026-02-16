@@ -140,6 +140,21 @@ export function toMediaRelativePath(url: string | undefined | null): string {
 }
 
 /**
+ * Returns an absolute URL for media so the browser can load it directly from the API.
+ * Use this for <img> src to avoid rewrite/Next Image issues.
+ * When NEXT_PUBLIC_API_URL is set, returns base + path; otherwise returns relative path.
+ */
+export function getMediaAbsoluteUrl(pathOrUrl: string | undefined | null): string {
+  if (!pathOrUrl) return '';
+  const path = toMediaRelativePath(pathOrUrl);
+  if (!path) return pathOrUrl;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) return path;
+  const base = apiUrl.replace(/\/$/, '');
+  return path.startsWith('/') ? base + path : path;
+}
+
+/**
  * Image optimization presets for different use cases
  */
 export type ImageOptimizationPreset = 
