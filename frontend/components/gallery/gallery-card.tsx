@@ -295,21 +295,28 @@ export function GalleryCard({
   )
 }
 
+function safeUrl(u: unknown): string | undefined | null {
+  return typeof u === "string" ? u : undefined
+}
+
 function getItemImage(item: GalleryItem) {
-  if (item.is_before_after && item.before_url && item.after_url) {
+  const beforeUrl = safeUrl(item?.before_url)
+  const afterUrl = safeUrl(item?.after_url)
+  if (item?.is_before_after && beforeUrl && afterUrl) {
     return {
       type: "before-after" as const,
-      // Use 'full' preset to match fullscreen modal and ensure same images are shown
-      before: getOptimizedImageUrl(item.before_url, 'full'),
-      after: getOptimizedImageUrl(item.after_url, 'full'),
+      before: getOptimizedImageUrl(beforeUrl, 'full'),
+      after: getOptimizedImageUrl(afterUrl, 'full'),
     }
   }
-  if (item.media_type === "video") {
+  if (item?.media_type === "video") {
+    const thumb = safeUrl(item?.thumbnail_url)
+    const url = safeUrl(item?.url)
     return {
       type: "video" as const,
-      thumbnail: getOptimizedImageUrl(item.thumbnail_url, 'gallery') || getOptimizedImageUrl(item.url, 'gallery'),
+      thumbnail: getOptimizedImageUrl(thumb, 'gallery') || getOptimizedImageUrl(url, 'gallery'),
     }
   }
-  return { type: "image" as const, image: getOptimizedImageUrl(item.url, 'gallery') }
+  return { type: "image" as const, image: getOptimizedImageUrl(safeUrl(item?.url), 'gallery') }
 }
 

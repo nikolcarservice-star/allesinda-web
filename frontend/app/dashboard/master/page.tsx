@@ -628,8 +628,9 @@ export default function MasterDashboardPage() {
   }, [orders, orderFilter, searchQuery])
 
   const filteredMedia = useMemo(() => {
-    if (mediaFilter === "all") return media
-    return media.filter(m => m.status === mediaFilter)
+    const list = (media || []).filter((m): m is Media => m != null && typeof m === "object" && typeof m.id === "number")
+    if (mediaFilter === "all") return list
+    return list.filter(m => m.status === mediaFilter)
   }, [media, mediaFilter])
 
   const filteredServices = useMemo(() => {
@@ -1490,7 +1491,7 @@ export default function MasterDashboardPage() {
                           <p className="text-xs text-muted-foreground mb-1">Bewertung</p>
                           <div className="flex items-center gap-1">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <p className="text-lg font-bold">{profile.rating.toFixed(1)}</p>
+                            <p className="text-lg font-bold">{(profile.rating ?? 0).toFixed(1)}</p>
                           </div>
                         </div>
                         <div className="h-10 w-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
@@ -1504,7 +1505,7 @@ export default function MasterDashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Bewertungen</p>
-                          <p className="text-lg font-bold">{profile.total_reviews}</p>
+                          <p className="text-lg font-bold">{profile.total_reviews ?? 0}</p>
                         </div>
                         <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                           <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -1517,7 +1518,7 @@ export default function MasterDashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Abgeschlossene Aufträge</p>
-                          <p className="text-lg font-bold">{profile.completed_jobs}</p>
+                          <p className="text-lg font-bold">{profile.completed_jobs ?? 0}</p>
                         </div>
                         <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
                           <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
