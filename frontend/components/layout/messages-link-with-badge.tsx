@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { MessageSquare } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { getUnreadMessagesCount } from "@/lib/api/chat"
+import { getUnreadMessagesCount, getConversations } from "@/lib/api/chat"
 import { getAuthToken } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
@@ -37,7 +37,14 @@ export function MessagesLinkWithBadge({
       const res = await getUnreadMessagesCount()
       setUnreadCount(res?.count ?? 0)
     } catch {
-      setUnreadCount(0)
+      try {
+        const res = await getConversations({ page: 1, page_size: 50 })
+        const items = res?.items ?? []
+        const total = items.reduce((sum: number, c: { unread?: number }) => sum + (c.unread ?? 0), 0)
+        setUnreadCount(total)
+      } catch {
+        setUnreadCount(0)
+      }
     }
   }
 
