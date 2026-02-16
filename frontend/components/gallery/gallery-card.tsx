@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { BeforeAfterCard } from "./before-after-card"
 import { Play, Video, ImageIcon, Trash2 } from "lucide-react"
 import type { Media } from "@/lib/api/types"
-import { getOptimizedImageUrl, shouldUseUnoptimized, cn } from "@/lib/utils"
+import { getOptimizedImageUrl, toMediaRelativePath, shouldUseUnoptimized, cn } from "@/lib/utils"
 import { BeforeAfterFullscreenModal, VideoFullscreenModal } from "./gallery-fullscreen-modal"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 
@@ -88,9 +88,10 @@ function GalleryCardInner({
     }
   }, [showImageModal, allItems, currentIndex, imageItems, item.id])
   
-  // Check if images are external URLs (CDN) - should use unoptimized
-  const isExternalImage = imageData.type === "image" && imageData.image ? shouldUseUnoptimized(imageData.image) : false
-  const isExternalThumbnail = imageData.type === "video" && imageData.thumbnail ? shouldUseUnoptimized(imageData.thumbnail) : false
+  // Use unoptimized for external CDN or for same-origin relative paths (load via rewrite, no optimizer)
+  const isRelativePath = (u: string) => u.startsWith("/") && !u.startsWith("//")
+  const isExternalImage = imageData.type === "image" && imageData.image ? (shouldUseUnoptimized(imageData.image) || isRelativePath(imageData.image)) : false
+  const isExternalThumbnail = imageData.type === "video" && imageData.thumbnail ? (shouldUseUnoptimized(imageData.thumbnail) || isRelativePath(imageData.thumbnail)) : false
 
   const handleCardClick = (event: MouseEvent) => {
     if (imageData.type === "before-after") {
@@ -307,18 +308,23 @@ function getItemImage(item: GalleryItem) {
   if (item?.is_before_after && beforeUrl && afterUrl) {
     return {
       type: "before-after" as const,
-      before: getOptimizedImageUrl(beforeUrl, 'full'),
-      after: getOptimizedImageUrl(afterUrl, 'full'),
+      before: toMediaRelativePath(beforeUrl) || getOptimizedImageUrl(beforeUrl, 'full'),
+      after: toMediaRelativePath(afterUrl) || getOptimizedImageUrl(afterUrl, 'full'),
     }
   }
   if (item?.media_type === "video") {
     const thumb = safeUrl(item?.thumbnail_url)
     const url = safeUrl(item?.url)
+    const thumbPath = toMediaRelativePath(thumb) || toMediaRelativePath(url)
+    const thumbOptimized = getOptimizedImageUrl(thumb, 'gallery') || getOptimizedImageUrl(url, 'gallery')
     return {
       type: "video" as const,
-      thumbnail: getOptimizedImageUrl(thumb, 'gallery') || getOptimizedImageUrl(url, 'gallery'),
+      thumbnail: thumbPath || thumbOptimized,
     }
   }
-  return { type: "image" as const, image: getOptimizedImageUrl(safeUrl(item?.url), 'gallery') }
+  const rawUrl = safeUrl(item?.url)
+  const imagePath = toMediaRelativePath(rawUrl)
+  const imageOptimized = getOptimizedImageUrl(rawUrl, 'gallery')
+  return { type: "image" as const, image: imagePath || imageOptimized }
 }
 

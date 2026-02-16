@@ -42,6 +42,19 @@ if (isDevelopment || isLocalhostApi) {
       hostname: '127.0.0.1',
     }
   );
+  // Include API origin with port so Next Image can load backend media (e.g. localhost:8000)
+  if (apiUrl) {
+    try {
+      const parsed = new URL(apiUrl);
+      remotePatterns.push({
+        protocol: parsed.protocol.replace(':', ''),
+        hostname: parsed.hostname,
+        ...(parsed.port ? { port: parsed.port } : {}),
+      });
+    } catch {
+      // ignore
+    }
+  }
 }
 
 if (cdnUrl) {
