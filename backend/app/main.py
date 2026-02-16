@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import APIRouter, FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -124,28 +124,40 @@ app.add_middleware(
     max_age=3600,  # Cache preflight requests for 1 hour
 )
 
-# Include routers
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(masters.router)
-app.include_router(sellers.router)
-app.include_router(products.router)
-app.include_router(rentals.router)
-app.include_router(media.router)
-app.include_router(orders.router)
-app.include_router(reviews.router)
-app.include_router(search.router)
-app.include_router(admin.router)
-app.include_router(payments.router)
-app.include_router(chat.router)
-app.include_router(gallery.router)
-app.include_router(favorites.router)
-app.include_router(featured.router)
-app.include_router(relationships.router)
-app.include_router(notifications.router)
-app.include_router(categories.router)
-app.include_router(trending.router)
-app.include_router(cities.router)
+# Optional API prefix (e.g. API_PREFIX=/api → routes at /api/auth, /api/media, ...)
+# Set in backend env if your proxy serves the API under a path. Then set NEXT_PUBLIC_API_URL to https://api.allesinda.com/api
+_api_prefix = os.getenv("API_PREFIX", "").strip().rstrip("/")
+
+def _include_routers(target):
+    target.include_router(auth.router)
+    target.include_router(users.router)
+    target.include_router(masters.router)
+    target.include_router(sellers.router)
+    target.include_router(products.router)
+    target.include_router(rentals.router)
+    target.include_router(media.router)
+    target.include_router(orders.router)
+    target.include_router(reviews.router)
+    target.include_router(search.router)
+    target.include_router(admin.router)
+    target.include_router(payments.router)
+    target.include_router(chat.router)
+    target.include_router(gallery.router)
+    target.include_router(favorites.router)
+    target.include_router(featured.router)
+    target.include_router(relationships.router)
+    target.include_router(notifications.router)
+    target.include_router(categories.router)
+    target.include_router(trending.router)
+    target.include_router(cities.router)
+
+if _api_prefix:
+    _api = APIRouter()
+    _include_routers(_api)
+    app.include_router(_api, prefix=_api_prefix)
+    logger.info(f"API mounted under prefix: {_api_prefix}")
+else:
+    _include_routers(app)
 
 # Handler for media files - serve existing files or generate placeholders
 from fastapi import Request
@@ -447,13 +459,16 @@ async def general_exception_handler(request: Request, exc: Exception):
 @limiter.limit(f"{settings.RATE_LIMIT_PER_MINUTE}/minute") if settings.RATE_LIMIT_ENABLED else lambda f: f
 def root(request: Request):
     """Root endpoint"""
-    return {
+    out = {
         "ok": True,
         "name": "Allesinda API",
         "version": "0.1.0",
         "environment": settings.ENVIRONMENT,
         "docs": "/docs" if not settings.IS_PRODUCTION else None
     }
+    if _api_prefix:
+        out["api_prefix"] = _api_prefix  # API routes live under this path (e.g. NEXT_PUBLIC_API_URL = base + prefix)
+    return out
 
 @app.get("/health")
 def health_check():
