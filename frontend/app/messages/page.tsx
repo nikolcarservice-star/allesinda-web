@@ -1778,7 +1778,7 @@ function MessagesPageContent() {
                 </div>
 
                 <ScrollArea className="flex-1 min-h-0" ref={scrollAreaRef}>
-                  <div className="p-3 sm:p-4">
+                  <div className="p-3 sm:p-4 pb-24 sm:pb-4">
                     {loadingMessages ? (
                       <div className="flex items-center justify-center py-12">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -1815,7 +1815,7 @@ function MessagesPageContent() {
                               </div>
                             )}
                             {groupMessagesByDate(currentMessages).map((group) => (
-                              <div key={group.date} className="space-y-2">
+                              <div key={group.date} className="space-y-3 sm:space-y-2">
                                 <div className="flex items-center justify-center py-2">
                                   <div className="flex items-center gap-2 px-3 w-full">
                                     <div className="h-px flex-1 bg-border/50" />
@@ -1848,13 +1848,17 @@ function MessagesPageContent() {
                                     >
                                       <div
                                         className={cn(
-                                          "max-w-[85%] sm:max-w-[75%] md:max-w-[65%] rounded-2xl px-3 py-2 break-words",
+                                          "max-w-[85%] sm:max-w-[75%] md:max-w-[65%] min-w-[60px] rounded-2xl px-4 py-2.5 sm:px-3 sm:py-2 break-words",
                                           message.sender === "me"
                                             ? "bg-primary text-primary-foreground rounded-br-sm"
                                             : "bg-muted text-foreground rounded-bl-sm",
                                         )}
                                       >
-                                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                        {message.content?.trim() ? (
+                                          <p className="text-[15px] sm:text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                        ) : !message.attachments?.length ? (
+                                          <p className="text-[15px] sm:text-sm leading-relaxed invisible select-none">.</p>
+                                        ) : null}
                                         {message.attachments && message.attachments.length > 0 && (
                                           <div className="mt-2 space-y-2">
                                             {message.attachments.map((attachment, attachmentIndex) => {
@@ -1901,10 +1905,10 @@ function MessagesPageContent() {
                                             })}
                                           </div>
                                         )}
-                                        <div className="flex items-center justify-end gap-1.5 mt-1">
+                                        <div className="flex items-center justify-end gap-1.5 mt-1.5">
                                           <p
                                             className={cn(
-                                              "text-[10px]",
+                                              "text-[11px] sm:text-[10px]",
                                               message.sender === "me"
                                                 ? "text-primary-foreground/70"
                                                 : "text-muted-foreground",
@@ -1936,7 +1940,7 @@ function MessagesPageContent() {
                   </div>
                 </ScrollArea>
 
-                <div className="p-3 sm:p-4 pb-safe border-t border-border/50 bg-background/95 backdrop-blur-sm shrink-0">
+                <div className="p-3 sm:p-4 pb-safe border-t border-border/50 bg-background/95 backdrop-blur-sm shrink-0 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-20 max-sm:px-4 max-sm:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
                   {isBlockedAgainstMe && (
                     <div className="text-xs text-destructive mb-2">
                       Sie können diesem Benutzer keine Nachrichten mehr senden.
