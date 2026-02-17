@@ -1605,7 +1605,7 @@ function MessagesPageContent() {
 
   if (loading && conversations.length === 0) {
     return (
-      <div className="h-[calc(100vh-4rem)] bg-background flex items-center justify-center">
+      <div className="h-[calc(100dvh-4rem)] min-h-[200px] bg-background flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-sm text-muted-foreground">Unterhaltungen werden geladen...</p>
@@ -1615,7 +1615,7 @@ function MessagesPageContent() {
   }
 
   return (
-    <div className="h-[calc(100vh-5.5rem)] sm:h-[calc(100vh-6.75rem)] md:h-[calc(100vh-7rem)] bg-background overflow-hidden flex flex-col">
+    <div className="h-[calc(100dvh-5.5rem)] min-h-[calc(100svh-5.5rem)] sm:h-[calc(100dvh-6.75rem)] sm:min-h-[calc(100svh-6.75rem)] md:h-[calc(100dvh-7rem)] md:min-h-[calc(100svh-7rem)] bg-background overflow-hidden flex flex-col">
       <div className="container mx-auto px-sides flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
           {/* Conversations List */}
@@ -1936,7 +1936,7 @@ function MessagesPageContent() {
                   </div>
                 </ScrollArea>
 
-                <div className="p-3 sm:p-4 border-t border-border/50 bg-background/95 backdrop-blur-sm shrink-0">
+                <div className="p-3 sm:p-4 pb-safe border-t border-border/50 bg-background/95 backdrop-blur-sm shrink-0">
                   {isBlockedAgainstMe && (
                     <div className="text-xs text-destructive mb-2">
                       Sie können diesem Benutzer keine Nachrichten mehr senden.
@@ -1947,13 +1947,14 @@ function MessagesPageContent() {
                       Sie haben diesen Benutzer gesperrt. Entsperren Sie ihn, um den Chat fortzusetzen.
                     </div>
                   )}
-                  <div className="flex items-end gap-2">
+                  <div className="flex items-end gap-2 w-full min-w-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 shrink-0 hover:bg-muted"
+                      className="h-10 w-10 sm:h-10 sm:w-10 shrink-0 hover:bg-muted touch-manipulation"
                       onClick={handleAttachmentButtonClick}
                       disabled={attachmentUploading || !canSendMessages}
+                      aria-label="Anhang hinzufügen"
                     >
                       {attachmentUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
                     </Button>
@@ -1974,15 +1975,17 @@ function MessagesPageContent() {
                           handleSendMessage()
                         }
                       }}
-                      className="flex-1 min-h-[36px] max-h-[120px] text-sm rounded-2xl border-border/50 focus:border-primary bg-muted/50 focus:bg-background resize-none py-2.5 px-4 leading-5 overflow-y-auto scrollbar-hide"
+                      className="flex-1 min-w-0 min-h-[44px] max-h-[120px] text-base sm:text-sm rounded-2xl border-border/50 focus:border-primary bg-muted/50 focus:bg-background resize-none py-3 px-4 leading-5 overflow-y-auto scrollbar-hide touch-manipulation"
                       disabled={!canSendMessages || sending}
                       rows={1}
+                      aria-label="Nachricht eingeben"
                     />
                     <Button
                       onClick={handleSendMessage}
                       disabled={!messageInput.trim() || sending || !canSendMessages}
                       size="icon"
-                      className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full"
+                      className="h-10 w-10 shrink-0 rounded-full touch-manipulation"
+                      aria-label="Nachricht senden"
                     >
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
