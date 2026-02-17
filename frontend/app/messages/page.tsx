@@ -1944,6 +1944,8 @@ function MessagesPageContent() {
                 </ScrollArea>
 
                 {(() => {
+                  const shouldShowInput = selectedConversation && (showMobileChat || !isMobile)
+                  if (!shouldShowInput) return null
                   const inputBar = (
                     <div
                       className={cn(
