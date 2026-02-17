@@ -4,6 +4,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from "react"
+import { createPortal } from "react-dom"
 import type { ChangeEvent } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -25,6 +26,7 @@ import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSoc
 import { getCurrentUser } from "@/lib/api/auth"
 import { ApiClientError } from "@/lib/api/client"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { logger } from "@/lib/logger"
 
 interface MessageAttachment {
@@ -96,6 +98,7 @@ function MessagesPageContent() {
   const markingReadMapRef = useRef<Record<string, boolean>>({})
   const messagesTopRef = useRef<HTMLDivElement>(null)
   const pendingReadReceiptsRef = useRef<Set<string>>(new Set())
+  const isMobile = useIsMobile()
 
   const mapConversationResponse = useCallback((raw: any): Conversation => ({
     id: raw.id,
@@ -1940,61 +1943,73 @@ function MessagesPageContent() {
                   </div>
                 </ScrollArea>
 
-                <div className="p-3 sm:p-4 pb-safe border-t border-border/50 bg-background/95 backdrop-blur-sm shrink-0 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-20 max-sm:px-4 max-sm:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                  {isBlockedAgainstMe && (
-                    <div className="text-xs text-destructive mb-2">
-                      Sie können diesem Benutzer keine Nachrichten mehr senden.
-                    </div>
-                  )}
-                  {isBlockedByMe && (
-                    <div className="text-xs text-muted-foreground mb-2">
-                      Sie haben diesen Benutzer gesperrt. Entsperren Sie ihn, um den Chat fortzusetzen.
-                    </div>
-                  )}
-                  <div className="flex items-end gap-2 w-full min-w-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 sm:h-10 sm:w-10 shrink-0 hover:bg-muted touch-manipulation"
-                      onClick={handleAttachmentButtonClick}
-                      disabled={attachmentUploading || !canSendMessages}
-                      aria-label="Anhang hinzufügen"
+                {(() => {
+                  const inputBar = (
+                    <div
+                      className={cn(
+                        "p-3 sm:p-4 pb-safe border-t border-border/50 bg-background backdrop-blur-sm shrink-0",
+                        isMobile && "fixed bottom-0 left-0 right-0 z-[9999] px-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] bg-background/95"
+                      )}
                     >
-                      {attachmentUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                    </Button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      onChange={handleAttachmentInputChange}
-                      className="hidden"
-                    />
-                    <Textarea
-                      ref={messageInputRef}
-                      placeholder="Nachricht eingeben..."
-                      value={messageInput}
-                      onChange={(e) => setMessageInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault()
-                          handleSendMessage()
-                        }
-                      }}
-                      className="flex-1 min-w-0 min-h-[44px] max-h-[120px] text-base sm:text-sm rounded-2xl border-border/50 focus:border-primary bg-muted/50 focus:bg-background resize-none py-3 px-4 leading-5 overflow-y-auto scrollbar-hide touch-manipulation"
-                      disabled={!canSendMessages || sending}
-                      rows={1}
-                      aria-label="Nachricht eingeben"
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!messageInput.trim() || sending || !canSendMessages}
-                      size="icon"
-                      className="h-10 w-10 shrink-0 rounded-full touch-manipulation"
-                      aria-label="Nachricht senden"
-                    >
-                      {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
+                      {isBlockedAgainstMe && (
+                        <div className="text-xs text-destructive mb-2">
+                          Sie können diesem Benutzer keine Nachrichten mehr senden.
+                        </div>
+                      )}
+                      {isBlockedByMe && (
+                        <div className="text-xs text-muted-foreground mb-2">
+                          Sie haben diesen Benutzer gesperrt. Entsperren Sie ihn, um den Chat fortzusetzen.
+                        </div>
+                      )}
+                      <div className="flex items-end gap-2 w-full min-w-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 sm:h-10 sm:w-10 shrink-0 hover:bg-muted touch-manipulation"
+                          onClick={handleAttachmentButtonClick}
+                          disabled={attachmentUploading || !canSendMessages}
+                          aria-label="Anhang hinzufügen"
+                        >
+                          {attachmentUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                        </Button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          onChange={handleAttachmentInputChange}
+                          className="hidden"
+                        />
+                        <Textarea
+                          ref={messageInputRef}
+                          placeholder="Nachricht eingeben..."
+                          value={messageInput}
+                          onChange={(e) => setMessageInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault()
+                              handleSendMessage()
+                            }
+                          }}
+                          className="flex-1 min-w-0 min-h-[44px] max-h-[120px] text-base sm:text-sm rounded-2xl border-border/50 focus:border-primary bg-muted/50 focus:bg-background resize-none py-3 px-4 leading-5 overflow-y-auto scrollbar-hide touch-manipulation"
+                          disabled={!canSendMessages || sending}
+                          rows={1}
+                          aria-label="Nachricht eingeben"
+                        />
+                        <Button
+                          onClick={handleSendMessage}
+                          disabled={!messageInput.trim() || sending || !canSendMessages}
+                          size="icon"
+                          className="h-10 w-10 shrink-0 rounded-full touch-manipulation"
+                          aria-label="Nachricht senden"
+                        >
+                          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                  return isMobile && typeof document !== "undefined"
+                    ? createPortal(inputBar, document.body)
+                    : inputBar
+                })()}
               </>
             ) : (
               <div className="flex items-center justify-center h-full p-8">
