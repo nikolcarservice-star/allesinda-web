@@ -1,6 +1,7 @@
 """Notification utility functions for creating notifications"""
 from datetime import datetime, timezone, timedelta
 import logging
+import threading
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -99,18 +100,25 @@ def create_message_notification(
         except Exception as e:
             logger.error(f"Failed to send SMS notification for message {conversation_id}: {e}")
 
-    # Send email notification if SMTP configured
+    # Send email notification in background if SMTP configured (so API response is not delayed)
     if user and user.email:
-        try:
-            send_message_notification_email(
-                email=user.email,
-                recipient_name=user.name or "there",
-                sender_name=sender_name,
-                conversation_id=conversation_id,
-            )
-        except Exception as e:
-            logger.error(f"Failed to send email notification for message {conversation_id}: {e}")
-    
+        email_addr = user.email
+        recipient_name = user.name or "there"
+
+        def _send_email():
+            try:
+                send_message_notification_email(
+                    email=email_addr,
+                    recipient_name=recipient_name,
+                    sender_name=sender_name,
+                    conversation_id=conversation_id,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send email notification for message {conversation_id}: {e}")
+
+        thread = threading.Thread(target=_send_email, daemon=True)
+        thread.start()
+
     return notification
 
 def create_review_notification(
