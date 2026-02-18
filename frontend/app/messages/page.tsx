@@ -805,6 +805,14 @@ function MessagesPageContent() {
 
             if (data.sender_id !== currentUserId && typeof window !== "undefined") {
               window.dispatchEvent(new CustomEvent("notifications:refresh"))
+              // Play notification sound for incoming message
+              try {
+                const audio = new Audio("/sounds/delivered-message-sound.mp3")
+                audio.volume = 0.6
+                audio.play().catch(() => {})
+              } catch {
+                // ignore
+              }
             }
 
             // If tab is hidden, show browser notification (permission required)

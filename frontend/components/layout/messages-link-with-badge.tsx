@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { MessageSquare } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getUnreadMessagesCount, getConversations } from "@/lib/api/chat"
 import { getAuthToken } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
+
+const MESSAGE_SOUND_URL = "/sounds/delivered-message-sound.mp3"
 
 interface MessagesLinkWithBadgeProps {
   className?: string
@@ -19,6 +21,7 @@ interface MessagesLinkWithBadgeProps {
 /**
  * Ссылка «Сообщения» с индикатором непрочитанных (как у колокольчика).
  * Обновляется по событию notifications:refresh и по интервалу.
+ * На любой странице при появлении нового сообщения проигрывает звук.
  */
 export function MessagesLinkWithBadge({
   className,
@@ -27,23 +30,49 @@ export function MessagesLinkWithBadge({
   ariaLabel = "Nachrichten",
 }: MessagesLinkWithBadgeProps) {
   const [unreadCount, setUnreadCount] = useState(0)
+  const previousUnreadRef = useRef<number | null>(null)
+
+  const playNewMessageSound = () => {
+    try {
+      const audio = new Audio(MESSAGE_SOUND_URL)
+      audio.volume = 0.6
+      audio.play().catch(() => {})
+    } catch {
+      // ignore
+    }
+  }
 
   const loadUnread = async () => {
     if (!getAuthToken()) {
       setUnreadCount(0)
+      previousUnreadRef.current = null
       return
     }
     try {
       const res = await getUnreadMessagesCount()
-      setUnreadCount(res?.count ?? 0)
+      const count = res?.count ?? 0
+      const prev = previousUnreadRef.current
+      const onMessagesPage = typeof window !== "undefined" && window.location.pathname.startsWith("/messages")
+      if (prev !== null && count > prev && !onMessagesPage) {
+        playNewMessageSound()
+      }
+      previousUnreadRef.current = count
+      setUnreadCount(count)
     } catch {
       try {
         const res = await getConversations({ page: 1, page_size: 50 })
         const items = res?.items ?? []
-        const total = items.reduce((sum: number, c: { unread?: number }) => sum + (c.unread ?? 0), 0)
-        setUnreadCount(total)
+        const count = items.reduce((sum: number, c: { unread?: number }) => sum + (c.unread ?? 0), 0)
+        const prev = previousUnreadRef.current
+        const onMessagesPage = typeof window !== "undefined" && window.location.pathname.startsWith("/messages")
+        if (prev !== null && count > prev && !onMessagesPage) {
+          playNewMessageSound()
+        }
+        previousUnreadRef.current = count
+        setUnreadCount(count)
       } catch {
         setUnreadCount(0)
+        previousUnreadRef.current = null
       }
     }
   }
