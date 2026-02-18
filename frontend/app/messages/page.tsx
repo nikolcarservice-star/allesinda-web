@@ -106,7 +106,7 @@ function MessagesPageContent() {
     avatar: getOptimizedImageUrl(raw.avatar, 'thumbnail') || "/placeholder-user.jpg",
     lastMessage: raw.lastMessage || "Noch keine Nachrichten",
     timestamp: raw.timestamp || "",
-    unread: raw.unread || 0,
+    unread: typeof raw.unread === 'number' ? raw.unread : (raw.unread ? Number(raw.unread) : 0),
     online: raw.online || false,
     profession: raw.profession || "Benutzer",
     buyer_id: raw.buyer_id,
@@ -1699,9 +1699,9 @@ function MessagesPageContent() {
                               )}
                             </div>
                           </div>
-                          {conversation.unread > 0 && (
-                            <Badge className="h-5 min-w-5 px-1.5 text-[10px] font-bold shrink-0 bg-primary text-primary-foreground border-0">
-                              {conversation.unread > 99 ? "99+" : conversation.unread}
+                          {(conversation.unread ?? 0) > 0 && (
+                            <Badge className="h-5 min-w-[20px] px-1.5 text-[10px] font-bold shrink-0 bg-primary text-primary-foreground border-0 flex items-center justify-center rounded-full">
+                              {(conversation.unread ?? 0) > 99 ? "99+" : String(conversation.unread ?? 0)}
                             </Badge>
                           )}
                         </div>
