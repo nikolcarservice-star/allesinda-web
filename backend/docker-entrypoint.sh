@@ -39,6 +39,13 @@ else
     echo ""
 fi
 
+# Update category image_url from img_backup (syncs files and updates DB)
+if [ -d "img_backup/categories" ] && [ "$(ls -A img_backup/categories 2>/dev/null)" ]; then
+    echo "Updating category images in database..."
+    python -m scripts.update_category_images 2>/dev/null || echo "Warning: update_category_images failed (continuing...)"
+    echo ""
+fi
+
 # Run database seeding if SEED_DB_ON_START is enabled
 if [ "${SEED_DB_ON_START}" = "true" ]; then
     echo "SEED_DB_ON_START is enabled - Running seed script..."
