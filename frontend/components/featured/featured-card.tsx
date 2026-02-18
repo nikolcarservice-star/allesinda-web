@@ -65,7 +65,7 @@ export function FeaturedCard({ item, cardClassName, imageWrapperClassName, image
             </div>
           )}
           {item.category && (
-            <Badge className="absolute bottom-2 left-2 bg-primary text-primary-foreground shadow">
+<Badge className="absolute bottom-2 left-2 bg-primary text-black font-bold shadow">
               {item.category.replace(/-/g, " ")}
             </Badge>
           )}

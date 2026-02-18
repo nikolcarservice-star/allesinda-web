@@ -101,7 +101,7 @@ export function DetailedAddToCartButton({
             )
           : cn(
               // Solid: keep fixed min width at all times
-              "group relative flex items-center justify-between gap-3 overflow-hidden rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary via-primary to-primary/95 px-5 py-3 text-left text-primary-foreground shadow-md shadow-primary/20 transition-all duration-300 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:border-border/40 disabled:bg-muted/80 disabled:from-muted disabled:via-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none disabled:hover:translate-y-0 min-w-[6.5rem]",
+              "group relative flex items-center justify-between gap-3 overflow-hidden rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary via-primary to-primary/95 px-5 py-3 text-left text-primary-foreground shadow-md shadow-primary/20 transition-all duration-300 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 hover:text-black hover:font-bold hover:[&_svg]:text-black active:translate-y-0 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 disabled:border-border/40 disabled:bg-muted/80 disabled:from-muted disabled:via-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none disabled:hover:translate-y-0 min-w-[6.5rem]",
               justAdded && "border-emerald-500/60 bg-gradient-to-br from-emerald-500 via-emerald-500 to-emerald-600 shadow-emerald-500/30",
               className,
             )

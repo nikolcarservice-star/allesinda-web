@@ -621,7 +621,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
                       "flex flex-1 items-center justify-center h-9 sm:h-10 rounded-md px-3 sm:px-4 text-sm sm:text-base font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-sm hover:text-black hover:font-bold"
+                        ? "bg-primary text-black font-bold shadow-sm hover:bg-primary/90"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                     )}
                     role="tab"

@@ -1760,7 +1760,7 @@ function MessagesPageContent() {
                             </div>
                           </div>
                           {(conversation.unread ?? 0) > 0 && (
-                            <Badge className="h-5 min-w-[20px] px-1.5 text-[10px] font-bold shrink-0 bg-primary text-primary-foreground border-0 flex items-center justify-center rounded-full">
+                            <Badge className="h-5 min-w-[20px] px-1.5 text-[10px] font-bold shrink-0 bg-primary text-black border-0 flex items-center justify-center rounded-full">
                               {(conversation.unread ?? 0) > 99 ? "99+" : String(conversation.unread ?? 0)}
                             </Badge>
                           )}
@@ -1913,7 +1913,7 @@ function MessagesPageContent() {
                                         className={cn(
                                           "max-w-[85%] sm:max-w-[75%] md:max-w-[65%] min-w-[60px] rounded-2xl px-4 py-2.5 sm:px-3 sm:py-2 break-words",
                                           message.sender === "me"
-                                            ? "bg-primary text-primary-foreground rounded-br-sm"
+                                            ? "bg-primary text-black font-bold rounded-br-sm"
                                             : "bg-muted text-foreground rounded-bl-sm",
                                         )}
                                       >
@@ -1955,7 +1955,7 @@ function MessagesPageContent() {
                                                       className={cn(
                                                         "flex items-center gap-2 px-3 py-2 rounded-lg border border-border/40 text-xs",
                                                         message.sender === "me"
-                                                          ? "bg-primary/20 text-primary-foreground"
+                                                          ? "bg-primary/20 text-black font-medium"
                                                           : "bg-background/60 text-foreground"
                                                       )}
                                                     >

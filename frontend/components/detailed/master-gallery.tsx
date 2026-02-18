@@ -341,7 +341,7 @@ export function MasterGallery({ items, edgeToEdge = true }: MasterGalleryProps) 
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <Badge className="absolute right-2 top-2 bg-primary text-primary-foreground">Nachher</Badge>
+                <Badge className="absolute right-2 top-2 bg-primary text-black font-bold">Nachher</Badge>
                 <Maximize2 className="absolute bottom-2 right-2 h-4 w-4 text-white opacity-80" />
               </button>
             </div>
@@ -514,7 +514,7 @@ export function MasterGallery({ items, edgeToEdge = true }: MasterGalleryProps) 
                     fill
                     className="object-cover"
                   />
-                  <Badge className="absolute right-3 top-3 bg-primary text-primary-foreground">Nachher</Badge>
+                  <Badge className="absolute right-3 top-3 bg-primary text-black font-bold">Nachher</Badge>
                 </div>
               </div>
             </>
