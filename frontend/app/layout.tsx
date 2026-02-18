@@ -7,7 +7,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { DebugGrid } from "@/components/debug-grid"
 import { isDevelopment } from "@/lib/constants"
 import { Header } from "../components/layout/header"
-import { Footer } from "../components/layout/footer"
+import { ConditionalFooter } from "../components/layout/conditional-footer"
 import dynamic from "next/dynamic"
 import { V0Provider } from "../lib/context"
 import { AuthProvider } from "../lib/context/auth-context"
@@ -82,7 +82,7 @@ export default async function RootLayout({
                 {children}
                 </div>
               </main>
-              <Footer />
+              <ConditionalFooter />
               {isDevelopment && <DebugGrid />}
               <Toaster closeButton position="bottom-right" />
               </NuqsAdapter>

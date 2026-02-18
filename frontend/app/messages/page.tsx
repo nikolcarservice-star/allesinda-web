@@ -4,7 +4,6 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from "react"
-import { createPortal } from "react-dom"
 import type { ChangeEvent } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -19,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck } from "lucide-react"
+import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck, Download, X } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import { toast } from "sonner"
 import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSocketUrl, createConversation, markConversationRead, uploadAttachment as uploadAttachmentAPI, blockConversation as blockConversationAPI, unblockConversation as unblockConversationAPI, deleteConversation as deleteConversationAPI } from "@/lib/api/chat"
@@ -100,6 +99,25 @@ function MessagesPageContent() {
   const messagesTopRef = useRef<HTMLDivElement>(null)
   const pendingReadReceiptsRef = useRef<Set<string>>(new Set())
   const isMobile = useIsMobile()
+
+  const INSTALL_BANNER_KEY = "messages-install-banner-dismissed"
+  const [installBannerDismissed, setInstallBannerDismissed] = useState(false)
+  useEffect(() => {
+    try {
+      const stored = typeof window !== "undefined" && window.localStorage.getItem(INSTALL_BANNER_KEY)
+      if (stored === "1") setInstallBannerDismissed(true)
+    } catch {
+      // ignore
+    }
+  }, [])
+  const dismissInstallBanner = useCallback(() => {
+    setInstallBannerDismissed(true)
+    try {
+      typeof window !== "undefined" && window.localStorage.setItem(INSTALL_BANNER_KEY, "1")
+    } catch {
+      // ignore
+    }
+  }, [])
 
   const mapConversationResponse = useCallback((raw: any): Conversation => ({
     id: raw.id,
@@ -1669,7 +1687,7 @@ function MessagesPageContent() {
 
   if (loading && conversations.length === 0) {
     return (
-      <div className="h-[calc(100dvh-4rem)] min-h-[200px] bg-background flex items-center justify-center">
+      <div className="h-[calc(100dvh-3.5rem)] min-h-[200px] sm:h-[calc(100dvh-5.5rem)] md:h-[calc(100dvh-7rem)] bg-background flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-sm text-muted-foreground">Unterhaltungen werden geladen...</p>
@@ -1679,7 +1697,33 @@ function MessagesPageContent() {
   }
 
   return (
-    <div className="h-[calc(100dvh-5.5rem)] min-h-[calc(100svh-5.5rem)] sm:h-[calc(100dvh-6.75rem)] sm:min-h-[calc(100svh-6.75rem)] md:h-[calc(100dvh-7rem)] md:min-h-[calc(100svh-7rem)] bg-background flex flex-col overflow-hidden">
+    <div
+      className={cn(
+        "bg-background flex flex-col overflow-hidden",
+        "h-[calc(100dvh-3.5rem)] min-h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)]",
+        "sm:h-[calc(100dvh-5.5rem)] sm:min-h-[calc(100dvh-5.5rem)] sm:max-h-[calc(100dvh-5.5rem)]",
+        "md:h-[calc(100dvh-7rem)] md:min-h-[calc(100dvh-7rem)] md:max-h-[calc(100dvh-7rem)]",
+      )}
+    >
+      {isMobile && !installBannerDismissed && (
+        <div className="shrink-0 flex items-center justify-between gap-2 px-4 py-2.5 bg-primary/10 border-b border-border/50 text-sm">
+          <div className="flex items-center gap-2 min-w-0">
+            <Download className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <span className="text-foreground font-medium truncate">
+              App auf den Startbildschirm hinzufügen für schnelleren Zugriff
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={dismissInstallBanner}
+            aria-label="Hinweis schließen"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
       <div className="container mx-auto px-sides flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
           {/* Conversations List */}
@@ -1921,7 +1965,7 @@ function MessagesPageContent() {
                 </div>
 
                 <ScrollArea className="flex-1 min-h-0" ref={scrollAreaRef}>
-                  <div className="p-3 sm:p-4 pb-24 sm:pb-4">
+                  <div className="p-3 sm:p-4 pb-4">
                     {loadingMessages ? (
                       <div className="flex items-center justify-center py-12">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -2089,8 +2133,8 @@ function MessagesPageContent() {
                   const inputBar = (
                     <div
                       className={cn(
-                        "p-3 sm:p-4 pb-safe border-t border-border/50 bg-background backdrop-blur-sm shrink-0",
-                        isMobile && "fixed bottom-0 left-0 right-0 z-[9999] px-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] bg-background/95"
+                        "p-3 sm:p-4 border-t border-border/50 bg-background backdrop-blur-sm shrink-0",
+                        "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
                       )}
                     >
                       {isBlockedAgainstMe && (
@@ -2148,9 +2192,7 @@ function MessagesPageContent() {
                       </div>
                     </div>
                   )
-                  return isMobile && typeof document !== "undefined"
-                    ? createPortal(inputBar, document.body)
-                    : inputBar
+                  return inputBar
                 })()}
               </>
             ) : (
