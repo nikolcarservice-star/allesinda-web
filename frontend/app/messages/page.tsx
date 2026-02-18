@@ -367,6 +367,57 @@ function MessagesPageContent() {
     }
   }
 
+  // Refresh conversation list in background (unread counts, last message) without full page reload — desktop & mobile
+  const refreshConversationsList = useCallback(async () => {
+    try {
+      const response = await getConversations({ page: 1, page_size: 50 })
+      const freshItems = response.items.map((conv: any) => mapConversationResponse(conv))
+      setConversations((prev) => {
+        const byId = new Map(prev.map((c) => [c.id.toString(), c]))
+        const merged = freshItems.map((fresh) => {
+          const existing = byId.get(fresh.id.toString())
+          if (!existing) return fresh
+          return {
+            ...existing,
+            unread: fresh.unread,
+            lastMessage: fresh.lastMessage,
+            timestamp: fresh.timestamp,
+            lastMessageRead: fresh.lastMessageRead,
+            lastMessageSenderId: fresh.lastMessageSenderId,
+            online: fresh.online,
+          }
+        })
+        return merged
+      })
+      setSelectedConversation((prev) => {
+        if (!prev) return prev
+        const updated = freshItems.find((c) => String(c.id) === String(prev.id))
+        if (!updated) return prev
+        return {
+          ...prev,
+          unread: updated.unread,
+          lastMessage: updated.lastMessage,
+          timestamp: updated.timestamp,
+          lastMessageRead: updated.lastMessageRead,
+          lastMessageSenderId: updated.lastMessageSenderId,
+          online: updated.online,
+        }
+      })
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("notifications:refresh"))
+      }
+    } catch {
+      // Silent fail for background refresh
+    }
+  }, [mapConversationResponse])
+
+  // Poll conversations list so new/unread messages appear without page refresh
+  useEffect(() => {
+    if (!currentUserId) return
+    const interval = setInterval(refreshConversationsList, 8000)
+    return () => clearInterval(interval)
+  }, [currentUserId, refreshConversationsList])
+
   const markConversationAsRead = useCallback(async (conversationId: string, providedMessages?: Message[]) => {
     if (!currentUserId) return
     if (markingReadMapRef.current[conversationId]) return
@@ -1663,6 +1714,7 @@ function MessagesPageContent() {
                           "w-full p-2.5 rounded-lg transition-all duration-200 text-left group",
                           "hover:bg-muted/50 active:bg-muted",
                           selectedConversation?.id === conversation.id && "bg-primary/10 hover:bg-primary/15",
+                          (conversation.unread ?? 0) > 0 && selectedConversation?.id !== conversation.id && "bg-primary/5 hover:bg-primary/10 border-l-2 border-l-primary/70",
                         )}
                       >
                         <div className="flex items-center gap-2.5">
