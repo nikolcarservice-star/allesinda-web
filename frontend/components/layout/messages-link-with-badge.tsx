@@ -31,8 +31,16 @@ export function MessagesLinkWithBadge({
 }: MessagesLinkWithBadgeProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const previousUnreadRef = useRef<number | null>(null)
+  const lastSoundPlayedRef = useRef<number>(0)
+  const SOUND_THROTTLE_MS = 4000
 
   const playNewMessageSound = () => {
+    const now = Date.now()
+    const lastGlobal = typeof window !== "undefined" ? (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed : undefined
+    if (lastGlobal != null && now - lastGlobal < SOUND_THROTTLE_MS) return
+    if (now - lastSoundPlayedRef.current < SOUND_THROTTLE_MS) return
+    lastSoundPlayedRef.current = now
+    if (typeof window !== "undefined") (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed = now
     try {
       const audio = new Audio(MESSAGE_SOUND_URL)
       audio.volume = 0.6
@@ -52,8 +60,7 @@ export function MessagesLinkWithBadge({
       const res = await getUnreadMessagesCount()
       const count = res?.count ?? 0
       const prev = previousUnreadRef.current
-      const onMessagesPage = typeof window !== "undefined" && window.location.pathname.startsWith("/messages")
-      if (prev !== null && count > prev && !onMessagesPage) {
+      if (prev !== null && count > prev) {
         playNewMessageSound()
       }
       previousUnreadRef.current = count
@@ -64,8 +71,7 @@ export function MessagesLinkWithBadge({
         const items = res?.items ?? []
         const count = items.reduce((sum: number, c: { unread?: number }) => sum + (c.unread ?? 0), 0)
         const prev = previousUnreadRef.current
-        const onMessagesPage = typeof window !== "undefined" && window.location.pathname.startsWith("/messages")
-        if (prev !== null && count > prev && !onMessagesPage) {
+        if (prev !== null && count > prev) {
           playNewMessageSound()
         }
         previousUnreadRef.current = count
