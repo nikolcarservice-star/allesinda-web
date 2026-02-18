@@ -336,7 +336,7 @@ export function HeaderSearchBar({
           size={variant === "desktop" ? "icon-sm" : "icon"}
           className={cn(
             buttonClasses,
-            "bg-primary text-white hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/60"
+            "bg-primary text-white hover:bg-primary/90 hover:text-black hover:font-bold focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/60"
           )}
         >
           <SearchIcon className="h-5 w-5 text-white" aria-hidden="true" />
