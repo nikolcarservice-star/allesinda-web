@@ -1781,7 +1781,7 @@ function MessagesPageContent() {
                 </div>
 
                 <ScrollArea className="flex-1 min-h-0" ref={scrollAreaRef}>
-                  <div className="p-3 sm:p-4 pb-[7rem] sm:pb-4">
+                  <div className="p-3 sm:p-4 pb-24 sm:pb-4">
                     {loadingMessages ? (
                       <div className="flex items-center justify-center py-12">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -1867,7 +1867,6 @@ function MessagesPageContent() {
                                             {message.attachments.map((attachment, attachmentIndex) => {
                                               const url = attachment.fileUrl || attachment.rawUrl || ""
                                               const isImage = attachment.fileType?.startsWith("image/")
-                                              const isVideo = attachment.fileType?.startsWith("video/")
 
                                               if (!url) {
                                                 return null
@@ -1885,18 +1884,9 @@ function MessagesPageContent() {
                                                       <img
                                                         src={url}
                                                         alt={attachment.fileName}
-                                                        className="max-h-48 w-full rounded-lg border border-border/40 object-contain bg-muted/30"
+                                                        className="max-h-48 rounded-lg border border-border/40 object-cover"
                                                       />
                                                     </a>
-                                                  ) : isVideo ? (
-                                                    <video
-                                                      src={url}
-                                                      controls
-                                                      playsInline
-                                                      className="max-h-48 w-full rounded-lg border border-border/40 bg-black"
-                                                    >
-                                                      <track kind="captions" />
-                                                    </video>
                                                   ) : (
                                                     <a
                                                       href={url}
