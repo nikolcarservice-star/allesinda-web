@@ -14,6 +14,7 @@
   
   /* Primary - Vibrant purple-violet matching logo */
   --primary: #3adcd5;
+  --primary-foreground: oklch(0.15 0.01 264);
   --ring: #3adcd5;
   
   /* Secondary - Soft purple tint */
