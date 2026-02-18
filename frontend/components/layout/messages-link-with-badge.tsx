@@ -21,7 +21,8 @@ interface MessagesLinkWithBadgeProps {
 /**
  * Ссылка «Сообщения» с индикатором непрочитанных (как у колокольчика).
  * Обновляется по событию notifications:refresh и по интервалу.
- * На любой странице при появлении нового сообщения проигрывает звук.
+ * На любой странице (десктоп и мобильная) при появлении нового сообщения проигрывает звук.
+ * На мобильных разблокировка аудио по первому касанию/клику (требование браузеров).
  */
 export function MessagesLinkWithBadge({
   className,
@@ -32,7 +33,20 @@ export function MessagesLinkWithBadge({
   const [unreadCount, setUnreadCount] = useState(0)
   const previousUnreadRef = useRef<number | null>(null)
   const lastSoundPlayedRef = useRef<number>(0)
+  const audioUnlockedRef = useRef(false)
   const SOUND_THROTTLE_MS = 4000
+
+  const unlockAudioForMobile = () => {
+    if (audioUnlockedRef.current || typeof window === "undefined") return
+    audioUnlockedRef.current = true
+    try {
+      const a = new Audio(MESSAGE_SOUND_URL)
+      a.volume = 0
+      a.play().then(() => a.pause()).catch(() => {})
+    } catch {
+      // ignore
+    }
+  }
 
   const playNewMessageSound = () => {
     const now = Date.now()
@@ -91,12 +105,21 @@ export function MessagesLinkWithBadge({
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) loadUnread()
     })
+    const unlockOnInteraction = () => unlockAudioForMobile()
+    document.addEventListener("click", unlockOnInteraction, { once: true, passive: true })
+    document.addEventListener("touchstart", unlockOnInteraction, { once: true, passive: true })
     return () => {
       clearInterval(interval)
       window.removeEventListener("notifications:refresh", onRefresh)
       document.removeEventListener("visibilitychange", onRefresh)
+      document.removeEventListener("click", unlockOnInteraction)
+      document.removeEventListener("touchstart", unlockOnInteraction)
     }
   }, [])
+
+  const handleLinkClick = () => {
+    unlockAudioForMobile()
+  }
 
   const isMobile = variant === "mobile"
   const sizeClass = isMobile
@@ -114,6 +137,7 @@ export function MessagesLinkWithBadge({
           className
         )}
         aria-label={ariaLabel}
+        onClick={handleLinkClick}
       >
         <MessageSquare className={cn(iconSize, iconClassName)} />
       </Link>
