@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSocketUrl, createConversation, markConversationRead, uploadAttachment as uploadAttachmentAPI, blockConversation as blockConversationAPI, unblockConversation as unblockConversationAPI, deleteConversation as deleteConversationAPI } from "@/lib/api/chat"
 import { getCurrentUser } from "@/lib/api/auth"
 import { ApiClientError } from "@/lib/api/client"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { logger } from "@/lib/logger"
@@ -1606,25 +1607,21 @@ function MessagesPageContent() {
     }
   }
 
+  const getConversationProfileHref = (conv: Conversation): string | null => {
+    const { otherUserRole, otherProfileId, otherUserId } = conv
+    if (otherUserRole === "master" && otherProfileId) return `/detailed/master/${otherProfileId}`
+    if ((otherUserRole === "seller" || otherUserRole === "client") && otherProfileId) return `/detailed/master/${otherProfileId}`
+    if (otherUserId) return `/profile?user=${otherUserId}`
+    return null
+  }
+
   const handleViewProfile = () => {
     if (!selectedConversation) return
-    const { otherUserRole, otherProfileId, otherUserId } = selectedConversation
-
-    if (otherUserRole === "master" && otherProfileId) {
-      router.push(`/detailed/master/${otherProfileId}`)
+    const href = getConversationProfileHref(selectedConversation)
+    if (href) {
+      router.push(href)
       return
     }
-
-    if ((otherUserRole === "seller" || otherUserRole === "client") && otherProfileId) {
-      router.push(`/detailed/master/${otherProfileId}`)
-      return
-    }
-
-    if (otherUserId) {
-      router.push(`/profile?user=${otherUserId}`)
-      return
-    }
-
     toast.info("Profilinformationen sind für diesen Benutzer noch nicht verfügbar")
   }
 
@@ -1731,39 +1728,89 @@ function MessagesPageContent() {
                         )}
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="relative shrink-0">
-                            <Avatar className="h-10 w-10 sm:h-11 sm:w-11">
-                              <AvatarImage src={getOptimizedImageUrl(conversation.avatar, 'thumbnail') || "/placeholder.svg"} />
-                              <AvatarFallback className="text-xs font-medium">
-                                {conversation.name[0]?.toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            {conversation.online && (
-                              <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2 mb-0.5">
-                              <p className="font-semibold text-sm truncate">{conversation.name}</p>
-                              <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
-                                {conversation.timestamp}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-xs text-muted-foreground truncate line-clamp-1 flex-1">
-                                {conversation.lastMessage}
-                              </p>
-                              {conversation.lastMessageSenderId === currentUserId && (
-                                <div className="flex items-center shrink-0">
-                                {conversation.lastMessageRead ? (
-                                  <CheckCheck className="h-3 w-3 text-emerald-400" />
-                                ) : (
-                                  <Check className="h-3 w-3 text-zinc-400" />
+                          {getConversationProfileHref(conversation) ? (
+                            <Link
+                              href={getConversationProfileHref(conversation)!}
+                              className="flex items-center gap-2.5 shrink-0 min-w-0 hover:opacity-80 transition-opacity"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Profil anzeigen"
+                            >
+                              <div className="relative shrink-0">
+                                <Avatar className="h-10 w-10 sm:h-11 sm:w-11">
+                                  <AvatarImage src={getOptimizedImageUrl(conversation.avatar, 'thumbnail') || "/placeholder.svg"} />
+                                  <AvatarFallback className="text-xs font-medium">
+                                    {conversation.name[0]?.toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                {conversation.online && (
+                                  <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
                                 )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-sm truncate">{conversation.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{conversation.profession}</p>
+                              </div>
+                            </Link>
+                          ) : (
+                            <>
+                              <div className="relative shrink-0">
+                                <Avatar className="h-10 w-10 sm:h-11 sm:w-11">
+                                  <AvatarImage src={getOptimizedImageUrl(conversation.avatar, 'thumbnail') || "/placeholder.svg"} />
+                                  <AvatarFallback className="text-xs font-medium">
+                                    {conversation.name[0]?.toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                {conversation.online && (
+                                  <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-0.5">
+                                  <p className="font-semibold text-sm truncate">{conversation.name}</p>
+                                  <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+                                    {conversation.timestamp}
+                                  </span>
                                 </div>
-                              )}
+                                <div className="flex items-center gap-1.5">
+                                  <p className="text-xs text-muted-foreground truncate line-clamp-1 flex-1">
+                                    {conversation.lastMessage}
+                                  </p>
+                                  {conversation.lastMessageSenderId === currentUserId && (
+                                    <div className="flex items-center shrink-0">
+                                    {conversation.lastMessageRead ? (
+                                      <CheckCheck className="h-3 w-3 text-emerald-400" />
+                                    ) : (
+                                      <Check className="h-3 w-3 text-zinc-400" />
+                                    )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                          {getConversationProfileHref(conversation) ? (
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-0.5">
+                                <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+                                  {conversation.timestamp}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-xs text-muted-foreground truncate line-clamp-1 flex-1">
+                                  {conversation.lastMessage}
+                                </p>
+                                {conversation.lastMessageSenderId === currentUserId && (
+                                  <div className="flex items-center shrink-0">
+                                  {conversation.lastMessageRead ? (
+                                    <CheckCheck className="h-3 w-3 text-emerald-400" />
+                                  ) : (
+                                    <Check className="h-3 w-3 text-zinc-400" />
+                                  )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          ) : null}
                           {(conversation.unread ?? 0) > 0 && (
                             <Badge className="h-5 min-w-[20px] px-1.5 text-[10px] font-bold shrink-0 bg-primary text-black border-0 flex items-center justify-center rounded-full">
                               {(conversation.unread ?? 0) > 99 ? "99+" : String(conversation.unread ?? 0)}
@@ -1798,23 +1845,51 @@ function MessagesPageContent() {
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </Button>
-                    <div className="relative shrink-0">
-                      <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
-                        <AvatarImage src={getOptimizedImageUrl(selectedConversation.avatar, 'thumbnail') || "/placeholder.svg"} />
-                        <AvatarFallback className="text-xs font-medium">
-                          {selectedConversation.name[0]?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      {selectedConversation.online && (
-                        <span className="absolute bottom-0 right-0 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-green-500 border-2 border-background" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{selectedConversation.name}</p>
-                      <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                        {selectedConversation.profession && <span>{selectedConversation.profession}</span>}
-                      </p>
-                    </div>
+                    {getConversationProfileHref(selectedConversation) ? (
+                      <Link
+                        href={getConversationProfileHref(selectedConversation)!}
+                        className="flex items-center gap-2.5 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                        title="Profil anzeigen"
+                      >
+                        <div className="relative shrink-0">
+                          <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
+                            <AvatarImage src={getOptimizedImageUrl(selectedConversation.avatar, 'thumbnail') || "/placeholder.svg"} />
+                            <AvatarFallback className="text-xs font-medium">
+                              {selectedConversation.name[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {selectedConversation.online && (
+                            <span className="absolute bottom-0 right-0 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-green-500 border-2 border-background" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{selectedConversation.name}</p>
+                          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                            {selectedConversation.profession && <span>{selectedConversation.profession}</span>}
+                          </p>
+                        </div>
+                      </Link>
+                    ) : (
+                      <>
+                        <div className="relative shrink-0">
+                          <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
+                            <AvatarImage src={getOptimizedImageUrl(selectedConversation.avatar, 'thumbnail') || "/placeholder.svg"} />
+                            <AvatarFallback className="text-xs font-medium">
+                              {selectedConversation.name[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {selectedConversation.online && (
+                            <span className="absolute bottom-0 right-0 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-green-500 border-2 border-background" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{selectedConversation.name}</p>
+                          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                            {selectedConversation.profession && <span>{selectedConversation.profession}</span>}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => handleCall("phone")} disabled={!canSendMessages}>

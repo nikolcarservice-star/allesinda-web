@@ -48,8 +48,8 @@ export function CategorySection({
   const [isScrolling, setIsScrolling] = useState(false)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
-  // Calculate items per row on large screens
-  const [itemsPerRow, setItemsPerRow] = useState(5) // Default for lg screens
+  // Calculate items per row on large screens (4 for readability)
+  const [itemsPerRow, setItemsPerRow] = useState(4) // Default for lg screens
 
   // Reset image errors when categories change to allow retry
   useEffect(() => {
@@ -142,9 +142,9 @@ export function CategorySection({
     const calculateItemsPerRow = () => {
       if (typeof window === 'undefined') return
       const width = window.innerWidth
-      if (width >= 1536) setItemsPerRow(8) // 2xl
-      else if (width >= 1280) setItemsPerRow(6) // xl
-      else if (width >= 1024) setItemsPerRow(5) // lg
+      if (width >= 1536) setItemsPerRow(6) // 2xl
+      else if (width >= 1280) setItemsPerRow(5) // xl
+      else if (width >= 1024) setItemsPerRow(4) // lg — 4 items so labels fit
       else setItemsPerRow(0) // Not large screen
     }
     

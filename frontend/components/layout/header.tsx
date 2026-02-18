@@ -1814,7 +1814,7 @@ return (
                 }}
                 className={cn(
                   "flex h-10 items-center rounded-sm px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 cursor-pointer",
-                  isActive ? "bg-primary text-black font-bold hover:bg-primary/90" : "text-black/70 hover:bg-primary/10 hover:text-primary"
+                  isActive ? "bg-primary !text-black font-bold hover:bg-primary/90 hover:!text-black" : "text-black/70 hover:bg-primary/10 hover:text-primary"
                 )}
                 role="tab"
                 aria-selected={isActive}
