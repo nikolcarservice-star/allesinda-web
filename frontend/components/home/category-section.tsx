@@ -238,12 +238,12 @@ export function CategorySection({
                 data-category-item
                 data-category-id={category.id}
                 className={cn(
-                  // On mobile/small/medium: exactly 5 in a row, no overlap — flex basis so 5×basis + 4×gap fits
+                  // On mobile/small/medium: 4 in a row so labels are fully visible
                   "shrink-0 snap-center box-border overflow-hidden min-w-0",
-                  "basis-[calc((100%-1rem)/5)] sm:basis-[calc((100%-2rem)/5)] md:basis-[calc((100%-2rem)/5)]",
-                  "w-[calc((100%-1rem)/5)] sm:w-[calc((100%-2rem)/5)] md:w-[calc((100%-2rem)/5)]",
-                  // Large screens
-                  "lg:overflow-visible lg:snap-none lg:basis-auto lg:w-[calc((100%-2rem)/5)] xl:w-[calc((100%-2.5rem)/6)] 2xl:w-[calc((100%-3.5rem)/8)]"
+                  "basis-[calc((100%-1rem)/4)] sm:basis-[calc((100%-2rem)/4)] md:basis-[calc((100%-2rem)/4)]",
+                  "w-[calc((100%-1rem)/4)] sm:w-[calc((100%-2rem)/4)] md:w-[calc((100%-2rem)/4)]",
+                  // Large screens: 4 lg, 5 xl, 6 2xl
+                  "lg:overflow-visible lg:snap-none lg:basis-auto lg:w-[calc((100%-2rem)/4)] xl:w-[calc((100%-2.5rem)/5)] 2xl:w-[calc((100%-3.5rem)/6)]"
                 )}
               >
                 <button
@@ -286,7 +286,7 @@ export function CategorySection({
                     <p
                       className={cn(
                         "text-xs sm:text-xs md:text-sm font-semibold transition-colors duration-200 line-clamp-2 leading-tight",
-                        "max-w-[70%] mx-auto relative",
+                        "w-full px-0.5 mx-auto relative",
                         isSelected 
                           ? "text-primary" 
                           : "text-foreground/90 group-hover:text-primary"
