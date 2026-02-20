@@ -10,7 +10,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { AddToHomeScreenSheet } from "@/components/layout/add-to-home-screen-sheet"
+import { toast } from "sonner"
 
 const STORAGE_KEY = "install-prompt-dismissed-until"
 const DISMISS_DAYS = 7
@@ -21,9 +21,13 @@ type BeforeInstallPromptEvent = Event & { prompt: () => Promise<{ outcome: strin
 export function InstallPrompt() {
   const isMobile = useIsMobile()
   const [showPrompt, setShowPrompt] = useState(false)
-  const [showInstructions, setShowInstructions] = useState(false)
   const [installing, setInstalling] = useState(false)
   const installEventRef = useRef<BeforeInstallPromptEvent | null>(null)
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return
+    navigator.serviceWorker.register("/sw.js").catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!isMobile || typeof window === "undefined") return
@@ -78,7 +82,9 @@ export function InstallPrompt() {
       }
     } else {
       setShowPrompt(false)
-      setShowInstructions(true)
+      toast.info("iPhone: Unten auf Teilen tippen → „Zum Home-Bildschirm“ → Hinzufügen", {
+        duration: 6000,
+      })
     }
   }
 
@@ -86,7 +92,7 @@ export function InstallPrompt() {
 
   return (
     <>
-      <Sheet open={showPrompt} onOpenChange={(open) => !open && dismissForLater()}>
+      <Sheet open={showPrompt} onOpenChange={(open: boolean) => !open && dismissForLater()}>
         <SheetContent
           side="bottom"
           showClose={false}
@@ -119,7 +125,6 @@ export function InstallPrompt() {
           </div>
         </SheetContent>
       </Sheet>
-      <AddToHomeScreenSheet open={showInstructions} onOpenChange={setShowInstructions} />
     </>
   )
 }
