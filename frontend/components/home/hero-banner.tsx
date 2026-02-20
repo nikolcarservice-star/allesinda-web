@@ -24,11 +24,12 @@ const PLACEHOLDER_IMAGE = "/placeholder.jpg"
 
 export type HeroBannerProps = {
   categories?: CategoryTree[]
+  selectedCategory?: CategoryTree | null
   onCategoryClick?: (category: CategoryTree) => void
   categoriesLoading?: boolean
 }
 
-export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading = false }: HeroBannerProps) {
+export function HeroBanner({ categories = [], selectedCategory = null, onCategoryClick, categoriesLoading = false }: HeroBannerProps) {
   const router = useRouter()
   const [searchValue, setSearchValue] = useState("")
   const [isFocused, setIsFocused] = useState(false)
@@ -129,95 +130,97 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
   }
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-b from-muted/30 to-background">
-      {/* Two-column layout: text + search left, handyman image right */}
-      <div className="container mx-auto px-sides py-10 sm:py-14 md:py-16 lg:py-20">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-center">
-          <div className="space-y-4 sm:space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-              {HERO_HEADLINE}
-            </h1>
-            <p className="text-base text-muted-foreground sm:text-lg max-w-xl">
-              {HERO_SUBHEADLINE}
-            </p>
+    <section className="relative w-full overflow-hidden">
+      {/* Full-width hero: left 2/3 blurred interior, right 1/3 clear handyman — one background image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/hero-handwerker.png"
+          alt=""
+          fill
+          className="object-cover object-right"
+          sizes="100vw"
+          priority
+        />
+        {/* Left ~65%: blur + light overlay so text is readable; right stays clear */}
+        <div
+          className="absolute inset-0 w-[65%] max-w-[900px] bg-background/85 backdrop-blur-sm"
+          aria-hidden
+        />
+      </div>
 
-            <form onSubmit={handleSubmit} className="pt-2">
-              <div className="relative flex w-full max-w-xl">
-                <div className="relative flex flex-1 items-center">
-                  <Input
-                    type="search"
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    aria-label="Suchbegriff eingeben"
-                    className={cn(
-                      "h-12 sm:h-14 pr-14 text-base bg-background border-border/60 rounded-r-none rounded-l-md border-r-0",
-                      showPlaceholder && "text-transparent caret-foreground"
-                    )}
-                    autoComplete="off"
-                  />
-                  {showPlaceholder && (
-                    <div
-                      className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base"
-                      aria-hidden
-                    >
-                      <span className="text-muted-foreground">{TYPING_PREFIX}</span>
-                      <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
-                        {displayWord}
-                      </span>
-                    </div>
+      <div className="relative z-10 container mx-auto px-sides py-10 sm:py-14 md:py-16 lg:py-20">
+        <div className="max-w-xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+            {HERO_HEADLINE}
+          </h1>
+          <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+            {HERO_SUBHEADLINE}
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-6">
+            <div className="relative flex w-full max-w-xl">
+              <div className="relative flex flex-1 items-center">
+                <Input
+                  type="search"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  aria-label="Suchbegriff eingeben"
+                  className={cn(
+                    "h-12 sm:h-14 pr-14 text-base bg-background border-border/60 rounded-r-none rounded-l-md border-r-0",
+                    showPlaceholder && "text-transparent caret-foreground"
                   )}
-                </div>
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="h-12 w-12 sm:h-14 sm:w-14 rounded-l-none rounded-r-md bg-primary text-primary-foreground hover:bg-primary/90 shrink-0 border border-l-0 border-primary"
-                  aria-label="Suchen"
-                >
-                  <Search className="h-5 w-5 sm:h-6 sm:w-6" />
-                </Button>
+                  autoComplete="off"
+                />
+                {showPlaceholder && (
+                  <div
+                    className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base"
+                    aria-hidden
+                  >
+                    <span className="text-muted-foreground">{TYPING_PREFIX}</span>
+                    <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
+                      {displayWord}
+                    </span>
+                  </div>
+                )}
               </div>
-            </form>
-          </div>
-
-          {/* Handyman image — right column: sharp, no blur; align right so the person is visible */}
-          <div className="relative hidden lg:block aspect-[4/3] max-h-[420px] overflow-hidden rounded-lg bg-muted/50">
-            <Image
-              src="/hero-handwerker.png"
-              alt="Handwerker bei der Arbeit"
-              fill
-              className="object-cover object-right"
-              sizes="(max-width: 1024px) 0px, 50vw"
-              priority
-            />
-          </div>
+              <Button
+                type="submit"
+                size="icon"
+                className="h-12 w-12 sm:h-14 sm:w-14 rounded-l-none rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-l-0 border-primary [&_svg]:text-black"
+                aria-label="Suchen"
+              >
+                <Search className="h-5 w-5 sm:h-6 sm:w-6" />
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* Scrollable categories row: square cards with icon on top, label below + visible arrows */}
+      {/* Categories: light grey strip, square buttons with icon, label below, turquoise underline for active, arrow right */}
       {(categoriesLoading || categories.length > 0) && (
-        <div className="border-t border-border/40 bg-muted/30">
+        <div className="relative z-10 border-t border-border/40 bg-muted/40">
           <div className="container mx-auto px-sides py-4">
-            <div className="relative flex items-stretch gap-1">
+            <div className="relative flex items-center gap-1">
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
                 className={cn(
-                  "absolute left-0 top-1/2 z-10 h-10 w-10 -translate-y-1/2 shrink-0 rounded-full border border-border bg-background shadow-sm hover:bg-muted",
+                  "absolute left-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-md border border-border/60 bg-muted/80 hover:bg-muted",
                   !canScrollLeft && "opacity-40 pointer-events-none"
                 )}
                 onClick={() => scrollStrip("left")}
                 aria-label="Nach links scrollen"
               >
-                <ChevronLeft className="h-5 w-5 text-foreground" />
+                <ChevronLeft className="h-4 w-4 text-foreground" />
               </Button>
               <div
                 ref={scrollStripRef}
                 className={cn(
-                  "flex gap-3 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide",
-                  "pl-12 pr-12"
+                  "flex gap-2 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide",
+                  "pl-11 pr-11"
                 )}
                 style={{
                   scrollbarWidth: "none",
@@ -235,7 +238,7 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
                 ) : (
                   categories
                     .filter((cat) => cat.id !== -1)
-                    .map((category) => {
+                    .map((category, index) => {
                       const rawImageUrl = category.image_url?.trim() ? category.image_url : null
                       const relativePath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
                       const imageSrc = rawImageUrl
@@ -244,19 +247,22 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
                           : getOptimizedImageUrl(rawImageUrl, "thumbnail")
                         : PLACEHOLDER_IMAGE
                       const isLocal = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
+                      const isActive = selectedCategory ? selectedCategory.id === category.id : index === 0
                       return (
                         <button
                           key={category.id}
                           type="button"
                           onClick={() => onCategoryClick?.(category)}
                           className={cn(
-                            "flex shrink-0 flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/50 px-4 py-3 min-w-[120px] sm:min-w-[140px]",
-                            "text-center text-sm font-medium text-foreground",
-                            "hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-colors",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                            "flex shrink-0 flex-col items-center gap-2 rounded-md bg-muted/70 hover:bg-muted px-3 py-3 min-w-[100px] sm:min-w-[120px]",
+                            "text-center text-xs sm:text-sm font-medium text-foreground",
+                            "hover:text-primary transition-colors",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
+                            "border-b-2 border-transparent",
+                            isActive && "border-primary text-primary"
                           )}
                         >
-                          <span className="relative flex h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+                          <span className="relative flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 overflow-hidden rounded-md bg-muted border border-border/40">
                             <Image
                               src={imageSrc}
                               alt=""
@@ -279,13 +285,13 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
                 variant="outline"
                 size="icon"
                 className={cn(
-                  "absolute right-0 top-1/2 z-10 h-10 w-10 -translate-y-1/2 shrink-0 rounded-full border border-border bg-background shadow-sm hover:bg-muted",
+                  "absolute right-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-md border border-border/60 bg-muted/80 hover:bg-muted",
                   !canScrollRight && "opacity-40 pointer-events-none"
                 )}
                 onClick={() => scrollStrip("right")}
                 aria-label="Nach rechts scrollen"
               >
-                <ChevronRight className="h-5 w-5 text-foreground" />
+                <ChevronRight className="h-4 w-4 text-foreground" />
               </Button>
             </div>
           </div>

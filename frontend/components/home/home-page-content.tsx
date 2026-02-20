@@ -601,6 +601,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
     <div className="flex min-h-screen flex-col">
       <HeroBanner
         categories={categoryTree}
+        selectedCategory={selectedCategory}
         onCategoryClick={handleCategoryClick}
         categoriesLoading={categoriesLoading}
       />
