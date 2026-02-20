@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Search, ChevronRight } from "lucide-react"
+import { Search, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn, getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
@@ -25,9 +25,10 @@ const PLACEHOLDER_IMAGE = "/placeholder.jpg"
 export type HeroBannerProps = {
   categories?: CategoryTree[]
   onCategoryClick?: (category: CategoryTree) => void
+  categoriesLoading?: boolean
 }
 
-export function HeroBanner({ categories = [], onCategoryClick }: HeroBannerProps) {
+export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading = false }: HeroBannerProps) {
   const router = useRouter()
   const [searchValue, setSearchValue] = useState("")
   const [isFocused, setIsFocused] = useState(false)
@@ -35,6 +36,32 @@ export function HeroBanner({ categories = [], onCategoryClick }: HeroBannerProps
   const [wordIndex, setWordIndex] = useState(0)
   const [isTyping, setIsTyping] = useState(true)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scrollStripRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const updateScrollButtons = useCallback(() => {
+    const el = scrollStripRef.current
+    if (!el) return
+    const { scrollLeft, scrollWidth, clientWidth } = el
+    const threshold = 4
+    const maxScroll = Math.max(0, scrollWidth - clientWidth)
+    setCanScrollLeft(scrollLeft > threshold)
+    setCanScrollRight(maxScroll > threshold && maxScroll - scrollLeft > threshold)
+  }, [])
+
+  useEffect(() => {
+    const el = scrollStripRef.current
+    if (!el) return
+    updateScrollButtons()
+    el.addEventListener("scroll", updateScrollButtons, { passive: true })
+    const ro = new ResizeObserver(updateScrollButtons)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener("scroll", updateScrollButtons)
+      ro.disconnect()
+    }
+  }, [updateScrollButtons, categories.length])
 
   const showPlaceholder = !isFocused && searchValue.trim() === ""
 
@@ -89,19 +116,39 @@ export function HeroBanner({ categories = [], onCategoryClick }: HeroBannerProps
     [searchValue, router]
   )
 
+  const scrollStrip = (direction: "left" | "right") => {
+    const el = scrollStripRef.current
+    if (!el) return
+    const step = el.clientWidth * 0.6
+    el.scrollBy({ left: direction === "left" ? -step : step, behavior: "smooth" })
+  }
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-muted/40 to-background">
-      <div className="container mx-auto px-sides py-10 sm:py-14 md:py-18 lg:py-20">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-center">
-          <div className="space-y-4 sm:space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-5xl">
+    <section className="relative min-h-screen w-full overflow-hidden">
+      {/* Full-screen background image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/hero-handwerker.png"
+          alt=""
+          fill
+          className="object-cover object-left"
+          sizes="100vw"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-transparent" />
+      </div>
+
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <div className="container mx-auto flex flex-1 flex-col justify-center px-sides py-10 sm:py-14 md:py-18 lg:py-20">
+          <div className="max-w-xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
               {HERO_HEADLINE}
             </h1>
-            <p className="text-base text-muted-foreground sm:text-lg max-w-xl">
+            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
               {HERO_SUBHEADLINE}
             </p>
 
-            <form onSubmit={handleSubmit} className="pt-2">
+            <form onSubmit={handleSubmit} className="mt-6">
               <div className="relative flex w-full max-w-xl">
                 <div className="relative flex flex-1 items-center">
                   <Input
@@ -117,10 +164,9 @@ export function HeroBanner({ categories = [], onCategoryClick }: HeroBannerProps
                     )}
                     autoComplete="off"
                   />
-                  {/* Animated placeholder overlay: only when empty and not focused */}
                   {showPlaceholder && (
                     <div
-                      className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base sm:text-base"
+                      className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base"
                       aria-hidden
                     >
                       <span className="text-muted-foreground">{TYPING_PREFIX}</span>
@@ -141,37 +187,49 @@ export function HeroBanner({ categories = [], onCategoryClick }: HeroBannerProps
               </div>
             </form>
           </div>
-
-          <div className="relative hidden lg:block aspect-[4/3] max-h-[320px] rounded-lg overflow-hidden bg-muted/50 object-cover">
-            <Image
-              src="/hero-handwerker.png"
-              alt="Handwerker bei der Arbeit"
-              fill
-              className="object-cover object-left"
-              sizes="(max-width: 1024px) 0px, 50vw"
-              priority
-            />
-          </div>
         </div>
-      </div>
 
-      {/* Scrollable categories row */}
-      {categories.length > 0 && (
-        <div className="border-t border-border/40 bg-muted/30">
-          <div className="container mx-auto px-sides py-3">
-            <div
-              className="flex gap-2 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide"
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                WebkitOverflowScrolling: "touch",
-              }}
-              role="region"
-              aria-label="Kategorien"
-            >
-              {categories
-                .filter((cat) => cat.id !== -1)
-                .map((category) => {
+        {/* Scrollable categories row with scroll buttons */}
+        {(categoriesLoading || categories.length > 0) && (
+          <div className="border-t border-border/40 bg-background/95 backdrop-blur-sm">
+            <div className="container mx-auto px-sides py-3">
+              <div className="relative flex items-center gap-1">
+                {canScrollLeft && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="absolute left-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-full border-border/60 bg-background shadow-md hover:bg-muted"
+                    onClick={() => scrollStrip("left")}
+                    aria-label="Nach links scrollen"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                )}
+                <div
+                  ref={scrollStripRef}
+                  className={cn(
+                    "flex gap-2 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide",
+                    canScrollLeft && "pl-10",
+                    canScrollRight && "pr-10"
+                  )}
+                  style={{
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                    WebkitOverflowScrolling: "touch",
+                  }}
+                  role="region"
+                  aria-label="Kategorien"
+                >
+                  {categoriesLoading ? (
+                    <div className="flex items-center gap-2 py-2">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Kategorien werden geladen...</span>
+                    </div>
+                  ) : (
+                    categories
+                      .filter((cat) => cat.id !== -1)
+                      .map((category) => {
                   const rawImageUrl = category.image_url?.trim() ? category.image_url : null
                   const relativePath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
                   const imageSrc = rawImageUrl
@@ -208,11 +266,26 @@ export function HeroBanner({ categories = [], onCategoryClick }: HeroBannerProps
                       <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                     </button>
                   )
-                })}
+                      })
+                  )}
+                </div>
+                {canScrollRight && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="absolute right-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-full border-border/60 bg-background shadow-md hover:bg-muted"
+                    onClick={() => scrollStrip("right")}
+                    aria-label="Nach rechts scrollen"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   )
 }

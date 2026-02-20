@@ -13,7 +13,6 @@ import { RecentlyViewedStrip, type RecentlyViewedDisplayItem } from "@/component
 import { FeaturedPageContent } from "@/components/home/featured-page-content"
 import { HorizontalGalleryCarousel } from "@/components/shared/horizontal-gallery-carousel"
 import { HeroBanner } from "@/components/home/hero-banner"
-import { CategorySection } from "@/components/home/category-section"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
   clearRecentlyViewedItems,
@@ -603,85 +602,8 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
       <HeroBanner
         categories={categoryTree}
         onCategoryClick={handleCategoryClick}
+        categoriesLoading={categoriesLoading}
       />
-      {/* Category and Subcategory Section */}
-      <section className="bg-gray-200 border-none pt-3 pb-3 sm:pt-3 sm:pb-3 md:pt-4 md:pb-4 lg:pt-6 lg:pb-6">
-        <div className="container mx-auto px-sides">
-          {/* Mobile Nav Type Selector — скрыт: пока только Meister */}
-          <div className="mb-4 md:hidden hidden">
-            <nav
-              className="flex items-center justify-center gap-0.5 p-1 bg-muted/40 rounded-lg border border-border/60 shadow-sm"
-              role="tablist"
-              aria-label="Featured navigation"
-            >
-              {HERO_QUICK_LINKS.filter((link) => link.value !== "product").map((link) => {
-                const isActive = isMounted && selectedNavType === link.value
-                return (
-                  <button
-                    key={link.value}
-                    type="button"
-                    onClick={() => handleNavTypeChange(link.value)}
-                    disabled={isTransitioning}
-                    className={cn(
-                      "flex flex-1 items-center justify-center h-9 sm:h-10 rounded-md px-3 sm:px-4 text-sm sm:text-base font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
-                      "disabled:opacity-50 disabled:cursor-not-allowed",
-                      isActive
-                        ? "bg-primary text-black font-bold shadow-sm hover:bg-primary/90"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                    )}
-                    role="tab"
-                    aria-selected={isActive}
-                  >
-                    {link.label}
-                  </button>
-                )
-              })}
-            </nav>
-          </div>
-
-          {/* Categories Grid */}
-          {categoriesLoading && categoryTree.length === 0 ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="flex flex-col items-center gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Kategorien werden geladen...</p>
-              </div>
-            </div>
-          ) : categoryTree.length > 0 ? (
-            <div 
-              key={selectedNavType}
-              className={cn(
-                isMobile 
-                  ? "" // No transition on mobile for instant swap
-                  : "transition-all ease-in-out duration-300",
-                !isMobile && isTransitioning 
-                  ? "opacity-0 translate-y-2 pointer-events-none" 
-                  : "opacity-100 translate-y-0"
-              )}
-            >
-              <CategorySection
-                categories={categoryTree}
-                selectedCategory={selectedCategory}
-                onCategoryClick={handleCategoryClick}
-                isTransitioning={false}
-                onScrollToSubcategories={handleScrollToSubcategories}
-                selectedNavType={selectedNavType}
-                isSubcategoryTransitioning={isSubcategoryTransitioning}
-                subcategorySectionRef={subcategorySectionRef}
-                isCatalogView={isCatalogView}
-                allCategories={categoryTree.filter(cat => cat.id !== -1)}
-                onCatalogCategoryClick={handleCatalogCategoryClick}
-                onCloseSubcategory={handleCloseSubcategory}
-                isMobile={isMobile}
-              />
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 py-16 text-center">
-              <p className="text-base text-muted-foreground">Noch keine Kategorien verfügbar.</p>
-            </div>
-          )}
-        </div>
-      </section>
 
       <FeaturedPageContent />
 
