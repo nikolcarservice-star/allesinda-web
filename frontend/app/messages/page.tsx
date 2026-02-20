@@ -852,18 +852,22 @@ function MessagesPageContent() {
 
             if (data.sender_id !== currentUserId && typeof window !== "undefined") {
               window.dispatchEvent(new CustomEvent("notifications:refresh"))
-              // Play notification sound for incoming message (shared throttle with header)
-              try {
-                const now = Date.now()
-                const last = (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed
-                if (!last || now - last >= 4000) {
-                  (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed = now
-                  const audio = new Audio("/sounds/delivered-message-sound.mp3")
-                  audio.volume = 0.6
-                  audio.play().catch(() => {})
+              // Play sound only when tab is in background or message is from another conversation (not the one user is viewing)
+              const isViewingThisChat = selectedConversation?.id?.toString() === conversationId.toString()
+              const shouldPlaySound = document.hidden || !isViewingThisChat
+              if (shouldPlaySound) {
+                try {
+                  const now = Date.now()
+                  const last = (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed
+                  if (!last || now - last >= 2500) {
+                    (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed = now
+                    const audio = new Audio("/sounds/delivered-message-sound.mp3")
+                    audio.volume = 0.6
+                    audio.play().catch(() => {})
+                  }
+                } catch {
+                  // ignore
                 }
-              } catch {
-                // ignore
               }
             }
 
@@ -1711,6 +1715,14 @@ function MessagesPageContent() {
         wsRef.current = null
       }
     }
+  }, [])
+
+  // Preload notification sound so it plays without delay on mobile
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const audio = new Audio("/sounds/delivered-message-sound.mp3")
+    audio.preload = "auto"
+    audio.load()
   }, [])
 
   if (loading && conversations.length === 0) {

@@ -34,7 +34,9 @@ export function MessagesLinkWithBadge({
   const previousUnreadRef = useRef<number | null>(null)
   const lastSoundPlayedRef = useRef<number>(0)
   const audioUnlockedRef = useRef(false)
-  const SOUND_THROTTLE_MS = 4000
+  const mountTimeRef = useRef<number>(0)
+  const SOUND_THROTTLE_MS = 2500
+  const SOUND_GRACE_PERIOD_MS = 4000
 
   const unlockAudioForMobile = () => {
     if (audioUnlockedRef.current || typeof window === "undefined") return
@@ -50,9 +52,10 @@ export function MessagesLinkWithBadge({
 
   const playNewMessageSound = () => {
     const now = Date.now()
+    if (now - mountTimeRef.current < SOUND_GRACE_PERIOD_MS) return
     const lastGlobal = typeof window !== "undefined" ? (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed : undefined
     if (lastGlobal != null && now - lastGlobal < SOUND_THROTTLE_MS) return
-    if (now - lastSoundPlayedRef.current < SOUND_THROTTLE_MS) return
+    if (lastSoundPlayedRef.current > 0 && now - lastSoundPlayedRef.current < SOUND_THROTTLE_MS) return
     lastSoundPlayedRef.current = now
     if (typeof window !== "undefined") (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed = now
     try {
@@ -98,20 +101,25 @@ export function MessagesLinkWithBadge({
   }
 
   useEffect(() => {
+    mountTimeRef.current = Date.now()
     loadUnread()
     const interval = setInterval(loadUnread, 5000)
     const onRefresh = () => loadUnread()
-    window.addEventListener("notifications:refresh", onRefresh)
-    document.addEventListener("visibilitychange", () => {
+    const onVisible = () => {
       if (!document.hidden) loadUnread()
-    })
+    }
+    window.addEventListener("notifications:refresh", onRefresh)
+    document.addEventListener("visibilitychange", onVisible)
+    const preload = new Audio(MESSAGE_SOUND_URL)
+    preload.preload = "auto"
+    preload.load()
     const unlockOnInteraction = () => unlockAudioForMobile()
     document.addEventListener("click", unlockOnInteraction, { once: true, passive: true })
     document.addEventListener("touchstart", unlockOnInteraction, { once: true, passive: true })
     return () => {
       clearInterval(interval)
       window.removeEventListener("notifications:refresh", onRefresh)
-      document.removeEventListener("visibilitychange", onRefresh)
+      document.removeEventListener("visibilitychange", onVisible)
       document.removeEventListener("click", unlockOnInteraction)
       document.removeEventListener("touchstart", unlockOnInteraction)
     }
