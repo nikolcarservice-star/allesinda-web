@@ -124,31 +124,19 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
   }
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden">
-      {/* Full-screen background image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/hero-handwerker.png"
-          alt=""
-          fill
-          className="object-cover object-left"
-          sizes="100vw"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-transparent" />
-      </div>
-
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="container mx-auto flex flex-1 flex-col justify-center px-sides py-10 sm:py-14 md:py-18 lg:py-20">
-          <div className="max-w-xl">
+    <section className="relative w-full overflow-hidden bg-gradient-to-b from-muted/30 to-background">
+      {/* Two-column layout: text + search left, handyman image right */}
+      <div className="container mx-auto px-sides py-10 sm:py-14 md:py-16 lg:py-20">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-center">
+          <div className="space-y-4 sm:space-y-6">
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
               {HERO_HEADLINE}
             </h1>
-            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+            <p className="text-base text-muted-foreground sm:text-lg max-w-xl">
               {HERO_SUBHEADLINE}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6">
+            <form onSubmit={handleSubmit} className="pt-2">
               <div className="relative flex w-full max-w-xl">
                 <div className="relative flex flex-1 items-center">
                   <Input
@@ -187,105 +175,117 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
               </div>
             </form>
           </div>
-        </div>
 
-        {/* Scrollable categories row with scroll buttons */}
-        {(categoriesLoading || categories.length > 0) && (
-          <div className="border-t border-border/40 bg-background/95 backdrop-blur-sm">
-            <div className="container mx-auto px-sides py-3">
-              <div className="relative flex items-center gap-1">
-                {canScrollLeft && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="absolute left-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-full border-border/60 bg-background shadow-md hover:bg-muted"
-                    onClick={() => scrollStrip("left")}
-                    aria-label="Nach links scrollen"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
+          {/* Handyman image — right column only, clear (no full-screen blur) */}
+          <div className="relative hidden lg:block aspect-[4/3] max-h-[420px] overflow-hidden rounded-lg">
+            <Image
+              src="/hero-handwerker.png"
+              alt="Handwerker bei der Arbeit"
+              fill
+              className="object-cover object-left"
+              sizes="(max-width: 1024px) 0px, 50vw"
+              priority
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable categories row: square cards with icon on top, label below + visible arrows */}
+      {(categoriesLoading || categories.length > 0) && (
+        <div className="border-t border-border/40 bg-muted/30">
+          <div className="container mx-auto px-sides py-4">
+            <div className="relative flex items-stretch gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "absolute left-0 top-1/2 z-10 h-10 w-10 -translate-y-1/2 shrink-0 rounded-full border border-border bg-background shadow-sm hover:bg-muted",
+                  !canScrollLeft && "opacity-40 pointer-events-none"
                 )}
-                <div
-                  ref={scrollStripRef}
-                  className={cn(
-                    "flex gap-2 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide",
-                    canScrollLeft && "pl-10",
-                    canScrollRight && "pr-10"
-                  )}
-                  style={{
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                    WebkitOverflowScrolling: "touch",
-                  }}
-                  role="region"
-                  aria-label="Kategorien"
-                >
-                  {categoriesLoading ? (
-                    <div className="flex items-center gap-2 py-2">
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Kategorien werden geladen...</span>
-                    </div>
-                  ) : (
-                    categories
-                      .filter((cat) => cat.id !== -1)
-                      .map((category) => {
-                  const rawImageUrl = category.image_url?.trim() ? category.image_url : null
-                  const relativePath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
-                  const imageSrc = rawImageUrl
-                    ? relativePath.startsWith("/")
-                      ? relativePath
-                      : getOptimizedImageUrl(rawImageUrl, "thumbnail")
-                    : PLACEHOLDER_IMAGE
-                  const isLocal = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                  return (
-                    <button
-                      key={category.id}
-                      type="button"
-                      onClick={() => onCategoryClick?.(category)}
-                      className={cn(
-                        "flex shrink-0 items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-2",
-                        "text-left text-sm font-medium text-foreground shadow-sm",
-                        "hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-colors",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-                      )}
-                    >
-                      <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-md bg-muted">
-                        <Image
-                          src={imageSrc}
-                          alt=""
-                          width={32}
-                          height={32}
-                          className="h-full w-full object-cover"
-                          unoptimized={isLocal}
-                        />
-                      </span>
-                      <span className="max-w-[140px] truncate sm:max-w-[180px]">
-                        {category.name || "Kategorie"}
-                      </span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </button>
-                  )
-                      })
-                  )}
-                </div>
-                {canScrollRight && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="absolute right-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-full border-border/60 bg-background shadow-md hover:bg-muted"
-                    onClick={() => scrollStrip("right")}
-                    aria-label="Nach rechts scrollen"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
+                onClick={() => scrollStrip("left")}
+                aria-label="Nach links scrollen"
+              >
+                <ChevronLeft className="h-5 w-5 text-foreground" />
+              </Button>
+              <div
+                ref={scrollStripRef}
+                className={cn(
+                  "flex gap-3 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide",
+                  "pl-12 pr-12"
+                )}
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  WebkitOverflowScrolling: "touch",
+                }}
+                role="region"
+                aria-label="Kategorien"
+              >
+                {categoriesLoading ? (
+                  <div className="flex items-center gap-2 py-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Kategorien werden geladen...</span>
+                  </div>
+                ) : (
+                  categories
+                    .filter((cat) => cat.id !== -1)
+                    .map((category) => {
+                      const rawImageUrl = category.image_url?.trim() ? category.image_url : null
+                      const relativePath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
+                      const imageSrc = rawImageUrl
+                        ? relativePath.startsWith("/")
+                          ? relativePath
+                          : getOptimizedImageUrl(rawImageUrl, "thumbnail")
+                        : PLACEHOLDER_IMAGE
+                      const isLocal = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => onCategoryClick?.(category)}
+                          className={cn(
+                            "flex shrink-0 flex-col items-center gap-2 rounded-lg border border-border/60 bg-muted/50 px-4 py-3 min-w-[120px] sm:min-w-[140px]",
+                            "text-center text-sm font-medium text-foreground",
+                            "hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-colors",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                          )}
+                        >
+                          <span className="relative flex h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+                            <Image
+                              src={imageSrc}
+                              alt=""
+                              width={48}
+                              height={48}
+                              className="h-full w-full object-cover"
+                              unoptimized={isLocal}
+                            />
+                          </span>
+                          <span className="line-clamp-2 leading-tight">
+                            {category.name || "Kategorie"}
+                          </span>
+                        </button>
+                      )
+                    })
                 )}
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "absolute right-0 top-1/2 z-10 h-10 w-10 -translate-y-1/2 shrink-0 rounded-full border border-border bg-background shadow-sm hover:bg-muted",
+                  !canScrollRight && "opacity-40 pointer-events-none"
+                )}
+                onClick={() => scrollStrip("right")}
+                aria-label="Nach rechts scrollen"
+              >
+                <ChevronRight className="h-5 w-5 text-foreground" />
+              </Button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   )
 }
