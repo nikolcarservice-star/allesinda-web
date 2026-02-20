@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { AddToHomeScreenSheet } from "@/components/layout/add-to-home-screen-sheet"
 import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck, Download, X } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import { toast } from "sonner"
@@ -1770,30 +1770,7 @@ function MessagesPageContent() {
           </Button>
         </div>
       )}
-      <Sheet open={showInstallInstructions} onOpenChange={setShowInstallInstructions}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <SheetHeader>
-            <SheetTitle>App auf den Startbildschirm hinzufügen</SheetTitle>
-            <SheetDescription className="text-left">
-              So installieren Sie Allesinda wie eine App:
-            </SheetDescription>
-          </SheetHeader>
-          <div className="space-y-4 px-1 text-sm text-foreground">
-            <div>
-              <p className="font-semibold mb-1">iPhone / iPad (Safari):</p>
-              <p className="text-muted-foreground">
-                Tippen Sie unten auf <strong>Teilen</strong> (Quadrat mit Pfeil) → dann auf <strong>„Zum Home-Bildschirm“</strong> → <strong>Hinzufügen</strong>.
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold mb-1">Android (Chrome):</p>
-              <p className="text-muted-foreground">
-                Tippen Sie auf das <strong>Menü</strong> (drei Punkte) → <strong>„Zum Startbildschirm hinzufügen“</strong> oder <strong>„App installieren“</strong>.
-              </p>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <AddToHomeScreenSheet open={showInstallInstructions} onOpenChange={setShowInstallInstructions} />
       <div className="container mx-auto px-sides flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
           {/* Conversations List */}

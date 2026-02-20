@@ -22,6 +22,7 @@ import {
   Shield,
   Award,
   Store,
+  Download,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -45,6 +46,7 @@ import {
 import { useAuth } from "@/lib/context/auth-context"
 import { NotificationDropdown } from "@/components/layout/notification-dropdown"
 import { MessagesLinkWithBadge } from "@/components/layout/messages-link-with-badge"
+import { AddToHomeScreenSheet } from "@/components/layout/add-to-home-screen-sheet"
 import { cn, formatPrice, getOptimizedImageUrl } from "@/lib/utils"
 import { ApiClientError, getCategoryTreeByType } from "@/lib/api"
 import { logger } from "@/lib/logger"
@@ -308,6 +310,7 @@ export function Header() {
   const megaMenuContainerRef = useRef<HTMLDivElement | null>(null)
   const [megaMenuHeight, setMegaMenuHeight] = useState(0)
   const [isDesktopSearchSuggestionsOpen, setIsDesktopSearchSuggestionsOpen] = useState(false)
+  const [isInstallSheetOpen, setIsInstallSheetOpen] = useState(false)
 
   const featuredSearchParams = useMemo(() => {
     return pathname === "/" ? searchParams : null
@@ -1874,6 +1877,15 @@ return (
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
               <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsInstallSheetOpen(true)}
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+                  aria-label="App auf Startbildschirm hinzufügen"
+                  title="App auf Startbildschirm hinzufügen"
+                >
+                  <Download className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
                 <MessagesLinkWithBadge variant="mobile" aria-label="Nachrichten" />
               </div>
             </>
@@ -1954,6 +1966,14 @@ return (
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setIsInstallSheetOpen(true)}
+                      className="flex items-center gap-3 text-sm lg:hidden"
+                    >
+                      <Download className="h-4 w-4 text-neutral-500" />
+                      <span>App auf Startbildschirm</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="lg:hidden" />
                     <DropdownMenuItem
                       onClick={() => logout()}
                       className="text-base flex items-center gap-3 cursor-pointer"
@@ -2077,6 +2097,7 @@ return (
         </Sheet>
       </div>
     </div>
+    <AddToHomeScreenSheet open={isInstallSheetOpen} onOpenChange={setIsInstallSheetOpen} />
   </header>
 );
 }

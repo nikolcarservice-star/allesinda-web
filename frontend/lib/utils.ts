@@ -196,28 +196,19 @@ export function optimizeImageUrl(
     return normalized;
   }
 
-  // Canonicalize backend media URLs: always use path + NEXT_PUBLIC_API_URL so all devices
-  // get the same URL (avoids "works on one device, broken on another" when backend returns
-  // sometimes absolute BASE_URL and sometimes relative path).
+  // Canonicalize backend media: extract path from absolute URL so we always add same base
   if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
     try {
       const u = new URL(normalized);
       if (u.pathname.includes('/media/files')) {
         normalized = u.pathname + (u.search || '');
-        // Fall through to path handling below so we apply same base + params
       } else {
-        // External (e.g. CDN) – return as-is, skip adding optimization params
-        if (normalized.includes('?')) return normalized;
+        // External (e.g. CDN) – return as-is
         return normalized;
       }
     } catch {
-      // Keep normalized as-is if URL parse fails
+      // Keep as-is if parse fails
     }
-  }
-
-  // Skip if already has query params (avoid appending twice)
-  if (normalized.includes('?')) {
-    return normalized;
   }
 
   // Only optimize backend media URLs
@@ -225,7 +216,7 @@ export function optimizeImageUrl(
     return normalized;
   }
 
-  // Convert path to absolute URL using API URL so all clients use same origin
+  // Always add API base URL for /media/files so images load from API on all devices
   if (process.env.NEXT_PUBLIC_API_URL) {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
@@ -234,6 +225,11 @@ export function optimizeImageUrl(
     } catch {
       // Keep relative if build fails
     }
+  }
+
+  // Skip adding w/h/q if URL already has query params
+  if (normalized.includes('?')) {
+    return normalized;
   }
 
   // Apply preset if provided
