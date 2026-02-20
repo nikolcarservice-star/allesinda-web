@@ -190,6 +190,18 @@ async def serve_media_file(
     if os.path.commonpath([upload_root, full_path]) != upload_root:
         raise HTTPException(status_code=403, detail="Invalid file path")
     
+    # If file not found, try alternate jpeg/jpg extension (some files are .jpg, URLs may use .jpeg or vice versa)
+    if not (os.path.exists(full_path) and os.path.isfile(full_path)):
+        base, ext = os.path.splitext(full_path)
+        alt_path = None
+        if ext.lower() == ".jpeg":
+            alt_path = base + ".jpg"
+        elif ext.lower() == ".jpg":
+            alt_path = base + ".jpeg"
+        if alt_path and os.path.exists(alt_path) and os.path.isfile(alt_path):
+            full_path = alt_path
+            file_path = os.path.relpath(alt_path, upload_root).replace("\\", "/")
+    
     # Check if file exists
     if os.path.exists(full_path) and os.path.isfile(full_path):
         # Get file stats for ETag and Last-Modified
