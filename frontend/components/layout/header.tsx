@@ -1833,29 +1833,17 @@ return (
           })}
         </nav>
 
-        {/* Desktop Search Bar — ближе к правому краю, аккуратный «продающий» вид */}
-        <div className="hidden lg:flex w-full max-w-xl ml-auto mr-2 rounded-xl bg-neutral-50 border border-neutral-200/80 shadow-sm focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10 focus-within:bg-white transition-all duration-200 [&_form]:border-0 [&_form]:rounded-xl [&_form]:bg-transparent [&_form]:p-1">
-          <HeaderSearchBar
-            variant="desktop"
-            value={searchValue}
-            onValueChange={setSearchValue}
-            cityId={searchCityId}
-            onCityChange={setSearchCityId}
-            onSubmit={handleSearchSubmit}
-            recentSearches={recentSearches}
-            onRecentSelect={handleSearchSubmit}
-            onClearRecent={handleClearRecent}
-            trendingItems={trendingForSelected.items}
-            trendingStatus={trendingForSelected.status}
-            onTrendingSelect={handleTrendingSelect}
-            recentlyViewed={recentlyViewedDisplayItems}
-            onRecentlyViewedSelect={handleRecentlyViewedSelect}
-            onRecentlyViewedRemove={handleRemoveRecentlyViewedItem}
-            onClearRecentlyViewed={handleClearRecentlyViewed}
-            onExploreTrending={handleExploreTrending}
-            onOpenChange={setIsDesktopSearchSuggestionsOpen}
-          />
-        </div>
+        {/* Desktop: призыв к регистрации (только для неавторизованных) */}
+        {!user && (
+          <div className="hidden lg:flex flex-1 justify-end mr-2">
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+            >
+              Kostenlos registrieren
+            </Link>
+          </div>
+        )}
 
         {/* Right Actions — на мобиле flex-1 + justify-end для центрирования логотипа */}
         <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2 lg:flex-initial lg:ml-auto">
