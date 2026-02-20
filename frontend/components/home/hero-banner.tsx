@@ -131,78 +131,80 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
 
   return (
     <section className="relative w-full overflow-hidden">
-      {/* Full-width hero: left 2/3 blurred interior, right 1/3 clear handyman — one background image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/hero-handwerker.png"
-          alt=""
-          fill
-          className="object-cover object-right"
-          sizes="100vw"
-          priority
-        />
-        {/* Left ~65%: blur + light overlay so text is readable; right stays clear */}
-        <div
-          className="absolute inset-0 w-[65%] max-w-[900px] bg-background/85 backdrop-blur-sm"
-          aria-hidden
-        />
-      </div>
+      {/* Banner: image on entire hero area, full width and height */}
+      <div className="relative min-h-[55vh] sm:min-h-[60vh] md:min-h-[65vh] w-full">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/hero-handwerker.png"
+            alt=""
+            fill
+            className="object-cover object-right"
+            sizes="100vw"
+            priority
+          />
+          {/* Gradient overlay left so text is readable */}
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-transparent"
+            aria-hidden
+          />
+        </div>
 
-      <div className="relative z-10 container mx-auto px-sides py-10 sm:py-14 md:py-16 lg:py-20">
-        <div className="max-w-xl">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-            {HERO_HEADLINE}
-          </h1>
-          <p className="mt-4 text-base text-muted-foreground sm:text-lg">
-            {HERO_SUBHEADLINE}
-          </p>
+        <div className="relative z-10 container mx-auto h-full min-h-[55vh] sm:min-h-[60vh] md:min-h-[65vh] flex flex-col justify-center px-sides py-10 sm:py-14 md:py-16 lg:py-20">
+          <div className="max-w-xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+              {HERO_HEADLINE}
+            </h1>
+            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+              {HERO_SUBHEADLINE}
+            </p>
 
-          <form onSubmit={handleSubmit} className="mt-6">
-            <div className="relative flex w-full max-w-xl">
-              <div className="relative flex flex-1 items-center">
-                <Input
-                  type="search"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  aria-label="Suchbegriff eingeben"
-                  className={cn(
-                    "h-12 sm:h-14 pr-14 text-base bg-background border-border/60 rounded-r-none rounded-l-md border-r-0",
-                    showPlaceholder && "text-transparent caret-foreground"
+            <form onSubmit={handleSubmit} className="mt-6">
+              <div className="relative flex w-full max-w-xl">
+                <div className="relative flex flex-1 items-center">
+                  <Input
+                    type="search"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    aria-label="Suchbegriff eingeben"
+                    className={cn(
+                      "h-12 sm:h-14 pr-14 text-base bg-background border-border/60 rounded-r-none rounded-l-md border-r-0",
+                      showPlaceholder && "text-transparent caret-foreground"
+                    )}
+                    autoComplete="off"
+                  />
+                  {showPlaceholder && (
+                    <div
+                      className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base"
+                      aria-hidden
+                    >
+                      <span className="text-muted-foreground">{TYPING_PREFIX}</span>
+                      <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
+                        {displayWord}
+                      </span>
+                    </div>
                   )}
-                  autoComplete="off"
-                />
-                {showPlaceholder && (
-                  <div
-                    className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base"
-                    aria-hidden
-                  >
-                    <span className="text-muted-foreground">{TYPING_PREFIX}</span>
-                    <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
-                      {displayWord}
-                    </span>
-                  </div>
-                )}
+                </div>
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="h-12 w-12 sm:h-14 sm:w-14 rounded-l-none rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-l-0 border-primary [&_svg]:text-black"
+                  aria-label="Suchen"
+                >
+                  <Search className="h-5 w-5 sm:h-6 sm:w-6" />
+                </Button>
               </div>
-              <Button
-                type="submit"
-                size="icon"
-                className="h-12 w-12 sm:h-14 sm:w-14 rounded-l-none rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-l-0 border-primary [&_svg]:text-black"
-                aria-label="Suchen"
-              >
-                <Search className="h-5 w-5 sm:h-6 sm:w-6" />
-              </Button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
 
-      {/* Categories: light grey strip, square buttons with icon, label below, turquoise underline for active, arrow right */}
+      {/* Categories: ровно под баннером, в том же container для выравнивания */}
       {(categoriesLoading || categories.length > 0) && (
-        <div className="relative z-10 border-t border-border/40 bg-muted/40">
-          <div className="container mx-auto px-sides py-4">
-            <div className="relative flex items-center gap-1">
+        <div className="w-full border-t border-border/40 bg-muted/40">
+          <div className="container mx-auto px-sides py-4 w-full max-w-[1920px]">
+            <div className="relative flex items-center gap-1 w-full">
               <Button
                 type="button"
                 variant="outline"
