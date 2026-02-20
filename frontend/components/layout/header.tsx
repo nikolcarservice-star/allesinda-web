@@ -1838,9 +1838,9 @@ return (
           <div className="hidden lg:flex flex-1 justify-end mr-2">
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:text-black hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
             >
-              Kostenlos registrieren
+              Jetzt als Profi anmelden
             </Link>
           </div>
         )}
