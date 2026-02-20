@@ -111,7 +111,12 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
       if (trimmed) params.set("q", trimmed)
       params.set("page", "1")
       params.set("page_size", "12")
-      router.push(`/?${params.toString()}`)
+      const url = `/?${params.toString()}`
+      router.push(url, { scroll: false })
+      // Scroll to results after navigation so the user sees the search outcome
+      setTimeout(() => {
+        document.getElementById("search-results")?.scrollIntoView({ behavior: "smooth", block: "start" })
+      }, 100)
     },
     [searchValue, router]
   )
@@ -176,13 +181,13 @@ export function HeroBanner({ categories = [], onCategoryClick, categoriesLoading
             </form>
           </div>
 
-          {/* Handyman image — right column only, clear (no full-screen blur) */}
-          <div className="relative hidden lg:block aspect-[4/3] max-h-[420px] overflow-hidden rounded-lg">
+          {/* Handyman image — right column: sharp, no blur; align right so the person is visible */}
+          <div className="relative hidden lg:block aspect-[4/3] max-h-[420px] overflow-hidden rounded-lg bg-muted/50">
             <Image
               src="/hero-handwerker.png"
               alt="Handwerker bei der Arbeit"
               fill
-              className="object-cover object-left"
+              className="object-cover object-right"
               sizes="(max-width: 1024px) 0px, 50vw"
               priority
             />

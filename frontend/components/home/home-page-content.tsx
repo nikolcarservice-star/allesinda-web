@@ -605,7 +605,9 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
         categoriesLoading={categoriesLoading}
       />
 
-      <FeaturedPageContent />
+      <section id="search-results" className="min-h-[40vh]" key={searchParams?.toString() ?? ""}>
+        <FeaturedPageContent />
+      </section>
 
       <section className="bg-white py-3 sm:py-4 md:py-5">
         <div className="container mx-auto space-y-2 px-sides sm:space-y-6 md:space-y-6">
