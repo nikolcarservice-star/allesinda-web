@@ -309,7 +309,11 @@ async def serve_media_file(
         except ImportError:
             PIL_AVAILABLE = False
             logger.warning("PIL/Pillow not available, cannot generate placeholder images")
-            return Response(status_code=404, content="Image not found")
+            return Response(
+                status_code=404,
+                content="Image not found",
+                headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
+            )
         
         # Extract filename and determine type
         filename = os.path.basename(file_path)
@@ -398,8 +402,11 @@ async def serve_media_file(
         return Response(content=img_bytes.read(), media_type="image/jpeg")
     except Exception as e:
         logger.error(f"Error generating placeholder image: {e}")
-        # Return a simple 404
-        return Response(status_code=404)
+        # Return 404 without caching so clients retry and don't keep broken image
+        return Response(
+            status_code=404,
+            headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
+        )
 
 # Error handlers
 @app.exception_handler(HTTPException)

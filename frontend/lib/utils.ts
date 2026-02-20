@@ -191,13 +191,32 @@ export function optimizeImageUrl(
   // Normalize the URL first
   let normalized = normalizeImageUrl(url);
 
-  // Don't optimize data URLs, external URLs, or URLs that already have query params
-  if (
-    normalized.startsWith('data:') ||
-    normalized.startsWith('http://') ||
-    normalized.startsWith('https://') ||
-    normalized.includes('?')
-  ) {
+  // Don't optimize data URLs
+  if (normalized.startsWith('data:')) {
+    return normalized;
+  }
+
+  // Canonicalize backend media URLs: always use path + NEXT_PUBLIC_API_URL so all devices
+  // get the same URL (avoids "works on one device, broken on another" when backend returns
+  // sometimes absolute BASE_URL and sometimes relative path).
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    try {
+      const u = new URL(normalized);
+      if (u.pathname.includes('/media/files')) {
+        normalized = u.pathname + (u.search || '');
+        // Fall through to path handling below so we apply same base + params
+      } else {
+        // External (e.g. CDN) – return as-is, skip adding optimization params
+        if (normalized.includes('?')) return normalized;
+        return normalized;
+      }
+    } catch {
+      // Keep normalized as-is if URL parse fails
+    }
+  }
+
+  // Skip if already has query params (avoid appending twice)
+  if (normalized.includes('?')) {
     return normalized;
   }
 
@@ -206,23 +225,14 @@ export function optimizeImageUrl(
     return normalized;
   }
 
-  // Convert local paths to absolute URLs using API URL
-  // This is needed because:
-  // 1. Next.js image optimization happens server-side and needs absolute URLs to fetch images
-  //    (rewrite rules don't apply to server-side requests)
-  // 2. In production on VPS, the Next.js server needs to fetch from the backend API
-  // We do this for both client and server to avoid hydration mismatches
+  // Convert path to absolute URL using API URL so all clients use same origin
   if (process.env.NEXT_PUBLIC_API_URL) {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      // Remove trailing slash from API URL if present
-      const baseUrl = apiUrl.replace(/\/$/, '');
-      // Ensure normalized path starts with /
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
       const path = normalized.startsWith('/') ? normalized : `/${normalized}`;
       normalized = `${baseUrl}${path}`;
-    } catch (error) {
-      // If URL construction fails, continue with relative URL
-      // (might fail in production, but better than breaking)
+    } catch {
+      // Keep relative if build fails
     }
   }
 
