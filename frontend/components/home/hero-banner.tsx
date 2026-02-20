@@ -1,11 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { Search } from "lucide-react"
+import { Search, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
+import type { CategoryTree } from "@/lib/api"
 
 const HERO_HEADLINE = "Finde geprüfte Handwerker in ganz Deutschland"
 const HERO_SUBHEADLINE =
@@ -18,7 +20,14 @@ const TYPING_PAUSE_MS = 1800
 const ERASING_CHAR_MS = 50
 const ERASING_PAUSE_MS = 400
 
-export function HeroBanner() {
+const PLACEHOLDER_IMAGE = "/placeholder.jpg"
+
+export type HeroBannerProps = {
+  categories?: CategoryTree[]
+  onCategoryClick?: (category: CategoryTree) => void
+}
+
+export function HeroBanner({ categories = [], onCategoryClick }: HeroBannerProps) {
   const router = useRouter()
   const [searchValue, setSearchValue] = useState("")
   const [isFocused, setIsFocused] = useState(false)
@@ -53,7 +62,7 @@ export function HeroBanner() {
           }, ERASING_CHAR_MS)
         } else {
           timeoutRef.current = setTimeout(() => {
-            setWordIndex((i) => (i + 1) % TYPING_WORDS.length)
+            setWordIndex((i: number) => (i + 1) % TYPING_WORDS.length)
             setIsTyping(true)
           }, ERASING_PAUSE_MS)
         }
@@ -133,14 +142,77 @@ export function HeroBanner() {
             </form>
           </div>
 
-          <div className="relative hidden lg:block aspect-[4/3] max-h-[320px] rounded-lg overflow-hidden bg-muted/50">
-            {/* Placeholder for hero image - can be replaced with actual image */}
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50 text-sm">
-              Handwerker-Bild
-            </div>
+          <div className="relative hidden lg:block aspect-[4/3] max-h-[320px] rounded-lg overflow-hidden bg-muted/50 object-cover">
+            <Image
+              src="/hero-handwerker.png"
+              alt="Handwerker bei der Arbeit"
+              fill
+              className="object-cover object-left"
+              sizes="(max-width: 1024px) 0px, 50vw"
+              priority
+            />
           </div>
         </div>
       </div>
+
+      {/* Scrollable categories row */}
+      {categories.length > 0 && (
+        <div className="border-t border-border/40 bg-muted/30">
+          <div className="container mx-auto px-sides py-3">
+            <div
+              className="flex gap-2 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
+              }}
+              role="region"
+              aria-label="Kategorien"
+            >
+              {categories
+                .filter((cat) => cat.id !== -1)
+                .map((category) => {
+                  const rawImageUrl = category.image_url?.trim() ? category.image_url : null
+                  const relativePath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
+                  const imageSrc = rawImageUrl
+                    ? relativePath.startsWith("/")
+                      ? relativePath
+                      : getOptimizedImageUrl(rawImageUrl, "thumbnail")
+                    : PLACEHOLDER_IMAGE
+                  const isLocal = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => onCategoryClick?.(category)}
+                      className={cn(
+                        "flex shrink-0 items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-2",
+                        "text-left text-sm font-medium text-foreground shadow-sm",
+                        "hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-colors",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                      )}
+                    >
+                      <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-md bg-muted">
+                        <Image
+                          src={imageSrc}
+                          alt=""
+                          width={32}
+                          height={32}
+                          className="h-full w-full object-cover"
+                          unoptimized={isLocal}
+                        />
+                      </span>
+                      <span className="max-w-[140px] truncate sm:max-w-[180px]">
+                        {category.name || "Kategorie"}
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  )
+                })}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
