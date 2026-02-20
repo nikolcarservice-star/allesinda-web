@@ -18,8 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { AddToHomeScreenSheet } from "@/components/layout/add-to-home-screen-sheet"
-import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck, Download, X } from "lucide-react"
+import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import { toast } from "sonner"
 import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSocketUrl, createConversation, markConversationRead, uploadAttachment as uploadAttachmentAPI, blockConversation as blockConversationAPI, unblockConversation as unblockConversationAPI, deleteConversation as deleteConversationAPI } from "@/lib/api/chat"
@@ -100,52 +99,6 @@ function MessagesPageContent() {
   const messagesTopRef = useRef<HTMLDivElement>(null)
   const pendingReadReceiptsRef = useRef<Set<string>>(new Set())
   const isMobile = useIsMobile()
-
-  const INSTALL_BANNER_KEY = "messages-install-banner-dismissed"
-  const [installBannerDismissed, setInstallBannerDismissed] = useState(false)
-  const [showInstallInstructions, setShowInstallInstructions] = useState(false)
-  const [installPromptPending, setInstallPromptPending] = useState(false)
-  const installPromptRef = useRef<{ prompt: () => Promise<{ outcome: string }> } | null>(null)
-
-  useEffect(() => {
-    try {
-      const stored = typeof window !== "undefined" && window.localStorage.getItem(INSTALL_BANNER_KEY)
-      if (stored === "1") setInstallBannerDismissed(true)
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault()
-      installPromptRef.current = e as unknown as { prompt: () => Promise<{ outcome: string }> }
-    }
-    window.addEventListener("beforeinstallprompt", handler)
-    return () => window.removeEventListener("beforeinstallprompt", handler)
-  }, [])
-
-  const dismissInstallBanner = useCallback(() => {
-    setInstallBannerDismissed(true)
-    try {
-      typeof window !== "undefined" && window.localStorage.setItem(INSTALL_BANNER_KEY, "1")
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  const handleInstallClick = useCallback(() => {
-    const deferred = installPromptRef.current
-    if (deferred) {
-      setInstallPromptPending(true)
-      deferred
-        .prompt()
-        .then(() => setInstallPromptPending(false))
-        .catch(() => setInstallPromptPending(false))
-    } else {
-      setShowInstallInstructions(true)
-    }
-  }, [])
 
   const mapConversationResponse = useCallback((raw: any): Conversation => ({
     id: raw.id,
@@ -1745,32 +1698,6 @@ function MessagesPageContent() {
         "md:h-[calc(100dvh-7rem)] md:min-h-[calc(100dvh-7rem)] md:max-h-[calc(100dvh-7rem)]",
       )}
     >
-      {isMobile && !installBannerDismissed && (
-        <div className="shrink-0 flex items-center gap-2 px-3 py-2.5 bg-primary/10 border-b border-border/50 text-sm">
-          <Download className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-          <span className="text-foreground font-medium truncate flex-1 min-w-0">
-            App auf den Startbildschirm
-          </span>
-          <Button
-            size="sm"
-            className="shrink-0 h-8 px-3 text-xs font-semibold"
-            onClick={handleInstallClick}
-            disabled={installPromptPending}
-          >
-            {installPromptPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Hinzufügen"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={dismissInstallBanner}
-            aria-label="Hinweis schließen"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-      <AddToHomeScreenSheet open={showInstallInstructions} onOpenChange={setShowInstallInstructions} />
       <div className="container mx-auto px-sides flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
           {/* Conversations List */}

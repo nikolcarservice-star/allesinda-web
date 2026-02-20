@@ -8,6 +8,7 @@ import { DebugGrid } from "@/components/debug-grid"
 import { isDevelopment } from "@/lib/constants"
 import { Header } from "../components/layout/header"
 import { ConditionalFooter } from "../components/layout/conditional-footer"
+import { InstallPrompt } from "../components/layout/install-prompt"
 import dynamic from "next/dynamic"
 import { V0Provider } from "../lib/context"
 import { AuthProvider } from "../lib/context/auth-context"
@@ -84,6 +85,7 @@ export default async function RootLayout({
                 </div>
               </main>
               <ConditionalFooter />
+              <InstallPrompt />
               {isDevelopment && <DebugGrid />}
               <Toaster closeButton position="bottom-right" />
               </NuqsAdapter>
