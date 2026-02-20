@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck, Download, X } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import { toast } from "sonner"
@@ -102,6 +103,10 @@ function MessagesPageContent() {
 
   const INSTALL_BANNER_KEY = "messages-install-banner-dismissed"
   const [installBannerDismissed, setInstallBannerDismissed] = useState(false)
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false)
+  const [installPromptPending, setInstallPromptPending] = useState(false)
+  const installPromptRef = useRef<{ prompt: () => Promise<{ outcome: string }> } | null>(null)
+
   useEffect(() => {
     try {
       const stored = typeof window !== "undefined" && window.localStorage.getItem(INSTALL_BANNER_KEY)
@@ -110,12 +115,35 @@ function MessagesPageContent() {
       // ignore
     }
   }, [])
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault()
+      installPromptRef.current = e as unknown as { prompt: () => Promise<{ outcome: string }> }
+    }
+    window.addEventListener("beforeinstallprompt", handler)
+    return () => window.removeEventListener("beforeinstallprompt", handler)
+  }, [])
+
   const dismissInstallBanner = useCallback(() => {
     setInstallBannerDismissed(true)
     try {
       typeof window !== "undefined" && window.localStorage.setItem(INSTALL_BANNER_KEY, "1")
     } catch {
       // ignore
+    }
+  }, [])
+
+  const handleInstallClick = useCallback(() => {
+    const deferred = installPromptRef.current
+    if (deferred) {
+      setInstallPromptPending(true)
+      deferred
+        .prompt()
+        .then(() => setInstallPromptPending(false))
+        .catch(() => setInstallPromptPending(false))
+    } else {
+      setShowInstallInstructions(true)
     }
   }, [])
 
@@ -1706,13 +1734,19 @@ function MessagesPageContent() {
       )}
     >
       {isMobile && !installBannerDismissed && (
-        <div className="shrink-0 flex items-center justify-between gap-2 px-4 py-2.5 bg-primary/10 border-b border-border/50 text-sm">
-          <div className="flex items-center gap-2 min-w-0">
-            <Download className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-            <span className="text-foreground font-medium truncate">
-              App auf den Startbildschirm hinzufügen für schnelleren Zugriff
-            </span>
-          </div>
+        <div className="shrink-0 flex items-center gap-2 px-3 py-2.5 bg-primary/10 border-b border-border/50 text-sm">
+          <Download className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+          <span className="text-foreground font-medium truncate flex-1 min-w-0">
+            App auf den Startbildschirm
+          </span>
+          <Button
+            size="sm"
+            className="shrink-0 h-8 px-3 text-xs font-semibold"
+            onClick={handleInstallClick}
+            disabled={installPromptPending}
+          >
+            {installPromptPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Hinzufügen"}
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -1724,6 +1758,30 @@ function MessagesPageContent() {
           </Button>
         </div>
       )}
+      <Sheet open={showInstallInstructions} onOpenChange={setShowInstallInstructions}>
+        <SheetContent side="bottom" className="rounded-t-2xl pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <SheetHeader>
+            <SheetTitle>App auf den Startbildschirm hinzufügen</SheetTitle>
+            <SheetDescription className="text-left">
+              So installieren Sie Allesinda wie eine App:
+            </SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 px-1 text-sm text-foreground">
+            <div>
+              <p className="font-semibold mb-1">iPhone / iPad (Safari):</p>
+              <p className="text-muted-foreground">
+                Tippen Sie unten auf <strong>Teilen</strong> (Quadrat mit Pfeil) → dann auf <strong>„Zum Home-Bildschirm“</strong> → <strong>Hinzufügen</strong>.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">Android (Chrome):</p>
+              <p className="text-muted-foreground">
+                Tippen Sie auf das <strong>Menü</strong> (drei Punkte) → <strong>„Zum Startbildschirm hinzufügen“</strong> oder <strong>„App installieren“</strong>.
+              </p>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
       <div className="container mx-auto px-sides flex-1 min-h-0 flex flex-col">
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
           {/* Conversations List */}

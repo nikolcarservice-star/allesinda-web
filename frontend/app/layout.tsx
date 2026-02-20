@@ -47,6 +47,7 @@ export const metadata: Metadata = {
   title: "Allesinda - Find Masters, Products & Rentals",
   description: "Your trusted marketplace for repair services, equipment rentals, and quality products.",
   generator: "v0.app",
+  manifest: "/manifest.json",
 }
 
 export const viewport = {

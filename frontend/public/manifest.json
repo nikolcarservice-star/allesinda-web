@@ -1,0 +1,11 @@
+{
+  "name": "Allesinda",
+  "short_name": "Allesinda",
+  "description": "Find Masters, Products & Rentals",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3adcd5",
+  "orientation": "portrait-primary",
+  "icons": []
+}
