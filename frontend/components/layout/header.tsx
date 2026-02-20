@@ -78,10 +78,11 @@ type NavItem = {
   type: CategoryType
 }
 
+// Кнопки Meister и Mieten скрыты на всех устройствах; на сайте пока только Meister
 const NAV_ITEMS: NavItem[] = [
   { label: "Meister", href: "/", type: "master" },
- // { label: "Produkt", href: "/", type: "product" },
-  { label: "Mieten", href: "/", type: "rental" },
+  // { label: "Produkt", href: "/", type: "product" },
+  // { label: "Mieten", href: "/", type: "rental" },
 ]
 
 const DEFAULT_NAV =
@@ -1680,7 +1681,8 @@ return (
               <div className="flex-1 overflow-y-auto px-6 py-6">
                 {mobileNavView === "root" && (
                   <div className="space-y-6">
-                    <nav className="space-y-3">
+                    {/* Скрыто: кнопки Meister/Mieten в мобильном меню */}
+                    <nav className="space-y-3 hidden">
                       {NAV_ITEMS
                         .filter((item) => item.type !== "product")
                         .map((item) => (
@@ -1798,8 +1800,8 @@ return (
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-1.5 ml-4" role="tablist" aria-label="Navigation">
+        {/* Desktop Navigation — скрыто: кнопки Meister/Mieten не показываем на всех устройствах */}
+        <nav className="hidden" role="tablist" aria-label="Navigation">
           {NAV_ITEMS.map((item) => {
             const isActive = selectedNavType === item.type;
             return (
@@ -2013,7 +2015,8 @@ return (
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-                <div className="flex items-center gap-1 rounded-sm border border-border/60 bg-muted/40 p-1">
+                {/* Скрыто: переключатель Meister/Mieten в мобильной панели поиска */}
+                <div className="flex items-center gap-1 rounded-sm border border-border/60 bg-muted/40 p-1 hidden">
                   {NAV_ITEMS
                     .filter((item) => item.type !== "product") /* Product hidden in mobile */
                     .map((item) => {

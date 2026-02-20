@@ -31,14 +31,14 @@ type HomePageContentProps = {
   initialContent: HomeContent
 }
 
-// Раздел «Продукты» отключён — убран из меню
+// Пока на сайте только Meister; Mieten и остальное закомментированы
 const HERO_QUICK_LINKS: Array<{ label: string; value: CategoryType }> = [
   { label: "Meister", value: "master" },
   // { label: "Produkt", value: "product" },
-  { label: "Mieten", value: "rental" },
+  // { label: "Mieten", value: "rental" },
 ]
 
-const VALID_TYPES: readonly CategoryType[] = ["master", "rental"] // "product" отключён
+const VALID_TYPES: readonly CategoryType[] = ["master"] // "rental" и "product" отключены
 
 function mapRecentlyViewedItemToDisplay(item: RecentlyViewedItem): RecentlyViewedDisplayItem {
   const parsedPrice = item.price ?? parsePriceLabel(item.priceLabel)
@@ -81,7 +81,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
   
   // Category/subcategory state
   // Initialize with default to avoid hydration mismatch - will sync from URL in useEffect
-  const [selectedNavType, setSelectedNavType] = useState<CategoryType>("product")
+  const [selectedNavType, setSelectedNavType] = useState<CategoryType>("master")
   const [categoryTree, setCategoryTree] = useState<CategoryTree[]>([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<CategoryTree | null>(null)
@@ -241,7 +241,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
     const typeParam = searchParams?.get("types") ?? searchParams?.get("type")
     const nextType = typeParam && VALID_TYPES.includes(typeParam as CategoryType)
       ? (typeParam as CategoryType)
-      : "product"
+      : "master"
     // Only update if different to avoid unnecessary re-renders
     if (nextType !== selectedNavType) {
       setSelectedNavType(nextType)
@@ -467,7 +467,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
   const [workGalleryItems, setWorkGalleryItems] = useState(() => (homeContent.work_gallery ?? []).slice(0, 6))
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<RecentlyViewedItem[]>([])
   // Initialize with constant default to avoid hydration mismatch - will sync from storage in useEffect
-  const [recentlyViewedFilter, setRecentlyViewedFilterState] = useState<CategoryType>("product")
+  const [recentlyViewedFilter, setRecentlyViewedFilterState] = useState<CategoryType>("master")
 
   useEffect(() => {
     let cancelled = false
@@ -602,8 +602,8 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
       {/* Category and Subcategory Section */}
       <section className="bg-gray-200 border-none pt-3 pb-3 sm:pt-3 sm:pb-3 md:pt-4 md:pb-4 lg:pt-6 lg:pb-6">
         <div className="container mx-auto px-sides">
-          {/* Mobile Nav Type Selector - Only visible on small screens (Product hidden) */}
-          <div className="mb-4 md:hidden">
+          {/* Mobile Nav Type Selector — скрыт: пока только Meister */}
+          <div className="mb-4 md:hidden hidden">
             <nav
               className="flex items-center justify-center gap-0.5 p-1 bg-muted/40 rounded-lg border border-border/60 shadow-sm"
               role="tablist"
