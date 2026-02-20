@@ -149,17 +149,17 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
           />
         </div>
 
-        <div className="relative z-10 container mx-auto h-full min-h-[55vh] sm:min-h-[60vh] md:min-h-[65vh] flex flex-col justify-center px-sides py-10 sm:py-14 md:py-16 lg:py-20">
-          <div className="max-w-xl">
+        <div className="relative z-10 container mx-auto h-full min-h-[55vh] sm:min-h-[60vh] md:min-h-[65vh] flex flex-col justify-center py-10 sm:py-14 md:py-16 lg:py-20 px-6 sm:px-8 md:px-12 lg:px-16">
+          <div className="max-w-2xl w-full">
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
               {HERO_HEADLINE}
             </h1>
-            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+            <p className="mt-4 text-base text-muted-foreground sm:text-lg md:max-w-xl">
               {HERO_SUBHEADLINE}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6">
-              <div className="relative flex w-full max-w-xl">
+            <form onSubmit={handleSubmit} className="mt-6 max-w-2xl w-full">
+              <div className="relative flex w-full">
                 <div className="relative flex flex-1 items-center">
                   <Input
                     type="search"
@@ -200,10 +200,10 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
         </div>
       </div>
 
-      {/* Categories: ровно под баннером, в том же container для выравнивания */}
+      {/* Categories: ровно под баннером, те же отступы что и контент для выравнивания на мобиле и десктопе */}
       {(categoriesLoading || categories.length > 0) && (
         <div className="w-full border-t border-border/40 bg-muted/40">
-          <div className="container mx-auto px-sides py-4 w-full max-w-[1920px]">
+          <div className="container mx-auto py-4 w-full max-w-[1920px] px-6 sm:px-8 md:px-12 lg:px-16">
             <div className="relative flex items-center gap-1 w-full">
               <Button
                 type="button"
