@@ -1876,12 +1876,25 @@ return (
             </>
           )}
 
-          {/* User Account Dropdown (Mobile & Desktop) */}
+          {/* Desktop: кнопка "Anmelden" вместо иконки для неавторизованных */}
+          {!user && (
+            <Link
+              href="/login"
+              className="hidden lg:inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-black/10 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 shrink-0"
+            >
+              Anmelden
+            </Link>
+          )}
+
+          {/* User Account Dropdown (на десктопе при !user триггер скрыт — показывается кнопка "Anmelden") */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+                className={cn(
+                  "flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0",
+                  !user && "lg:hidden"
+                )}
                 aria-label="Kontomenü"
               >
                 <User className="h-5 w-5" />

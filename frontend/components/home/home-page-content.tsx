@@ -621,7 +621,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
                 asChild
                 variant="outline"
                 size="sm"
-                className="shrink-0 flex-shrink-0 group/btn border-border/60 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium"
+                className="shrink-0 flex-shrink-0 group/btn border-border/60 hover:border-primary/50 hover:bg-primary/5 hover:!text-foreground transition-all duration-200 font-medium"
               >
                 <Link href="/gallery" className="flex items-center gap-1.5">
                   <span>Alle anzeigen</span>
@@ -671,7 +671,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
                     variant="outline"
                     size="sm"
                     onClick={handleClearRecentlyViewed}
-                    className="shrink-0 flex-shrink-0 border-border/60 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all duration-200 font-medium"
+                    className="shrink-0 flex-shrink-0 border-border/60 hover:border-primary/50 hover:bg-primary/5 hover:!text-foreground transition-all duration-200 font-medium"
                   >
                     Alle löschen
                   </Button>
@@ -703,7 +703,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
                       "flex-1 rounded-sm px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wide transition-all duration-200 min-w-[80px]",
                       isActive
                         ? "bg-white text-primary shadow-sm"
-                        : "text-muted-foreground hover:text-primary hover:bg-white/50",
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/50",
                     )}
                     aria-pressed={isActive}
                   >
