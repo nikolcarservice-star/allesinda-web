@@ -4,7 +4,7 @@
   "description": "Find Masters, Products & Rentals",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#3adcd5",
   "theme_color": "#3adcd5",
   "orientation": "portrait-primary",
   "icons": [
