@@ -10,6 +10,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { AddToHomeScreenSheet } from "@/components/layout/add-to-home-screen-sheet"
 
 const STORAGE_KEY = "install-prompt-dismissed-until"
 const DISMISS_DAYS = 7
@@ -20,6 +21,7 @@ type BeforeInstallPromptEvent = Event & { prompt: () => Promise<{ outcome: strin
 export function InstallPrompt() {
   const isMobile = useIsMobile()
   const [showPrompt, setShowPrompt] = useState(false)
+  const [showInstructions, setShowInstructions] = useState(false)
   const [installing, setInstalling] = useState(false)
   const installEventRef = useRef<BeforeInstallPromptEvent | null>(null)
 
@@ -81,6 +83,7 @@ export function InstallPrompt() {
       }
     } else {
       setShowPrompt(false)
+      setShowInstructions(true)
     }
   }
 
@@ -121,6 +124,7 @@ export function InstallPrompt() {
           </div>
         </SheetContent>
       </Sheet>
+      <AddToHomeScreenSheet open={showInstructions} onOpenChange={setShowInstructions} />
     </>
   )
 }

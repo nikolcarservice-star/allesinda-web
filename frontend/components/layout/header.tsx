@@ -1647,8 +1647,8 @@ return (
 
     <div className="bg-white text-black">
       <div className="container mx-auto px-sides h-16 flex items-center gap-2 sm:gap-3">
-        {/* Mobile: left spacer for centering logo; Desktop: menu is hidden */}
-        <div className="flex-1 flex items-center lg:flex-none lg:contents">
+        {/* Mobile: menu + space; Desktop: logo слева */}
+        <div className="flex-1 flex items-center min-w-0 lg:flex-initial">
           {/* Mobile Menu (Sheet) */}
           <Sheet open={isMobileMenuOpen} onOpenChange={handleMobileMenuChange}>
           <SheetTrigger asChild>
@@ -1786,10 +1786,23 @@ return (
             </div>
           </SheetContent>
         </Sheet>
+          {/* Desktop: лого с краю слева */}
+          <Link href="/" className="hidden lg:flex items-center shrink-0 -ml-1 min-w-0">
+            <div className="relative h-10 w-[140px]">
+              <Image
+                src="/logo_dark.webp"
+                alt="Allesinda Logo"
+                fill
+                className="object-contain object-left"
+                priority
+                sizes="140px"
+              />
+            </div>
+          </Link>
         </div>
 
-        {/* Logo — по центру: центральная колонка flex-1 justify-center */}
-        <div className="flex-1 flex justify-center min-w-0">
+        {/* Logo — по центру только на мобиле */}
+        <div className="flex-1 flex justify-center min-w-0 lg:hidden">
           <Link href="/" className="flex items-center shrink-0 -ml-1 min-w-0">
             <div className="relative h-8 w-[100px] xs:h-9 xs:w-[120px] sm:h-10 sm:w-[140px]">
               <Image
@@ -1803,6 +1816,9 @@ return (
             </div>
           </Link>
         </div>
+
+        {/* Desktop: spacer между лого и действиями */}
+        <div className="hidden flex-1 lg:block" aria-hidden="true" />
 
         {/* Desktop Navigation — скрыто: кнопки Meister/Mieten не показываем на всех устройствах */}
         <nav className="hidden" role="tablist" aria-label="Navigation">
