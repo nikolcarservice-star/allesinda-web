@@ -42,6 +42,11 @@ export function InstallPrompt() {
 
   useEffect(() => {
     if (!isMobile || typeof window === "undefined") return
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as { standalone?: boolean }).standalone === true ||
+      document.referrer.includes("android-app://")
+    if (standalone) return
     const timer = setTimeout(() => {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY)
@@ -69,10 +74,11 @@ export function InstallPrompt() {
     if (ev) {
       setInstalling(true)
       try {
-        await ev.prompt()
+        const result = await ev.prompt()
         setShowPrompt(false)
+        const accepted = result?.outcome === "accepted"
         try {
-          window.localStorage.setItem(STORAGE_KEY, String(Date.now() + 365 * 24 * 60 * 60 * 1000))
+          window.localStorage.setItem(STORAGE_KEY, String(Date.now() + (accepted ? 365 : 7) * 24 * 60 * 60 * 1000))
         } catch {
           // ignore
         }
