@@ -10,7 +10,6 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { toast } from "sonner"
 
 const STORAGE_KEY = "install-prompt-dismissed-until"
 const DISMISS_DAYS = 7
@@ -82,9 +81,6 @@ export function InstallPrompt() {
       }
     } else {
       setShowPrompt(false)
-      toast.info("iPhone: Unten auf Teilen tippen → „Zum Home-Bildschirm“ → Hinzufügen", {
-        duration: 6000,
-      })
     }
   }
 

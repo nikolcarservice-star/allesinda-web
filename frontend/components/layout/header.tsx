@@ -7,7 +7,6 @@ import type { MouseEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Menu,
-  Search as SearchIcon,
   User,
   Heart,
   LogOut,
@@ -1789,22 +1788,21 @@ return (
         </Sheet>
         </div>
 
-        {/* Logo — на мобиле по центру за счёт flex-1 слева (меню) и справа (действия) */}
-        <Link href="/" className="flex items-center shrink-0 -ml-1 min-w-0">
-          <div className="relative h-8 w-[100px] xs:h-9 xs:w-[120px] sm:h-10 sm:w-[140px]">
-            <Image
-              src="/logo_dark.webp"
-              alt="Allesinda Logo"
-              fill
-              className="object-contain object-left"
-              priority
-              sizes="(max-width: 640px) 120px, 140px"
-            />
-          </div>
-        </Link>
-
-        {/* Desktop: spacer to push search to the right */}
-        <div className="hidden flex-1 lg:block" aria-hidden="true" />
+        {/* Logo — по центру: центральная колонка flex-1 justify-center */}
+        <div className="flex-1 flex justify-center min-w-0">
+          <Link href="/" className="flex items-center shrink-0 -ml-1 min-w-0">
+            <div className="relative h-8 w-[100px] xs:h-9 xs:w-[120px] sm:h-10 sm:w-[140px]">
+              <Image
+                src="/logo_dark.webp"
+                alt="Allesinda Logo"
+                fill
+                className="object-contain object-center"
+                priority
+                sizes="(max-width: 640px) 120px, 140px"
+              />
+            </div>
+          </Link>
+        </div>
 
         {/* Desktop Navigation — скрыто: кнопки Meister/Mieten не показываем на всех устройствах */}
         <nav className="hidden" role="tablist" aria-label="Navigation">
@@ -1845,19 +1843,8 @@ return (
           </div>
         )}
 
-        {/* Right Actions — на мобиле flex-1 + justify-end для центрирования логотипа */}
+        {/* Right Actions */}
         <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2 lg:flex-initial lg:ml-auto">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 lg:hidden shrink-0"
-            aria-label="Suchpanel öffnen"
-            onClick={() => setIsSearchPanelOpen(true)}
-          >
-            <SearchIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
-
           {user && (
             <>
               <Link
