@@ -43,6 +43,8 @@ const getMetadataBase = (): string => {
   return 'http://localhost:3000'
 }
 
+const THEME_COLOR = "#3adcd5"
+
 export const metadata: Metadata = {
   metadataBase: new URL(getMetadataBase()),
   title: "Allesinda - Find Masters, Products & Rentals",
@@ -56,7 +58,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover" as const,
-  themeColor: "#3adcd5",
+  themeColor: THEME_COLOR,
 }
 
 export default async function RootLayout({
