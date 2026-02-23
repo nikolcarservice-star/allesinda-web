@@ -124,7 +124,7 @@ export function CityCombobox({
 					<span className="truncate">{displayLabel}</span>
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent side="bottom" align="start" className="w-[var(--radix-popover-trigger-width)] p-0 z-[100]">
+			<PopoverContent side="bottom" align="start" avoidCollisions={false} className="w-[var(--radix-popover-trigger-width)] p-0 z-[100]">
 				<Command>
 					<CommandInput
 						placeholder="Stadt suchen..."

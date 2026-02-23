@@ -318,11 +318,11 @@
   /* Show scrollbar on desktop so wheel works and scrollbar is visible */
   @media (min-width: 1024px) {
     .scrollbar-show-lg {
-      scrollbar-width: thin;
-      -ms-overflow-style: auto;
+      scrollbar-width: thin !important;
+      -ms-overflow-style: auto !important;
     }
     .scrollbar-show-lg::-webkit-scrollbar {
-      display: block;
+      display: block !important;
       height: 8px;
     }
     .scrollbar-show-lg::-webkit-scrollbar-track {
