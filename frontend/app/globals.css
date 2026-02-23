@@ -315,6 +315,26 @@
     }
   }
 
+  /* Show scrollbar on desktop so wheel works and scrollbar is visible */
+  @media (min-width: 1024px) {
+    .scrollbar-show-lg {
+      scrollbar-width: thin;
+      -ms-overflow-style: auto;
+    }
+    .scrollbar-show-lg::-webkit-scrollbar {
+      display: block;
+      height: 8px;
+    }
+    .scrollbar-show-lg::-webkit-scrollbar-track {
+      background: hsl(var(--muted));
+      border-radius: 4px;
+    }
+    .scrollbar-show-lg::-webkit-scrollbar-thumb {
+      background: hsl(var(--muted-foreground) / 0.3);
+      border-radius: 4px;
+    }
+  }
+
   .text-balance {
     text-wrap: balance;
   }

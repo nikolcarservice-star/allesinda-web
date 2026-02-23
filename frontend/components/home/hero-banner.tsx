@@ -147,6 +147,22 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
     el.scrollBy({ left: direction === "left" ? -step : step, behavior: "smooth" })
   }
 
+  const onCategoriesWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    const el = scrollStripRef.current
+    if (!el || el.scrollWidth <= el.clientWidth) return
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
+    const maxLeft = el.scrollWidth - el.clientWidth
+    const canScrollRight = el.scrollLeft < maxLeft - 2
+    const canScrollLeft = el.scrollLeft > 2
+    if (e.deltaY > 0 && canScrollRight) {
+      e.preventDefault()
+      el.scrollLeft += e.deltaY
+    } else if (e.deltaY < 0 && canScrollLeft) {
+      e.preventDefault()
+      el.scrollLeft += e.deltaY
+    }
+  }, [])
+
   return (
     <section className="relative w-full overflow-hidden">
       {/* Banner: на мобиле компактно — меньше высота и текст, чтобы карточки были видны */}
@@ -217,11 +233,11 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                 </div>
                 <Button
                   type="submit"
-                  size="icon"
-                  className="h-10 w-10 sm:h-14 sm:w-14 rounded-md sm:rounded-l-none sm:rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-primary [&_svg]:text-black self-center sm:self-stretch"
+                  className="h-10 px-4 sm:h-14 sm:px-5 rounded-md sm:rounded-l-none sm:rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-primary [&_svg]:text-black self-center sm:self-stretch gap-2 font-medium"
                   aria-label="Suchen"
                 >
-                  <Search className="h-4 w-4 sm:h-6 sm:w-6" />
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+                  <span className="hidden sm:inline">Suchen</span>
                 </Button>
               </div>
             </form>
@@ -250,16 +266,16 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
               <div
                 ref={scrollStripRef}
                 className={cn(
-                  "flex gap-2 overflow-x-auto overflow-y-hidden pb-1 scrollbar-hide",
-                  "pl-11 pr-11"
+                  "flex gap-2 overflow-x-auto overflow-y-hidden pb-1",
+                  "pl-11 pr-11",
+                  "scrollbar-hide lg:scrollbar-show-lg"
                 )}
                 style={{
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
                   WebkitOverflowScrolling: "touch",
                 }}
                 role="region"
                 aria-label="Kategorien"
+                onWheel={onCategoriesWheel}
               >
                 {categoriesLoading ? (
                   <div className="flex items-center gap-2 py-2">
