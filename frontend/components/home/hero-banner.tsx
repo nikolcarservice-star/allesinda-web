@@ -177,67 +177,67 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
             priority
           />
           <div
-            className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-transparent"
+            className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--background))_0%,hsl(var(--background))_45%,transparent_70%)]"
             aria-hidden
           />
         </div>
 
         <div className="relative z-10 container mx-auto h-full min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-3 sm:py-10 md:py-14 lg:py-20 px-3 sm:px-8 md:px-12 lg:px-16">
           <div className="max-w-2xl w-full">
-            <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground sm:text-4xl md:text-5xl">
-              {HERO_HEADLINE}
-            </h1>
-            <p className="mt-1.5 sm:mt-4 text-xs text-muted-foreground line-clamp-2 sm:line-clamp-none sm:text-lg md:max-w-xl">
-              {HERO_SUBHEADLINE}
-            </p>
+            <div className="max-w-xl">
+              <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground sm:text-4xl md:text-5xl">
+                {HERO_HEADLINE}
+              </h1>
+              <p className="mt-1.5 sm:mt-4 text-xs text-muted-foreground line-clamp-2 sm:line-clamp-none sm:text-lg md:max-w-xl">
+                {HERO_SUBHEADLINE}
+              </p>
+            </div>
 
             <form onSubmit={handleSubmit} className="mt-3 sm:mt-6 max-w-2xl w-full">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 w-full sm:flex-1 min-w-0">
-                <div className="flex flex-1 sm:min-w-0 rounded-md border border-border/60 bg-background overflow-hidden">
-                  <div className="flex items-center border-r border-border/60 bg-muted/30 shrink-0">
-                    <CityCombobox
-                      value={cityId}
-                      onChange={setCityId}
-                      placeholder="Stadt"
-                      size="md"
-                      variant="form"
-                      className="h-10 sm:h-14 min-w-[120px] sm:min-w-[160px] rounded-none border-0 bg-transparent px-2 sm:px-3"
-                    />
-                  </div>
-                  <div className="relative flex flex-1 items-center min-w-0">
-                    <Input
-                      type="search"
-                      value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
-                      onFocus={() => setIsFocused(true)}
-                      onBlur={() => setIsFocused(false)}
-                      aria-label="Suchbegriff eingeben"
-                      className={cn(
-                        "h-10 sm:h-14 pr-12 sm:pr-14 text-sm sm:text-base bg-background border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0",
-                        showPlaceholder && "text-transparent caret-foreground"
-                      )}
-                      autoComplete="off"
-                    />
-                    {showPlaceholder && (
-                      <div
-                        className="absolute left-2.5 sm:left-3 right-10 sm:right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-sm sm:text-base"
-                        aria-hidden
-                      >
-                        <span className="text-muted-foreground">{TYPING_PREFIX}</span>
-                        <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
-                          {displayWord}
-                        </span>
-                      </div>
+              <div className="flex w-full min-w-0 rounded-md border border-border/60 bg-background overflow-hidden">
+                <div className="flex items-center border-r border-border/60 bg-muted/30 shrink-0">
+                  <CityCombobox
+                    value={cityId}
+                    onChange={setCityId}
+                    placeholder="Stadt"
+                    size="md"
+                    variant="form"
+                    className="h-10 sm:h-14 min-w-[120px] sm:min-w-[160px] rounded-none border-0 bg-transparent px-2 sm:px-3"
+                  />
+                </div>
+                <div className="relative flex flex-1 items-center min-w-0">
+                  <Input
+                    type="search"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    aria-label="Suchbegriff eingeben"
+                    className={cn(
+                      "h-10 sm:h-14 pr-12 sm:pr-14 text-sm sm:text-base bg-background border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                      showPlaceholder && "text-transparent caret-foreground"
                     )}
-                  </div>
+                    autoComplete="off"
+                  />
+                  {showPlaceholder && (
+                    <div
+                      className="absolute left-2.5 sm:left-3 right-12 sm:right-14 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-sm sm:text-base"
+                      aria-hidden
+                    >
+                      <span className="text-muted-foreground">{TYPING_PREFIX}</span>
+                      <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
+                        {displayWord}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <Button
                   type="submit"
-                  className="h-10 px-4 sm:h-14 sm:px-5 rounded-md sm:rounded-l-none sm:rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-primary [&_svg]:text-black self-center sm:self-stretch gap-2 font-medium"
+                  size="icon"
+                  className="h-10 w-10 sm:h-14 sm:w-14 rounded-none shrink-0 border-0 border-l border-border/60 bg-primary hover:bg-primary/90 text-primary-foreground [&_svg]:text-black"
                   aria-label="Suchen"
                 >
-                  <Search className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
-                  <span>Suchen</span>
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </div>
             </form>
