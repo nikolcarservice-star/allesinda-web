@@ -147,21 +147,28 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
     el.scrollBy({ left: direction === "left" ? -step : step, behavior: "smooth" })
   }
 
-  const onCategoriesWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+  // Native wheel listener with passive: false so preventDefault() works on PC (React's onWheel is passive)
+  useEffect(() => {
     const el = scrollStripRef.current
-    if (!el || el.scrollWidth <= el.clientWidth) return
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
-    const maxLeft = el.scrollWidth - el.clientWidth
-    const canScrollRight = el.scrollLeft < maxLeft - 2
-    const canScrollLeft = el.scrollLeft > 2
-    if (e.deltaY > 0 && canScrollRight) {
-      e.preventDefault()
-      el.scrollLeft += e.deltaY
-    } else if (e.deltaY < 0 && canScrollLeft) {
-      e.preventDefault()
-      el.scrollLeft += e.deltaY
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
+      const delta = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY
+      const maxLeft = el.scrollWidth - el.clientWidth
+      const canScrollRight = el.scrollLeft < maxLeft - 2
+      const canScrollLeft = el.scrollLeft > 2
+      if (delta > 0 && canScrollRight) {
+        e.preventDefault()
+        el.scrollLeft += delta
+      } else if (delta < 0 && canScrollLeft) {
+        e.preventDefault()
+        el.scrollLeft += delta
+      }
     }
-  }, [])
+    el.addEventListener("wheel", onWheel, { passive: false })
+    return () => el.removeEventListener("wheel", onWheel)
+  }, [categories.length])
 
   return (
     <section className="relative w-full overflow-hidden">
@@ -172,23 +179,24 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
             src="/hero-handwerker.png"
             alt=""
             fill
-            className="object-cover object-right"
+            className="object-cover object-right brightness-[0.88]"
             sizes="100vw"
             priority
           />
+          <div className="absolute inset-0 bg-black/15" aria-hidden />
           <div
-            className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--background))_0%,hsl(var(--background))_45%,transparent_70%)]"
+            className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--background))_0%,hsl(var(--background))_40%,transparent_65%)]"
             aria-hidden
           />
         </div>
 
         <div className="relative z-10 container mx-auto h-full min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-3 sm:py-10 md:py-14 lg:py-20 px-3 sm:px-8 md:px-12 lg:px-16">
           <div className="max-w-2xl w-full">
-            <div className="max-w-xl">
+            <div className="max-w-md sm:max-w-lg">
               <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground sm:text-4xl md:text-5xl">
                 {HERO_HEADLINE}
               </h1>
-              <p className="mt-1.5 sm:mt-4 text-xs text-muted-foreground line-clamp-2 sm:line-clamp-none sm:text-lg md:max-w-xl">
+              <p className="mt-1.5 sm:mt-4 text-xs text-muted-foreground sm:text-lg max-w-md">
                 {HERO_SUBHEADLINE}
               </p>
             </div>
@@ -275,7 +283,6 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                 }}
                 role="region"
                 aria-label="Kategorien"
-                onWheel={onCategoriesWheel}
               >
                 {categoriesLoading ? (
                   <div className="flex items-center gap-2 py-2">
