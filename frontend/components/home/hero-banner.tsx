@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Search, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { CityCombobox } from "@/components/shared/city-combobox"
 import { cn, getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
 import type { CategoryTree } from "@/lib/api"
 
@@ -31,9 +32,26 @@ export type HeroBannerProps = {
 
 export function HeroBanner({ categories = [], selectedCategory = null, onCategoryClick, categoriesLoading = false }: HeroBannerProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = useState("")
+  const [cityId, setCityId] = useState<number | undefined>(() => {
+    const raw = searchParams?.get("city_id")
+    if (!raw) return undefined
+    const n = Number(raw)
+    return Number.isFinite(n) && n > 0 ? n : undefined
+  })
   const [isFocused, setIsFocused] = useState(false)
   const [displayWord, setDisplayWord] = useState("")
+
+  useEffect(() => {
+    const raw = searchParams?.get("city_id")
+    if (raw) {
+      const n = Number(raw)
+      if (Number.isFinite(n) && n > 0) setCityId(n)
+    } else {
+      setCityId(undefined)
+    }
+  }, [searchParams])
   const [wordIndex, setWordIndex] = useState(0)
   const [isTyping, setIsTyping] = useState(true)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -110,16 +128,16 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
       const params = new URLSearchParams()
       params.set("types", "master")
       if (trimmed) params.set("q", trimmed)
+      if (typeof cityId === "number" && cityId > 0) params.set("city_id", String(cityId))
       params.set("page", "1")
       params.set("page_size", "12")
       const url = `/?${params.toString()}`
       router.push(url, { scroll: false })
-      // Scroll to results after navigation so the user sees the search outcome
       setTimeout(() => {
         document.getElementById("search-results")?.scrollIntoView({ behavior: "smooth", block: "start" })
       }, 100)
     },
-    [searchValue, router]
+    [searchValue, cityId, router]
   )
 
   const scrollStrip = (direction: "left" | "right") => {
@@ -159,37 +177,49 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 max-w-2xl w-full">
-              <div className="relative flex w-full">
-                <div className="relative flex flex-1 items-center">
-                  <Input
-                    type="search"
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    aria-label="Suchbegriff eingeben"
-                    className={cn(
-                      "h-12 sm:h-14 pr-14 text-base bg-background border-border/60 rounded-r-none rounded-l-md border-r-0",
-                      showPlaceholder && "text-transparent caret-foreground"
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 w-full sm:flex-1 min-w-0">
+                <div className="flex flex-1 sm:min-w-0 rounded-md border border-border/60 bg-background overflow-hidden">
+                  <div className="flex items-center border-r border-border/60 bg-muted/30 shrink-0">
+                    <CityCombobox
+                      value={cityId}
+                      onChange={setCityId}
+                      placeholder="Stadt"
+                      size="md"
+                      variant="form"
+                      className="h-12 sm:h-14 min-w-[140px] sm:min-w-[160px] rounded-none border-0 bg-transparent px-3"
+                    />
+                  </div>
+                  <div className="relative flex flex-1 items-center min-w-0">
+                    <Input
+                      type="search"
+                      value={searchValue}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setIsFocused(false)}
+                      aria-label="Suchbegriff eingeben"
+                      className={cn(
+                        "h-12 sm:h-14 pr-14 text-base bg-background border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                        showPlaceholder && "text-transparent caret-foreground"
+                      )}
+                      autoComplete="off"
+                    />
+                    {showPlaceholder && (
+                      <div
+                        className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base"
+                        aria-hidden
+                      >
+                        <span className="text-muted-foreground">{TYPING_PREFIX}</span>
+                        <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
+                          {displayWord}
+                        </span>
+                      </div>
                     )}
-                    autoComplete="off"
-                  />
-                  {showPlaceholder && (
-                    <div
-                      className="absolute left-3 right-12 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-base"
-                      aria-hidden
-                    >
-                      <span className="text-muted-foreground">{TYPING_PREFIX}</span>
-                      <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
-                        {displayWord}
-                      </span>
-                    </div>
-                  )}
+                  </div>
                 </div>
                 <Button
                   type="submit"
                   size="icon"
-                  className="h-12 w-12 sm:h-14 sm:w-14 rounded-l-none rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-l-0 border-primary [&_svg]:text-black"
+                  className="h-12 w-12 sm:h-14 sm:w-14 rounded-md sm:rounded-l-none sm:rounded-r-md bg-primary hover:bg-primary/90 shrink-0 border border-primary [&_svg]:text-black self-center sm:self-stretch"
                   aria-label="Suchen"
                 >
                   <Search className="h-5 w-5 sm:h-6 sm:w-6" />
