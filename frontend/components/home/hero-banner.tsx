@@ -149,8 +149,8 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
 
   return (
     <section className="relative w-full overflow-hidden">
-      {/* Banner: image on entire hero area, full width and height */}
-      <div className="relative min-h-[55vh] sm:min-h-[60vh] md:min-h-[65vh] w-full">
+      {/* Banner: на мобиле короче, чтобы карточки были видны; на десктопе — как было */}
+      <div className="relative min-h-[40vh] sm:min-h-[55vh] md:min-h-[60vh] lg:min-h-[65vh] w-full">
         <div className="absolute inset-0 z-0">
           <Image
             src="/hero-handwerker.png"
@@ -167,16 +167,16 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
           />
         </div>
 
-        <div className="relative z-10 container mx-auto h-full min-h-[55vh] sm:min-h-[60vh] md:min-h-[65vh] flex flex-col justify-center py-10 sm:py-14 md:py-16 lg:py-20 px-6 sm:px-8 md:px-12 lg:px-16">
+        <div className="relative z-10 container mx-auto h-full min-h-[40vh] sm:min-h-[55vh] md:min-h-[60vh] lg:min-h-[65vh] flex flex-col justify-center py-5 sm:py-10 md:py-14 lg:py-20 px-4 sm:px-8 md:px-12 lg:px-16">
           <div className="max-w-2xl w-full">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
               {HERO_HEADLINE}
             </h1>
-            <p className="mt-4 text-base text-muted-foreground sm:text-lg md:max-w-xl">
+            <p className="mt-2 sm:mt-4 text-sm text-muted-foreground sm:text-lg md:max-w-xl">
               {HERO_SUBHEADLINE}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 max-w-2xl w-full">
+            <form onSubmit={handleSubmit} className="mt-4 sm:mt-6 max-w-2xl w-full">
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 w-full sm:flex-1 min-w-0">
                 <div className="flex flex-1 sm:min-w-0 rounded-md border border-border/60 bg-background overflow-hidden">
                   <div className="flex items-center border-r border-border/60 bg-muted/30 shrink-0">
