@@ -15,7 +15,7 @@ interface VideoPlayerProps {
 const VIDEO_EXT = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i
 function isVideoUrl(url: string): boolean {
   const path = toMediaRelativePath(url) || url
-  return VIDEO_EXT.test(path) || path.includes("/videos/")
+  return VIDEO_EXT.test(path)
 }
 
 /** Build a URL the browser can load for video. Same-origin path so Next.js rewrite applies (avoids CORS). */

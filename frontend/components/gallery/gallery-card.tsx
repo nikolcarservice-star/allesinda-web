@@ -311,11 +311,11 @@ function getMediaUrl(item: GalleryItem): string | undefined {
 
 const VIDEO_EXT = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i
 
-/** True if URL points to a video file (do not use in <img>) */
+/** True if URL points to a video file (do not use in <img>). Thumbnails are also under /videos/ but have .jpg extension. */
 function isVideoUrl(url: string | undefined): boolean {
   if (!url) return false
   const path = toMediaRelativePath(url) || url
-  return VIDEO_EXT.test(path) || path.includes("/videos/")
+  return VIDEO_EXT.test(path)
 }
 
 function getItemImage(item: GalleryItem) {
