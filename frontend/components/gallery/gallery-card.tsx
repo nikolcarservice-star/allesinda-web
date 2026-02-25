@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { BeforeAfterCard } from "./before-after-card"
 import { Play, Video, ImageIcon, Trash2 } from "lucide-react"
 import type { Media } from "@/lib/api/types"
-import { getOptimizedImageUrl, toMediaRelativePath, getMediaAbsoluteUrl, cn } from "@/lib/utils"
+import { getOptimizedImageUrl, toMediaRelativePath, cn } from "@/lib/utils"
 import { BeforeAfterFullscreenModal, VideoFullscreenModal } from "./gallery-fullscreen-modal"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 
@@ -87,9 +87,11 @@ function GalleryCardInner({
     }
   }, [showImageModal, allItems, currentIndex, imageItems, item.id])
   
-  // Prefer direct API URL for media so images load reliably (no rewrite/optimizer)
-  const imageSrc = imageData.type === "image" ? (getMediaAbsoluteUrl(imageData.image) || imageData.image || "/placeholder.svg") : ""
-  // Video thumbnail: use same-origin path so it loads via rewrite; placeholder when no real thumbnail (e.g. backend fell back to video URL)
+  // Use same-origin paths for all gallery media so they load via Next.js rewrite — works on mobile (no CORS) and after backend redeploy
+  const imageSrc = imageData.type === "image"
+    ? (imageData.image ? (imageData.image.startsWith("/") ? imageData.image : `/${imageData.image}`) : "/placeholder.svg")
+    : ""
+  // Video thumbnail: same-origin path; placeholder when no real thumbnail (e.g. backend fell back to video URL)
   const thumbSrc = imageData.type === "video"
     ? (imageData.thumbnail
         ? (imageData.thumbnail.startsWith("/") ? imageData.thumbnail : `/${imageData.thumbnail}`)

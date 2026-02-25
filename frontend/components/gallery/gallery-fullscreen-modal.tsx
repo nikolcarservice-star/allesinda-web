@@ -5,7 +5,6 @@ import { createPortal } from "react-dom"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { getApiBaseUrl } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 import { getOptimizedImageUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
 
@@ -257,8 +256,7 @@ function getVideoSrc(pathOrUrl: string): string {
   const path = toMediaRelativePath(pathOrUrl)
   if (!path) return ""
   if (path.startsWith("http://") || path.startsWith("https://")) return path
-  const base = getApiBaseUrl().replace(/\/$/, "")
-  return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`
+  return path.startsWith("/") ? path : `/${path}`
 }
 
 export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenModalProps) {
