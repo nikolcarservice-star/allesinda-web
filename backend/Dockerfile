@@ -3,10 +3,12 @@ FROM mirror.gcr.io/library/python:3.11.9-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (libGL etc. for opencv-python video thumbnail generation)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     postgresql-client \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
@@ -27,10 +29,12 @@ WORKDIR /app
 # Copy Python dependencies from builder
 COPY --from=builder /root/.local /home/appuser/.local
 
-# Install system dependencies for runtime
+# Install system dependencies for runtime (libGL for opencv video thumbnails)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     bash \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy application code (excluding files in .dockerignore)

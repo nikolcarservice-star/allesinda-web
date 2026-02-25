@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
-import { getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
+import { toMediaRelativePath } from "@/lib/utils"
 
 interface VideoPlayerProps {
   videoUrl: string
@@ -12,16 +12,27 @@ interface VideoPlayerProps {
   onClose: () => void
 }
 
-/** Build a URL the browser can load for video. Prefer same-origin path so Next.js rewrite applies (avoids CORS). */
+const VIDEO_EXT = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i
+function isVideoUrl(url: string): boolean {
+  const path = toMediaRelativePath(url) || url
+  return VIDEO_EXT.test(path) || path.includes("/videos/")
+}
+
+/** Build a URL the browser can load for video. Same-origin path so Next.js rewrite applies (avoids CORS). */
 function getVideoSrc(pathOrUrl: string): string {
   if (!pathOrUrl) return ""
   const path = toMediaRelativePath(pathOrUrl)
   if (!path) return ""
-  // Full URL (external): use as-is
   if (path.startsWith("http://") || path.startsWith("https://")) return path
-  // Same-origin path: browser requests current origin, Next.js rewrites to API — no CORS, works like images
-  const sameOriginPath = path.startsWith("/") ? path : `/${path}`
-  return sameOriginPath
+  return path.startsWith("/") ? path : `/${path}`
+}
+
+/** Same-origin URL for poster image so it loads on mobile; undefined if no valid thumbnail (e.g. backend sent video URL). */
+function getPosterSrc(thumbnailUrl: string | null | undefined): string | undefined {
+  if (!thumbnailUrl || isVideoUrl(thumbnailUrl)) return undefined
+  const path = toMediaRelativePath(thumbnailUrl)
+  if (!path) return undefined
+  return path.startsWith("/") ? path : `/${path}`
 }
 
 export function VideoPlayer({
@@ -32,7 +43,7 @@ export function VideoPlayer({
   onClose,
 }: VideoPlayerProps) {
   const videoSrc = videoUrl ? getVideoSrc(videoUrl) : ""
-  const normalizedThumbnail = thumbnailUrl ? getOptimizedImageUrl(thumbnailUrl, 'gallery') : undefined
+  const posterSrc = getPosterSrc(thumbnailUrl ?? undefined)
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -48,7 +59,7 @@ export function VideoPlayer({
               controls
               autoPlay
               className="w-full h-full object-contain rounded-sm"
-              poster={normalizedThumbnail}
+              poster={posterSrc}
             >
               Your browser does not support the video tag.
             </video>
