@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, memo, type MouseEvent } from "react"
+import { useState, useEffect, useMemo, memo, useRef, useCallback, type MouseEvent } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -51,7 +51,39 @@ function GalleryCardInner({
   const [showVideoModal, setShowVideoModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  
+  const [videoPosterDataUrl, setVideoPosterDataUrl] = useState<string | null>(null)
+  const [thumbnailError, setThumbnailError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  // Same-origin video URL for first-frame fallback when backend has no thumbnail
+  const videoSrcForFallback = useMemo(() => {
+    if (imageData.type !== "video") return ""
+    const url = getMediaUrl(item)
+    if (!url) return ""
+    const path = toMediaRelativePath(url)
+    if (!path) return ""
+    return path.startsWith("/") ? path : `/${path}`
+  }, [imageData.type, item])
+
+  const captureVideoFrame = useCallback(() => {
+    const video = videoRef.current
+    if (!video || video.videoWidth === 0) return
+    try {
+      const canvas = document.createElement("canvas")
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext("2d")
+      if (!ctx) return
+      ctx.drawImage(video, 0, 0)
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85)
+      setVideoPosterDataUrl(dataUrl)
+    } catch {
+      // ignore (e.g. tainted canvas)
+    }
+  }, [])
+
+  const needVideoFallback = imageData.type === "video" && videoSrcForFallback && (thumbnailError || !imageData.thumbnail)
+
   // Get all image items for navigation (filter out videos and before-after)
   const imageItems = useMemo(() => {
     if (!allItems) return []
@@ -151,12 +183,29 @@ function GalleryCardInner({
           </div>
         ) : imageData.type === "video" ? (
           <div className="relative aspect-square bg-muted cursor-pointer rounded-none overflow-hidden" onClick={handleVideoOverlayClick}>
+            {needVideoFallback && (
+              <video
+                ref={videoRef}
+                src={videoSrcForFallback}
+                preload="metadata"
+                muted
+                playsInline
+                className="absolute opacity-0 pointer-events-none w-0 h-0"
+                onLoadedData={() => {
+                  const v = videoRef.current
+                  if (v) v.currentTime = 0.5
+                }}
+                onSeeked={captureVideoFrame}
+                onError={() => setThumbnailError(false)}
+              />
+            )}
             <img
-              src={thumbSrc}
+              src={videoPosterDataUrl || thumbSrc}
               alt={item.title || "Video"}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-none"
               loading={priority ? "eager" : "lazy"}
               referrerPolicy="no-referrer"
+              onError={() => setThumbnailError(true)}
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors duration-300">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 shadow-lg group-hover:scale-110 transition-transform duration-300">
