@@ -2,7 +2,6 @@
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { VisuallyHidden } from "@/components/ui/visually-hidden"
-import { getApiBaseUrl } from "@/lib/api/client"
 import { getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
 
 interface VideoPlayerProps {
@@ -13,16 +12,16 @@ interface VideoPlayerProps {
   onClose: () => void
 }
 
-/** Build a URL the browser can load for video (same-origin rewrite or direct API URL). */
+/** Build a URL the browser can load for video. Prefer same-origin path so Next.js rewrite applies (avoids CORS). */
 function getVideoSrc(pathOrUrl: string): string {
   if (!pathOrUrl) return ""
   const path = toMediaRelativePath(pathOrUrl)
   if (!path) return ""
-  // If it's already a full URL, use as-is
+  // Full URL (external): use as-is
   if (path.startsWith("http://") || path.startsWith("https://")) return path
-  // Use API base URL so video loads from backend (rewrite may not apply to video in some setups)
-  const base = getApiBaseUrl().replace(/\/$/, "")
-  return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`
+  // Same-origin path: browser requests current origin, Next.js rewrites to API — no CORS, works like images
+  const sameOriginPath = path.startsWith("/") ? path : `/${path}`
+  return sameOriginPath
 }
 
 export function VideoPlayer({
