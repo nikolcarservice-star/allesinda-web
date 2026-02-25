@@ -89,7 +89,12 @@ function GalleryCardInner({
   
   // Prefer direct API URL for media so images load reliably (no rewrite/optimizer)
   const imageSrc = imageData.type === "image" ? (getMediaAbsoluteUrl(imageData.image) || imageData.image || "/placeholder.svg") : ""
-  const thumbSrc = imageData.type === "video" ? (getMediaAbsoluteUrl(imageData.thumbnail) || imageData.thumbnail || "/placeholder.svg") : ""
+  // Video thumbnail: use same-origin path so it loads via rewrite; placeholder when no real thumbnail (e.g. backend fell back to video URL)
+  const thumbSrc = imageData.type === "video"
+    ? (imageData.thumbnail
+        ? (imageData.thumbnail.startsWith("/") ? imageData.thumbnail : `/${imageData.thumbnail}`)
+        : "/placeholder.svg")
+    : ""
 
   const handleCardClick = (event: MouseEvent) => {
     if (imageData.type === "before-after") {
@@ -302,6 +307,15 @@ function getMediaUrl(item: GalleryItem): string | undefined {
   return url || undefined
 }
 
+const VIDEO_EXT = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i
+
+/** True if URL points to a video file (do not use in <img>) */
+function isVideoUrl(url: string | undefined): boolean {
+  if (!url) return false
+  const path = toMediaRelativePath(url) || url
+  return VIDEO_EXT.test(path) || path.includes("/videos/")
+}
+
 function getItemImage(item: GalleryItem) {
   const beforeUrl = safeUrl(item?.before_url)
   const afterUrl = safeUrl(item?.after_url)
@@ -315,11 +329,12 @@ function getItemImage(item: GalleryItem) {
   if (item?.media_type === "video") {
     const thumb = safeUrl(item?.thumbnail_url)
     const url = getMediaUrl(item)
-    const thumbPath = toMediaRelativePath(thumb) || toMediaRelativePath(url)
-    const thumbOptimized = getOptimizedImageUrl(thumb, 'gallery') || getOptimizedImageUrl(url, 'gallery')
+    // Backend may set thumbnail_url to video URL when thumbnail generation fails — never use that in <img>
+    const validThumb = thumb && !isVideoUrl(thumb) && thumb !== url
+    const thumbPath = validThumb ? (toMediaRelativePath(thumb) || getOptimizedImageUrl(thumb, 'gallery')) : ""
     return {
       type: "video" as const,
-      thumbnail: thumbPath || thumbOptimized,
+      thumbnail: thumbPath || undefined,
     }
   }
   const rawUrl = getMediaUrl(item)
