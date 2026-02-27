@@ -22,12 +22,23 @@ import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import { toast } from "sonner"
 import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSocketUrl, createConversation, markConversationRead, uploadAttachment as uploadAttachmentAPI, blockConversation as blockConversationAPI, unblockConversation as unblockConversationAPI, deleteConversation as deleteConversationAPI } from "@/lib/api/chat"
+import { getVapidPublicKey, registerPushSubscription } from "@/lib/api/push"
 import { getCurrentUser } from "@/lib/api/auth"
 import { ApiClientError } from "@/lib/api/client"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { logger } from "@/lib/logger"
+
+/** Convert base64url to Uint8Array for Web Push VAPID key */
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
+  const rawData = atob(base64)
+  const output = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i)
+  return output
+}
 
 interface MessageAttachment {
   id: number | string
@@ -289,7 +300,7 @@ function MessagesPageContent() {
     }
   }, [currentUserId])
 
-  // In-page "push" notifications (Browser Notification API)
+  // In-page "push" notifications (Browser Notification API) + Web Push subscription for PWA (e.g. on home screen)
   useEffect(() => {
     if (typeof window === "undefined") return
     if (!("Notification" in window)) return
@@ -297,6 +308,45 @@ function MessagesPageContent() {
       Notification.requestPermission().catch(() => {})
     }
   }, [])
+
+  // Register for Web Push when permission granted (so server can send push when app is closed / in background)
+  useEffect(() => {
+    if (typeof window === "undefined" || !currentUserId) return
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return
+    if (Notification.permission !== "granted") return
+
+    let cancelled = false
+    const run = async () => {
+      try {
+        const reg = await navigator.serviceWorker.ready
+        const existing = await reg.pushManager.getSubscription()
+        if (existing && !cancelled) {
+          try {
+            await registerPushSubscription(existing.toJSON() as Parameters<typeof registerPushSubscription>[0])
+          } catch {
+            // backend may not support push yet
+          }
+          return
+        }
+        const { publicKey: base64Key } = await getVapidPublicKey()
+        if (!base64Key || cancelled) return
+        const key = urlBase64ToUint8Array(base64Key)
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: key as BufferSource,
+        })
+        if (!cancelled) {
+          await registerPushSubscription(sub.toJSON() as Parameters<typeof registerPushSubscription>[0])
+        }
+      } catch {
+        // e.g. backend push not configured or user denied
+      }
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [currentUserId])
 
   // Handle seller_id query parameter after conversations are loaded
   useEffect(() => {

@@ -18,6 +18,7 @@ export * from './gallery';
 export * from './media';
 export * from './favorites';
 export * from './notifications';
+export * from './push';
 export * from './categories';
 export * from './trending';
 export * from './featured';

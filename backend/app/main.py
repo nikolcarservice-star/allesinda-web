@@ -9,7 +9,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from .database import Base, engine, init_db, ensure_schema
-from .routers import auth, masters, sellers, products, rentals, media, orders, reviews, search, admin, payments, chat, gallery, favorites, featured, relationships,notifications, categories, users, trending, cities
+from .routers import auth, masters, sellers, products, rentals, media, orders, reviews, search, admin, payments, chat, gallery, favorites, featured, relationships, notifications, categories, users, trending, cities, push
 from .config import settings
 from .utils.image_optimizer import cleanup_image_cache
 import logging
@@ -147,6 +147,7 @@ def _include_routers(target):
     target.include_router(featured.router)
     target.include_router(relationships.router)
     target.include_router(notifications.router)
+    target.include_router(push.router)
     target.include_router(categories.router)
     target.include_router(trending.router)
     target.include_router(cities.router)

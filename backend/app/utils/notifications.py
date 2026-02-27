@@ -7,8 +7,9 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from ..config import settings
-from ..models import Notification, User
+from ..models import Notification, User, PushSubscription
 from ..utils.email import send_message_notification_email
+from ..utils.webpush import send_web_push
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,7 @@ def create_message_notification(
     if user and user.email:
         email_addr = user.email
         recipient_name = user.name or "there"
+        logger.info(f"Queueing email notification for message (conversation_id={conversation_id}) to {email_addr}")
 
         def _send_email():
             try:
@@ -118,6 +120,32 @@ def create_message_notification(
 
         thread = threading.Thread(target=_send_email, daemon=True)
         thread.start()
+
+    # Send Web Push to recipient's PWA subscriptions (e.g. app on home screen) so they get push when app is closed
+    if user:
+        try:
+            subs = db.query(PushSubscription).filter(PushSubscription.user_id == user.id).all()
+            url = f"/messages?conversation_id={conversation_id}"
+            title = "Neue Nachricht"
+            body = f"Neue Nachricht von {sender_name}"
+            for sub in subs:
+                def _send_push(s=sub):
+                    try:
+                        send_web_push(
+                            endpoint=s.endpoint,
+                            p256dh=s.p256dh,
+                            auth=s.auth,
+                            title=title,
+                            body=body,
+                            url=url,
+                            tag="message",
+                        )
+                    except Exception as e:
+                        logger.warning("Web push failed for subscription %s: %s", s.id, e)
+                thread = threading.Thread(target=_send_push, daemon=True)
+                thread.start()
+        except Exception as e:
+            logger.warning("Failed to send web push for message notification: %s", e)
 
     return notification
 

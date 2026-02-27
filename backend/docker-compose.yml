@@ -31,7 +31,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "8000:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

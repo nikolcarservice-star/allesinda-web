@@ -324,6 +324,19 @@ class Notification(Base):
     )
 
 
+class PushSubscription(Base):
+    """Web Push subscription for PWA (e.g. Add to Home Screen) – server sends push when user gets new message."""
+    __tablename__ = "push_subscriptions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    endpoint: Mapped[str] = mapped_column(String(2048), unique=True, index=True)
+    p256dh: Mapped[str] = mapped_column(String(512))
+    auth: Mapped[str] = mapped_column(String(256))
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_push_subscriptions_user_id", "user_id"),)
+
+
 class BlockedUser(Base):
     __tablename__ = "blocked_users"
     id: Mapped[int] = mapped_column(primary_key=True)

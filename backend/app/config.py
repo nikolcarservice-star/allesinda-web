@@ -132,6 +132,10 @@ class Settings(BaseModel):
     
     # Frontend URL for email verification and password reset links
     FRONTEND_URL: str = Field(default=os.getenv("FRONTEND_URL", "http://localhost:3000"), description="Frontend URL for email links")
+
+    # Web Push (optional, for PWA push when app is closed)
+    VAPID_PUBLIC_KEY: Optional[str] = Field(default=os.getenv("VAPID_PUBLIC_KEY"), description="VAPID public key for Web Push")
+    VAPID_PRIVATE_KEY: Optional[str] = Field(default=os.getenv("VAPID_PRIVATE_KEY"), description="VAPID private key for Web Push")
     
     # Email verification token expiration (hours)
     VERIFICATION_TOKEN_EXPIRE_HOURS: int = Field(default=int(os.getenv("VERIFICATION_TOKEN_EXPIRE_HOURS", "24")), description="Email verification token expiration in hours")
