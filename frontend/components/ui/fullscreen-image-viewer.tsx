@@ -23,7 +23,7 @@ export function FullscreenImageViewer({
   onPrevious,
   onNext,
 }: FullscreenImageViewerProps) {
-  // Handle ESC key to close full-screen image and prevent body scroll
+  // Handle ESC / стрелки в полноэкранном режиме
   useEffect(() => {
     if (!isOpen) return
 
@@ -42,11 +42,9 @@ export function FullscreenImageViewer({
     }
 
     document.addEventListener("keydown", handleEscape)
-    document.body.style.overflow = "hidden"
 
     return () => {
       document.removeEventListener("keydown", handleEscape)
-      document.body.style.overflow = "unset"
     }
   }, [isOpen, onClose, onPrevious, onNext])
 

@@ -28,7 +28,7 @@ export function FullscreenMediaViewer({
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [hasSwiped, setHasSwiped] = useState(false)
 
-  // Handle ESC key to close full-screen and prevent body scroll
+  // Handle ESC / стрелки в полноэкранном режиме
   useEffect(() => {
     if (!isOpen) return
 
@@ -50,12 +50,10 @@ export function FullscreenMediaViewer({
 
     document.addEventListener('keydown', handleEscape)
     document.addEventListener('keydown', handleArrowKeys)
-    document.body.style.overflow = 'hidden'
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
       document.removeEventListener('keydown', handleArrowKeys)
-      document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose, currentIndex, onIndexChange, mediaItems.length])
 

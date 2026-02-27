@@ -48,16 +48,8 @@ export function BeforeAfterFullscreenModal({
     }
   }, [isOpen])
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [isOpen])
+  // Раньше здесь блокировался скролл body через document.body.style.overflow.
+  // Убрано, чтобы глобальный скролл страницы никогда не ломался.
 
   const handleImageClick = (index: number) => {
     setCurrentImageIndex(index)
@@ -267,16 +259,8 @@ export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenM
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [isOpen])
+  // Раньше здесь блокировался скролл body через document.body.style.overflow.
+  // Убрано, чтобы глобальный скролл страницы никогда не ломался.
 
   if (!isOpen || !videoUrl || !mounted) return null
 

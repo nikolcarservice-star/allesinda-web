@@ -147,28 +147,9 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
     el.scrollBy({ left: direction === "left" ? -step : step, behavior: "smooth" })
   }
 
-  // Native wheel listener with passive: false so preventDefault() works on PC (React's onWheel is passive)
-  useEffect(() => {
-    const el = scrollStripRef.current
-    if (!el) return
-    const onWheel = (e: WheelEvent) => {
-      if (el.scrollWidth <= el.clientWidth) return
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
-      const delta = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY
-      const maxLeft = el.scrollWidth - el.clientWidth
-      const canScrollRight = el.scrollLeft < maxLeft - 2
-      const canScrollLeft = el.scrollLeft > 2
-      if (delta > 0 && canScrollRight) {
-        e.preventDefault()
-        el.scrollLeft += delta
-      } else if (delta < 0 && canScrollLeft) {
-        e.preventDefault()
-        el.scrollLeft += delta
-      }
-    }
-    el.addEventListener("wheel", onWheel, { passive: false })
-    return () => el.removeEventListener("wheel", onWheel)
-  }, [categories.length])
+  // Раньше здесь был нативный обработчик wheel, который перехватывал вертикальное колёсико
+  // и прокручивал горизонтальную ленту категорий, блокируя скролл страницы.
+  // Убрано, чтобы страница всегда прокручивалась колёсиком даже над лентой.
 
   return (
     <section className="relative w-full overflow-hidden">

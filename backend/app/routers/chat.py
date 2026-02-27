@@ -476,17 +476,18 @@ async def send_message(
     db.refresh(message)
     db.refresh(conversation)
     
-    # Create notification for recipient (if not sender)
+    # Create notification for recipient (in-app + email if SMTP configured)
     try:
+        sender_display = (user.name or user.email or "Someone").strip() or "Someone"
         create_message_notification(
             db=db,
             user_id=recipient_id,
             conversation_id=conversation_id,
-            sender_name=user.name
+            sender_name=sender_display,
         )
     except Exception as e:
         logger.error(f"Error creating notification: {e}")
-    
+
     # Broadcast to WebSocket connections (non-blocking)
     try:
         attachments_payload: List[dict] = []
@@ -579,11 +580,12 @@ async def upload_message_attachment(
     )
 
     try:
+        sender_display = (user.name or user.email or "Someone").strip() or "Someone"
         create_message_notification(
             db=db,
             user_id=recipient_id,
             conversation_id=conversation_id,
-            sender_name=user.name
+            sender_name=sender_display,
         )
     except Exception as e:
         logger.error(f"Error creating attachment notification: {e}")

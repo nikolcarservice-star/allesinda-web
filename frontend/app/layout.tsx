@@ -7,6 +7,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { DebugGrid } from "@/components/debug-grid"
 import { isDevelopment } from "@/lib/constants"
 import { Header } from "../components/layout/header"
+import { BodyScrollReset } from "../components/layout/body-scroll-reset"
 import { ConditionalFooter } from "../components/layout/conditional-footer"
 import { InstallPrompt } from "../components/layout/install-prompt"
 import dynamic from "next/dynamic"
@@ -76,6 +77,7 @@ export default async function RootLayout({
           <AuthProvider>
             <CartProvider>
               <NuqsAdapter>
+              <BodyScrollReset />
               <main data-vaul-drawer-wrapper="true" className="min-h-screen">
                 <Suspense fallback={
                   <div className="h-14 sm:h-[72px] bg-background border-b" />
