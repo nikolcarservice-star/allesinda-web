@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
-import { getGermanCities } from "@/lib/api/masters"
+import { getCities } from "@/lib/api/cities"
 
 export interface CityOption {
 	id: number
@@ -43,19 +43,19 @@ export function CityCombobox({
 	}, [cities, value])
 	const displayLabel = selectedName || "Alle Städte"
 
-	// initial load — request enough items for full German cities list
+	// Load full list of 80 German cities (static list, no API limit)
 	useEffect(() => {
 		let cancelled = false
 		;(async () => {
 			try {
 				setLoading(true)
-				const res = await getGermanCities({ limit: 500 })
+				const list = await getCities()
 				if (cancelled) return
-				const items = ((res as any)?.items || []).map((c: any) => ({
+				const items: CityOption[] = list.map((c) => ({
 					id: c.id,
 					name: c.name,
-					latitude: c.latitude,
-					longitude: c.longitude,
+					latitude: undefined,
+					longitude: undefined,
 				}))
 				setCities(items)
 			} finally {
@@ -67,36 +67,12 @@ export function CityCombobox({
 		}
 	}, [])
 
-	// debounced search
-	useEffect(() => {
-		let cancelled = false
-		const t = setTimeout(async () => {
-			try {
-				setLoading(true)
-				const params =
-					query && query.trim().length > 0
-						? ({ q: query.trim(), limit: 500 } as any)
-						: ({ limit: 500 } as any)
-				const res = await getGermanCities(params)
-				if (cancelled) return
-				const items = ((res as any)?.items || []).map((c: any) => ({
-					id: c.id,
-					name: c.name,
-					latitude: c.latitude,
-					longitude: c.longitude,
-				}))
-				setCities(items)
-			} catch {
-				if (!cancelled) setCities([])
-			} finally {
-				if (!cancelled) setLoading(false)
-			}
-		}, 250)
-		return () => {
-			cancelled = true
-			clearTimeout(t)
-		}
-	}, [query])
+	// Client-side filter by search query (no extra API call)
+	const filteredCities = useMemo(() => {
+		if (!query || query.trim().length === 0) return cities
+		const q = query.trim().toLowerCase()
+		return cities.filter((c) => c.name.toLowerCase().includes(q))
+	}, [cities, query])
 
 	const heightClasses = size === "sm" ? "h-9 text-sm" : "h-10"
 	const paddingClasses = size === "sm" ? "pl-2 pr-2.5" : "pl-2.5 pr-3"
@@ -147,7 +123,7 @@ export function CityCombobox({
 							>
 								Alle Städte
 							</CommandItem>
-							{cities.map((c) => (
+							{filteredCities.map((c) => (
 								<CommandItem
 									key={c.id}
 									value={c.name}

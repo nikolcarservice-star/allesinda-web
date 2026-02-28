@@ -92,8 +92,8 @@ import {
   addService,
   updateService,
   deleteService,
-  getGermanCities,
 } from "@/lib/api/masters"
+import { getCities } from "@/lib/api/cities"
 import { getMyMedia, deleteMedia } from "@/lib/api/media"
 import { getMyAvailabilitySlots, addAvailabilitySlot, deleteAvailabilitySlot } from "@/lib/api/availability"
 import { getOptimizedImageUrl, shouldUseUnoptimized, cn } from "@/lib/utils"
@@ -226,12 +226,12 @@ export default function MasterDashboardPage() {
     ;(async () => {
       try {
         setCitiesLoading(true)
-        const res = await getGermanCities({ limit: 500 })
-        const items = (res.items || []).map((c: any) => ({
+        const list = await getCities()
+        const items = list.map((c) => ({
           id: c.id,
           name: c.name,
-          latitude: c.latitude,
-          longitude: c.longitude,
+          latitude: 0,
+          longitude: 0,
         }))
         setCities(items)
       } catch {
@@ -253,32 +253,7 @@ export default function MasterDashboardPage() {
     })()
   }, [user])
 
-  // Debounced backend city search
-  useEffect(() => {
-    let cancelled = false
-    const timer = setTimeout(async () => {
-      try {
-        setCitiesLoading(true)
-        const res = await getGermanCities(cityQuery && cityQuery.trim().length > 0 ? { q: cityQuery.trim(), limit: 500 } as any : { limit: 500 } as any)
-        if (cancelled) return
-        const items = (res.items || []).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          latitude: c.latitude,
-          longitude: c.longitude,
-        }))
-        setCities(items)
-      } catch {
-        if (!cancelled) setCities([])
-      } finally {
-        if (!cancelled) setCitiesLoading(false)
-      }
-    }, 250)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [cityQuery])
+  // Cities list is loaded once from getCities() (80 cities); city search is handled in CityCombobox
 
   const loadDataRef = useRef<() => Promise<void>>(null as any)
 
