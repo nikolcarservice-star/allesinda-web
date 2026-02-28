@@ -19,11 +19,10 @@ def send_email(to_email: str, subject: str, html_body: str, text_body: str = Non
     """
     # Check if SMTP is configured - need host, user, and password
     if not settings.SMTP_HOST or not settings.SMTP_USER or not settings.SMTP_PASSWORD:
-        if not settings.IS_PRODUCTION:
-            logger.debug(f"SMTP not configured. Email not sent to {to_email}. (This is OK for development)")
-            logger.debug(f"Would send email with subject: {subject}")
-        else:
-            logger.warning(f"SMTP not configured. Email not sent to {to_email}.")
+        logger.warning(
+            f"SMTP not configured (SMTP_HOST/SMTP_USER/SMTP_PASSWORD missing). "
+            f"Email not sent to {to_email}, subject: {subject}"
+        )
         return False
     
     # Detect Gmail

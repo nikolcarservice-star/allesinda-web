@@ -18,13 +18,15 @@ function isVideoUrl(url: string): boolean {
   return VIDEO_EXT.test(path)
 }
 
-/** Build a URL the browser can load for video. Same-origin path so Next.js rewrite applies (avoids CORS). */
+/** Build a URL the browser can load for video. Prefer same-origin path so rewrite applies (avoids CORS on mobile). */
 function getVideoSrc(pathOrUrl: string): string {
   if (!pathOrUrl) return ""
   const path = toMediaRelativePath(pathOrUrl)
   if (!path) return ""
+  // Use relative path when available so mobile loads video same-origin (no CORS)
+  if (path.startsWith("/")) return path
   if (path.startsWith("http://") || path.startsWith("https://")) return path
-  return path.startsWith("/") ? path : `/${path}`
+  return `/${path}`
 }
 
 /** Same-origin URL for poster image so it loads on mobile; undefined if no valid thumbnail (e.g. backend sent video URL). */
@@ -59,6 +61,7 @@ export function VideoPlayer({
               controls
               autoPlay
               playsInline
+              muted
               className="w-full h-full object-contain rounded-sm"
               poster={posterSrc}
             >

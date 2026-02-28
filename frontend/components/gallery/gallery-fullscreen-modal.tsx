@@ -280,6 +280,7 @@ export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenM
           controls
           autoPlay
           playsInline
+          muted
           className="rounded-sm"
           style={{ 
             width: "auto",

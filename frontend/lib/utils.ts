@@ -122,6 +122,7 @@ export function normalizeImageUrl(url: string | undefined | null): string {
 /**
  * Converts any backend media URL (absolute or relative) to a relative path
  * so the browser loads it via the app origin (rewrite), avoiding CORS on mobile.
+ * Handles both /media/ and /files/ API paths so video works on mobile.
  */
 export function toMediaRelativePath(url: string | undefined | null): string {
   if (!url) return '';
@@ -131,7 +132,11 @@ export function toMediaRelativePath(url: string | undefined | null): string {
   if (/^https?:\/\//i.test(normalized)) {
     try {
       const u = new URL(normalized);
-      if (u.pathname.includes('/media/')) return u.pathname + (u.search || '');
+      const pathname = u.pathname;
+      const search = u.search || '';
+      if (pathname.includes('/media/')) return pathname + search;
+      // Backend may serve media under /files/; rewrite expects /media/files/...
+      if (pathname.includes('/files/')) return '/media' + pathname + search;
     } catch {
       // ignore
     }
