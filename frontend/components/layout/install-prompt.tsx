@@ -60,7 +60,7 @@ export function InstallPrompt() {
       (window.navigator as { standalone?: boolean }).standalone === true ||
       document.referrer.includes("android-app://")
     if (standalone) return
-    const mobileOrTouch = window.innerWidth < 1024 || (navigator as { maxTouchPoints?: number }).maxTouchPoints > 0
+    const mobileOrTouch = window.innerWidth < 1024 || ((navigator as { maxTouchPoints?: number }).maxTouchPoints ?? 0) > 0
     if (!mobileOrTouch) return
     const timer = setTimeout(() => {
       try {
