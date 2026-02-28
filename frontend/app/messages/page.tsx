@@ -2021,7 +2021,7 @@ function MessagesPageContent() {
                 </div>
 
                 <ScrollArea className="flex-1 min-h-0" ref={scrollAreaRef}>
-                  <div className="p-3 sm:p-4 pb-4">
+                  <div className="p-3 sm:p-4 pb-24 md:pb-4">
                     {loadingMessages ? (
                       <div className="flex items-center justify-center py-12">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -2189,8 +2189,9 @@ function MessagesPageContent() {
                   const inputBar = (
                     <div
                       className={cn(
-                        "sticky bottom-0 z-10 p-3 sm:p-4 border-t border-border/50 bg-background backdrop-blur-sm shrink-0",
+                        "p-3 sm:p-4 border-t border-border/50 bg-background backdrop-blur-sm shrink-0",
                         "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+                        "fixed bottom-0 left-0 right-0 z-20 md:relative md:bottom-auto md:left-auto md:right-auto",
                       )}
                     >
                       {isBlockedAgainstMe && (
