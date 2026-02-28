@@ -128,6 +128,25 @@ app.add_middleware(
 # Set in backend env if your proxy serves the API under a path. Then set NEXT_PUBLIC_API_URL to https://api.allesinda.com/api
 _api_prefix = os.getenv("API_PREFIX", "").strip().rstrip("/")
 
+# Health/smtp: available at /health/smtp and (when API_PREFIX set) at /api/health/smtp
+_health_smtp_router = APIRouter()
+@_health_smtp_router.get("/health/smtp")
+def _health_smtp_endpoint():
+    """Check if SMTP is configured (no secrets exposed)."""
+    has_host = bool(settings.SMTP_HOST and str(settings.SMTP_HOST).strip())
+    has_user = bool(settings.SMTP_USER and str(settings.SMTP_USER).strip())
+    has_password = bool(settings.SMTP_PASSWORD and str(settings.SMTP_PASSWORD).strip())
+    configured = has_host and has_user and has_password
+    return {
+        "smtp_configured": configured,
+        "smtp_host_set": has_host,
+        "smtp_user_set": has_user,
+        "smtp_password_set": has_password,
+        "smtp_port": settings.SMTP_PORT,
+        "frontend_url": settings.FRONTEND_URL or "(not set)",
+        "message": "SMTP configured" if configured else "SMTP not configured (set SMTP_HOST, SMTP_USER, SMTP_PASSWORD in .env)",
+    }
+
 def _include_routers(target):
     target.include_router(auth.router)
     target.include_router(users.router)
@@ -152,9 +171,11 @@ def _include_routers(target):
     target.include_router(trending.router)
     target.include_router(cities.router)
 
+app.include_router(_health_smtp_router)  # /health/smtp at root
 if _api_prefix:
     _api = APIRouter()
     _include_routers(_api)
+    _api.include_router(_health_smtp_router)  # /api/health/smtp when prefix is /api
     app.include_router(_api, prefix=_api_prefix)
     logger.info(f"API mounted under prefix: {_api_prefix}")
 else:
@@ -528,6 +549,7 @@ def health_check():
     
     return health_status
 
+
 async def periodic_cache_cleanup():
     """Background task to periodically clean up image cache"""
     while True:
@@ -557,6 +579,10 @@ async def startup_event():
     logger.info(f"Log level: {settings.LOG_LEVEL}")
     logger.info(f"Upload folder: {upload_folder}")
     logger.info(f"Media URL prefix: {settings.MEDIA_URL_PREFIX}")
+    # Email notifications (for new message)
+    smtp_ok = bool(settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD)
+    logger.info(f"SMTP (email notifications): {'configured' if smtp_ok else 'NOT configured (set SMTP_HOST, SMTP_USER, SMTP_PASSWORD)'}")
+    logger.info(f"FRONTEND_URL: {settings.FRONTEND_URL or '(not set)'}")
     
     # Note: Database seeding is handled in docker-entrypoint.sh before starting the server
     # This prevents race conditions when using multiple workers and ensures seeding
