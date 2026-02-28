@@ -190,7 +190,7 @@ function GalleryCardInner({
                 preload="metadata"
                 muted
                 playsInline
-                className="absolute opacity-0 pointer-events-none w-0 h-0"
+                className="absolute inset-0 opacity-0 pointer-events-none w-full h-full object-cover"
                 onLoadedData={() => {
                   const v = videoRef.current
                   if (v) v.currentTime = 0.5

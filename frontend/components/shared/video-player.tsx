@@ -58,6 +58,7 @@ export function VideoPlayer({
               src={videoSrc}
               controls
               autoPlay
+              playsInline
               className="w-full h-full object-contain rounded-sm"
               poster={posterSrc}
             >

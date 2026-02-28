@@ -279,6 +279,7 @@ export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenM
           src={videoUrl}
           controls
           autoPlay
+          playsInline
           className="rounded-sm"
           style={{ 
             width: "auto",
