@@ -30,6 +30,20 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { logger } from "@/lib/logger"
 
+/** Extract video call room slug from "Join my video call: https://..." message text */
+function getVideoCallRoomFromMessage(content: string | undefined): string | null {
+  if (!content?.trim()) return null
+  const match = content.match(/Join my video call:\s*(https?:\/\/[^\s]+)/i)
+  if (!match) return null
+  try {
+    const path = new URL(match[1].trim()).pathname
+    const segments = path.split("/").filter(Boolean)
+    return segments.length > 0 ? segments[segments.length - 1] : null
+  } catch {
+    return null
+  }
+}
+
 /** Convert base64url to Uint8Array for Web Push VAPID key */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
@@ -1544,12 +1558,9 @@ function MessagesPageContent() {
         }
       }, 50)
 
-      const opened = window.open(callUrl, "_blank", "noopener,noreferrer")
-      if (!opened) {
-        toast.warning("Popup blockiert. Bitte erlauben Sie Popups oder öffnen Sie den Link aus der Nachricht.")
-      } else {
-        toast.success("Videoanruf-Link gesendet")
-      }
+      // Open call inside app so that "Back" returns to messages (avoids blank page on mobile after leaving call)
+      router.push(`/messages/call?room=${encodeURIComponent(roomSlug)}`)
+      toast.success("Videoanruf-Link gesendet")
     } catch (error: any) {
       logger.error("Failed to start video call:", error)
       toast.error(error?.message || "Failed to start video call")
@@ -2105,7 +2116,25 @@ function MessagesPageContent() {
                                         )}
                                       >
                                         {message.content?.trim() ? (
-                                          <p className="text-[15px] sm:text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                          (() => {
+                                            const videoCallRoom = getVideoCallRoomFromMessage(message.content)
+                                            if (videoCallRoom) {
+                                              return (
+                                                <p className="text-[15px] sm:text-sm leading-relaxed whitespace-pre-wrap">
+                                                  Join my video call:{" "}
+                                                  <Link
+                                                    href={`/messages/call?room=${encodeURIComponent(videoCallRoom)}`}
+                                                    className="underline font-medium hover:opacity-90"
+                                                  >
+                                                    Join call
+                                                  </Link>
+                                                </p>
+                                              )
+                                            }
+                                            return (
+                                              <p className="text-[15px] sm:text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                                            )
+                                          })()
                                         ) : !message.attachments?.length ? (
                                           <p className="text-[15px] sm:text-sm leading-relaxed invisible select-none">.</p>
                                         ) : null}
