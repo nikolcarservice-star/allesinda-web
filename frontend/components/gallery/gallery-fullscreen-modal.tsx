@@ -6,7 +6,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getOptimizedImageUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
+import { getOptimizedImageUrl, getMediaAbsoluteUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
 
 type GalleryItem = {
   before_url?: string | null
@@ -252,17 +252,32 @@ function getVideoSrc(pathOrUrl: string): string {
 }
 
 export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenModalProps) {
-  const videoUrl = item.url ? getVideoSrc(item.url) : null
+  const sameOriginSrc = item.url ? getVideoSrc(item.url) : null
+  const absoluteSrc = item.url ? getMediaAbsoluteUrl(item.url) : null
   const [mounted, setMounted] = useState(false)
+  const [videoSrc, setVideoSrc] = useState<string | null>(sameOriginSrc)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Раньше здесь блокировался скролл body через document.body.style.overflow.
-  // Убрано, чтобы глобальный скролл страницы никогда не ломался.
+  useEffect(() => {
+    if (isOpen && item.url) {
+      setVideoSrc(sameOriginSrc)
+      setLoadError(false)
+    }
+  }, [isOpen, item.url, sameOriginSrc])
 
-  if (!isOpen || !videoUrl || !mounted) return null
+  const handleVideoError = useCallback(() => {
+    if (videoSrc === sameOriginSrc && absoluteSrc && absoluteSrc !== sameOriginSrc) {
+      setVideoSrc(absoluteSrc)
+    } else {
+      setLoadError(true)
+    }
+  }, [videoSrc, sameOriginSrc, absoluteSrc])
+
+  if (!isOpen || !sameOriginSrc || !mounted) return null
 
   const content = (
     <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center" style={{ zIndex: 9999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
@@ -275,24 +290,31 @@ export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenM
       </button>
 
       <div className="w-full h-full flex items-center justify-center">
-        <video
-          src={videoUrl}
-          controls
-          autoPlay
-          playsInline
-          muted
-          className="rounded-sm"
-          style={{ 
-            width: "auto",
-            height: "auto",
-            maxWidth: "calc(100vw - 6rem)",
-            maxHeight: "calc(100vh - 6rem)",
-            objectFit: "contain",
-            margin: "3rem"
-          }}
-        >
-          Ihr Browser unterstützt das Video-Tag nicht.
-        </video>
+        {loadError ? (
+          <p className="text-white text-center px-4">Video konnte nicht geladen werden.</p>
+        ) : (
+          <video
+            key={videoSrc ?? ""}
+            src={videoSrc ?? undefined}
+            controls
+            autoPlay
+            playsInline
+            muted
+            preload="metadata"
+            onError={handleVideoError}
+            className="rounded-sm"
+            style={{
+              width: "auto",
+              height: "auto",
+              maxWidth: "calc(100vw - 6rem)",
+              maxHeight: "calc(100vh - 6rem)",
+              objectFit: "contain",
+              margin: "3rem"
+            }}
+          >
+            Ihr Browser unterstützt das Video-Tag nicht.
+          </video>
+        )}
       </div>
     </div>
   )

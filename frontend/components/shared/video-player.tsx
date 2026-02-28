@@ -62,6 +62,7 @@ export function VideoPlayer({
               autoPlay
               playsInline
               muted
+              preload="metadata"
               className="w-full h-full object-contain rounded-sm"
               poster={posterSrc}
             >
