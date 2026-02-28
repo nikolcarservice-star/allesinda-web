@@ -262,7 +262,6 @@ export default function SignupPage() {
                   <SelectContent className="rounded-md border">
                     <SelectItem value="client">Kunde (Suche nach Service)</SelectItem>
                     <SelectItem value="master">Meister (Biete Service an)</SelectItem>
-                    <SelectItem value="seller">Vermieter (Biete Produkt & Verleih an)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
