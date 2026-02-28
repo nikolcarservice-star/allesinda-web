@@ -1774,14 +1774,14 @@ function MessagesPageContent() {
   return (
     <div
       className={cn(
-        "bg-background flex flex-col overflow-hidden",
-        "h-[calc(100dvh-3.5rem)] min-h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)]",
-        "sm:h-[calc(100dvh-5.5rem)] sm:min-h-[calc(100dvh-5.5rem)] sm:max-h-[calc(100dvh-5.5rem)]",
-        "md:h-[calc(100dvh-7rem)] md:min-h-[calc(100dvh-7rem)] md:max-h-[calc(100dvh-7rem)]",
+        "bg-background flex flex-col overflow-hidden min-h-0",
+        "h-[calc(100dvh-3.5rem)] min-h-[200px] max-h-[calc(100dvh-3.5rem)]",
+        "sm:h-[calc(100dvh-5.5rem)] sm:min-h-[200px] sm:max-h-[calc(100dvh-5.5rem)]",
+        "md:h-[calc(100dvh-7rem)] md:min-h-[200px] md:max-h-[calc(100dvh-7rem)]",
       )}
     >
       <div className="container mx-auto px-sides flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row relative">
           {/* Conversations List */}
           <div
             className={cn(
@@ -1925,17 +1925,24 @@ function MessagesPageContent() {
             </ScrollArea>
           </div>
 
-          {/* Chat Area: header + scroll + sticky input bar at bottom */}
+          {/* Chat Area: fixed header + scroll + fixed input on mobile; auto height under device screen */}
           <div
             className={cn(
               "flex-1 min-h-0 flex flex-col overflow-hidden bg-background",
               !showMobileChat && "hidden lg:flex",
               showMobileChat && "flex",
+              "md:relative",
+              showMobileChat && isMobile && "absolute inset-0 z-10",
             )}
           >
             {selectedConversation ? (
               <>
-                <div className="p-3 sm:p-4 border-b border-border/50 bg-background/95 backdrop-blur-sm flex items-center justify-between shrink-0">
+                <div
+                  className={cn(
+                    "p-3 sm:p-4 border-b border-border/50 bg-background/95 backdrop-blur-sm flex items-center justify-between shrink-0",
+                    "sticky top-0 z-10 md:relative md:top-auto md:z-auto",
+                  )}
+                >
                   <div className="flex items-center gap-2.5 flex-1 min-w-0">
                     <Button
                       variant="ghost"
