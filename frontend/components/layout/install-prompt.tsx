@@ -14,7 +14,7 @@ import { AddToHomeScreenSheet } from "@/components/layout/add-to-home-screen-she
 
 const STORAGE_KEY = "install-prompt-dismissed-until"
 const DISMISS_DAYS = 7
-const SHOW_DELAY_MS = 2500
+const SHOW_DELAY_MS = 1200
 
 type BeforeInstallPromptEvent = Event & { prompt: () => Promise<{ outcome: string }> }
 
@@ -31,22 +31,37 @@ export function InstallPrompt() {
   }, [])
 
   useEffect(() => {
-    if (!isMobile || typeof window === "undefined") return
+    if (typeof window === "undefined") return
     const handler = (e: Event) => {
       e.preventDefault()
       installEventRef.current = e as BeforeInstallPromptEvent
     }
     window.addEventListener("beforeinstallprompt", handler)
     return () => window.removeEventListener("beforeinstallprompt", handler)
-  }, [isMobile])
+  }, [])
+
+  // Show install prompt on mobile/touch devices (MVP: also treat touch as mobile for install)
+  const isMobileOrTouch =
+    isMobile ||
+    (typeof window !== "undefined" && "maxTouchPoints" in navigator && navigator.maxTouchPoints > 0 && window.innerWidth < 1024)
+
+  // Allow opening install sheet manually (e.g. from mobile menu "App installieren")
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const onShow = () => setShowPrompt(true)
+    window.addEventListener("install-prompt:show", onShow)
+    return () => window.removeEventListener("install-prompt:show", onShow)
+  }, [])
 
   useEffect(() => {
-    if (!isMobile || typeof window === "undefined") return
+    if (typeof window === "undefined") return
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as { standalone?: boolean }).standalone === true ||
       document.referrer.includes("android-app://")
     if (standalone) return
+    const mobileOrTouch = window.innerWidth < 1024 || (navigator as { maxTouchPoints?: number }).maxTouchPoints > 0
+    if (!mobileOrTouch) return
     const timer = setTimeout(() => {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY)
@@ -57,7 +72,7 @@ export function InstallPrompt() {
       }
     }, SHOW_DELAY_MS)
     return () => clearTimeout(timer)
-  }, [isMobile])
+  }, [])
 
   const dismissForLater = () => {
     setShowPrompt(false)
@@ -93,7 +108,7 @@ export function InstallPrompt() {
     }
   }
 
-  if (!isMobile) return null
+  if (!isMobileOrTouch) return null
 
   return (
     <>

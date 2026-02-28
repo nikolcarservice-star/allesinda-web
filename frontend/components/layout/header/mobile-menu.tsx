@@ -108,6 +108,19 @@ export default function MobileMenu({ collections }: MobileMenuProps) {
 
                 <ShopLinks label="Categories" collections={collections} />
 
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="w-full uppercase bg-primary text-primary-foreground hover:bg-primary/90 mt-4"
+                  onClick={() => {
+                    closeMobileMenu()
+                    window.dispatchEvent(new CustomEvent("install-prompt:show"))
+                  }}
+                >
+                  App installieren
+                </Button>
+
                 <div className="mt-auto mb-6 text-sm leading-tight opacity-50">
                   <p className="italic">Refined. Minimal. Never boring.</p>
                   <div className="mt-5">

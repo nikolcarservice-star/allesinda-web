@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#3adcd5" rx="96"/>
+  <!-- Arc -->
+  <path d="M96 280 Q256 160 416 280" stroke="#0f172a" stroke-width="32" stroke-linecap="round" fill="none"/>
+  <!-- Allesinda text -->
+  <text x="256" y="360" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="72" fill="#0f172a">Allesinda</text>
+</svg>

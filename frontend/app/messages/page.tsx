@@ -855,7 +855,7 @@ function MessagesPageContent() {
 
             if (data.sender_id !== currentUserId && typeof window !== "undefined") {
               window.dispatchEvent(new CustomEvent("notifications:refresh"))
-              // Play sound only when tab is in background or message is from another conversation (not the one user is viewing)
+              // Play notification sound when tab is in background or message is from another conversation
               const isViewingThisChat = selectedConversation?.id?.toString() === conversationId.toString()
               const shouldPlaySound = document.hidden || !isViewingThisChat
               if (shouldPlaySound) {
@@ -864,8 +864,9 @@ function MessagesPageContent() {
                   const last = (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed
                   if (!last || now - last >= 2500) {
                     (window as unknown as { __lastMessageSoundPlayed?: number }).__lastMessageSoundPlayed = now
-                    const audio = new Audio("/sounds/delivered-message-sound.mp3")
+                    const audio = notificationSoundRef.current || new Audio("/sounds/delivered-message-sound.mp3")
                     audio.volume = 0.6
+                    audio.currentTime = 0
                     audio.play().catch(() => {})
                   }
                 } catch {
@@ -1721,11 +1722,42 @@ function MessagesPageContent() {
   }, [])
 
   // Preload notification sound so it plays without delay on mobile
+  const notificationSoundRef = useRef<HTMLAudioElement | null>(null)
+  const audioUnlockedRef = useRef(false)
   useEffect(() => {
     if (typeof window === "undefined") return
-    const audio = new Audio("/sounds/delivered-message-sound.mp3")
-    audio.preload = "auto"
-    audio.load()
+    notificationSoundRef.current = new Audio("/sounds/delivered-message-sound.mp3")
+    notificationSoundRef.current.preload = "auto"
+    notificationSoundRef.current.load()
+    return () => {
+      notificationSoundRef.current = null
+    }
+  }, [])
+
+  // Unlock audio on first user interaction (required for mobile browsers to allow sound)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const unlock = () => {
+      if (audioUnlockedRef.current) return
+      audioUnlockedRef.current = true
+      try {
+        const a = notificationSoundRef.current || new Audio("/sounds/delivered-message-sound.mp3")
+        a.volume = 0
+        a.play().then(() => {
+          a.volume = 0.6
+        }).catch(() => {})
+      } catch {
+        // ignore
+      }
+    }
+    document.addEventListener("click", unlock, { once: true, passive: true })
+    document.addEventListener("touchstart", unlock, { once: true, passive: true })
+    document.addEventListener("keydown", unlock, { once: true, passive: true })
+    return () => {
+      document.removeEventListener("click", unlock)
+      document.removeEventListener("touchstart", unlock)
+      document.removeEventListener("keydown", unlock)
+    }
   }, [])
 
   if (loading && conversations.length === 0) {
@@ -1893,10 +1925,10 @@ function MessagesPageContent() {
             </ScrollArea>
           </div>
 
-          {/* Chat Area */}
+          {/* Chat Area: header + scroll + sticky input bar at bottom */}
           <div
             className={cn(
-              "flex-1 min-h-0 flex flex-col bg-background",
+              "flex-1 min-h-0 flex flex-col overflow-hidden bg-background",
               !showMobileChat && "hidden lg:flex",
               showMobileChat && "flex",
             )}
@@ -2157,7 +2189,7 @@ function MessagesPageContent() {
                   const inputBar = (
                     <div
                       className={cn(
-                        "p-3 sm:p-4 border-t border-border/50 bg-background backdrop-blur-sm shrink-0",
+                        "sticky bottom-0 z-10 p-3 sm:p-4 border-t border-border/50 bg-background backdrop-blur-sm shrink-0",
                         "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
                       )}
                     >

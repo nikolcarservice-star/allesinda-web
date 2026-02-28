@@ -10,6 +10,7 @@ import { Header } from "../components/layout/header"
 import { BodyScrollReset } from "../components/layout/body-scroll-reset"
 import { ConditionalFooter } from "../components/layout/conditional-footer"
 import { InstallPrompt } from "../components/layout/install-prompt"
+import { PushSubscriptionSetup } from "../components/layout/push-subscription-setup"
 import dynamic from "next/dynamic"
 import { V0Provider } from "../lib/context"
 import { AuthProvider } from "../lib/context/auth-context"
@@ -90,6 +91,7 @@ export default async function RootLayout({
               </main>
               <ConditionalFooter />
               <InstallPrompt />
+              <PushSubscriptionSetup />
               {isDevelopment && <DebugGrid />}
               <Toaster closeButton position="bottom-right" />
               </NuqsAdapter>
