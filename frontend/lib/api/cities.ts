@@ -1,6 +1,6 @@
 /**
- * Cities API: fetch German cities from backend.
- * Fallback to static list from @/lib/cities when API is unavailable.
+ * Cities: always use the full list of 80 German cities from static data.
+ * API is not used for the list so the UI never gets a truncated (e.g. 20) list.
  */
 
 import { apiGet } from './client';
@@ -8,26 +8,14 @@ import { GERMAN_CITIES, type City } from '@/lib/cities';
 
 export type { City } from '@/lib/cities';
 
-/**
- * Fetch cities from API. Returns the 80 German cities.
- * On failure (e.g. offline), returns the static GERMAN_CITIES list.
- */
-/** We expect 80 cities; use static list if API returns fewer (e.g. old backend limit). */
-const EXPECTED_CITIES_COUNT = 80;
+/** Re-export so components can use the full list directly (e.g. for dropdowns). */
+export { GERMAN_CITIES };
 
+/**
+ * Returns all 80 German cities. Uses static list only (no API call)
+ * so the dropdown always shows all 80, regardless of backend.
+ */
 export async function getCities(): Promise<City[]> {
-  try {
-    const list = await apiGet<City[]>('/cities');
-    if (Array.isArray(list) && list.length >= EXPECTED_CITIES_COUNT) {
-      return list;
-    }
-    // API returned partial list (e.g. only 20): use full static list
-    if (Array.isArray(list) && list.length > 0) {
-      return GERMAN_CITIES;
-    }
-  } catch {
-    // API down or not available: use static list
-  }
   return GERMAN_CITIES;
 }
 
