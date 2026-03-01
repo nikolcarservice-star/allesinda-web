@@ -1335,8 +1335,8 @@ function MessagesPageContent() {
         const refetch = await getMessages(conversationId, { page: 1, page_size: 20 })
         const items = refetch.items || []
         const recent = items.find(
-          (m: any) =>
-            (m.body === messageContent || m.content === messageContent) &&
+          (m: { body?: string; content?: string; sender_id?: number; created_at?: string }) =>
+            (m.content === messageContent || m.body === messageContent) &&
             (m.sender_id === currentUserId || m.sender_id == null) &&
             m.created_at &&
             Date.now() - new Date(m.created_at).getTime() < 120_000,
@@ -1345,7 +1345,7 @@ function MessagesPageContent() {
           const persistedMessage = mapMessageResponse({
             ...recent,
             sender: "me",
-            content: recent.body ?? recent.content ?? messageContent,
+            content: recent.content ?? messageContent,
             conversation_id: conversationId,
           })
           setMessages((prev) => ({
