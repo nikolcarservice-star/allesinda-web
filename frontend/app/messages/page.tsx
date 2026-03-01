@@ -385,6 +385,18 @@ function MessagesPageContent() {
     }
   }, [conversations, searchParams, currentUserId, loading, initializingConversation, selectedConversation, router, initializeConversationWithSeller])
 
+  // When returning from call page: URL has conversation_id but loadConversations already ran — select that chat
+  useEffect(() => {
+    const conversationIdParam = searchParams?.get("conversation_id")
+    if (!conversationIdParam || conversations.length === 0) return
+    const found = conversations.find((c) => String(c.id) === String(conversationIdParam))
+    if (found && found.id !== selectedConversation?.id) {
+      setSelectedConversation(found)
+      setShowMobileChat(true)
+      router.replace("/messages", { scroll: false })
+    }
+  }, [searchParams, conversations, selectedConversation?.id, router])
+
   const loadConversations = async () => {
     try {
       setLoading(true)
