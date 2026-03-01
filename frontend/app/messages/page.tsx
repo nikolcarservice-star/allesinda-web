@@ -1558,8 +1558,8 @@ function MessagesPageContent() {
         }
       }, 50)
 
-      // Open call inside app so that "Back" returns to messages (avoids blank page on mobile after leaving call)
-      router.push(`/messages/call?room=${encodeURIComponent(roomSlug)}`)
+      // Open call inside app so that "Back" returns to messages with same conversation
+      router.push(`/messages/call?room=${encodeURIComponent(roomSlug)}&conversation_id=${conversationId}`)
       toast.success("Videoanruf-Link gesendet")
     } catch (error: any) {
       logger.error("Failed to start video call:", error)

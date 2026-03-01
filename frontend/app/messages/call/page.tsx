@@ -11,6 +11,7 @@ function CallPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const room = searchParams.get("room")
+  const conversationId = searchParams.get("conversation_id")
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -23,7 +24,10 @@ function CallPageContent() {
   const callUrl = room ? `${baseUrl}/${encodeURIComponent(room)}` : ""
 
   const handleBack = () => {
-    router.replace("/messages")
+    const returnUrl = conversationId
+      ? `/messages?conversation_id=${encodeURIComponent(conversationId)}`
+      : "/messages"
+    router.replace(returnUrl)
   }
 
   if (!mounted || !room) {
@@ -32,7 +36,15 @@ function CallPageContent() {
         <p className="text-muted-foreground">
           {!room ? "Kein Raum angegeben." : "Laden…"}
         </p>
-        <Button variant="outline" onClick={() => router.replace("/messages")}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            const returnUrl = conversationId
+              ? `/messages?conversation_id=${encodeURIComponent(conversationId)}`
+              : "/messages"
+            router.replace(returnUrl)
+          }}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Zurück zu Nachrichten
         </Button>
