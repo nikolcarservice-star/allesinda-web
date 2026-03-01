@@ -772,6 +772,8 @@ function MessagesPageContent() {
             }
 
             let updatedList: Message[] = messages[conversationId.toString()] || []
+            // Only play sound for truly new messages from others (not when re-delivered or updating existing)
+            let isNewMessageFromOtherUser = false
             setMessages((prev) => {
               const conversationKey = conversationId.toString()
               const conversationMessages = prev[conversationKey] || []
@@ -824,6 +826,7 @@ function MessagesPageContent() {
               }
 
               updatedList = [...conversationMessages, newMessage]
+              isNewMessageFromOtherUser = data.sender_id !== currentUserId
               return {
                 ...prev,
                 [conversationKey]: updatedList,
@@ -881,9 +884,9 @@ function MessagesPageContent() {
 
             if (data.sender_id !== currentUserId && typeof window !== "undefined") {
               window.dispatchEvent(new CustomEvent("notifications:refresh"))
-              // Play notification sound when tab is in background or message is from another conversation
+              // Play notification sound only for truly new messages (not when re-fetching or re-delivered duplicates)
               const isViewingThisChat = selectedConversation?.id?.toString() === conversationId.toString()
-              const shouldPlaySound = document.hidden || !isViewingThisChat
+              const shouldPlaySound = isNewMessageFromOtherUser && (document.hidden || !isViewingThisChat)
               if (shouldPlaySound) {
                 try {
                   const now = Date.now()
@@ -901,14 +904,15 @@ function MessagesPageContent() {
               }
             }
 
-            // If tab is hidden, show browser notification (permission required)
+            // If tab is hidden, show browser notification only for truly new messages
             try {
               if (
                 typeof window !== "undefined" &&
                 "Notification" in window &&
                 Notification.permission === "granted" &&
                 document.hidden &&
-                data.sender_id !== currentUserId
+                data.sender_id !== currentUserId &&
+                isNewMessageFromOtherUser
               ) {
                 const senderLabel = (selectedConversation?.id === conversationId
                   ? selectedConversation?.name
@@ -1326,9 +1330,54 @@ function MessagesPageContent() {
       }, 50)
     } catch (error) {
       logger.error("Failed to send message:", error)
+      // Server may have saved the message (e.g. timeout/CORS); try to recover by refetching
+      try {
+        const refetch = await getMessages(conversationId, { page: 1, page_size: 20 })
+        const items = refetch.items || []
+        const recent = items.find(
+          (m: any) =>
+            (m.body === messageContent || m.content === messageContent) &&
+            (m.sender_id === currentUserId || m.sender_id == null) &&
+            m.created_at &&
+            Date.now() - new Date(m.created_at).getTime() < 120_000,
+        )
+        if (recent) {
+          const persistedMessage = mapMessageResponse({
+            ...recent,
+            sender: "me",
+            content: recent.body ?? recent.content ?? messageContent,
+            conversation_id: conversationId,
+          })
+          setMessages((prev) => ({
+            ...prev,
+            [conversationKey]: (prev[conversationKey] || [])
+              .filter((m) => m.id !== tempMessage.id)
+              .concat(persistedMessage),
+          }))
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv.id.toString() === conversationKey
+                ? {
+                    ...conv,
+                    lastMessage: messageContent,
+                    timestamp: "Just now",
+                    lastMessageRead: false,
+                    lastMessageSenderId: currentUserId ?? undefined,
+                  }
+                : conv,
+            ),
+          )
+          setTimeout(() => {
+            const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement
+            if (viewport) viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" })
+            messageInputRef.current?.focus()
+          }, 50)
+          return
+        }
+      } catch (_) {
+        // ignore refetch errors
+      }
       toast.error("Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.")
-      
-      // Remove optimistic message
       setMessages((prev) => ({
         ...prev,
         [conversationKey]: (prev[conversationKey] || []).filter(
