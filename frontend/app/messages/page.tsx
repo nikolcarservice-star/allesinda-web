@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, Send, Paperclip, MoreVertical, Phone, Video, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck } from "lucide-react"
+import { Search, Send, Paperclip, MoreVertical, Phone, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import { toast } from "sonner"
 import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSocketUrl, createConversation, markConversationRead, uploadAttachment as uploadAttachmentAPI, blockConversation as blockConversationAPI, unblockConversation as unblockConversationAPI, deleteConversation as deleteConversationAPI } from "@/lib/api/chat"
@@ -2074,9 +2074,6 @@ function MessagesPageContent() {
                     <Button variant="ghost" size="icon" onClick={() => handleCall("phone")} disabled={!canSendMessages}>
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleCall("video")} disabled={!canSendMessages || videoCallLoading}> 
-                      {videoCallLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                    </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -2177,25 +2174,9 @@ function MessagesPageContent() {
                                         )}
                                       >
                                         {message.content?.trim() ? (
-                                          (() => {
-                                            const videoCallRoom = getVideoCallRoomFromMessage(message.content)
-                                            if (videoCallRoom) {
-                                              return (
-                                                <p className="text-[15px] sm:text-sm leading-relaxed whitespace-pre-wrap">
-                                                  Join my video call:{" "}
-                                                  <Link
-                                                    href={`/messages/call?room=${encodeURIComponent(videoCallRoom)}`}
-                                                    className="underline font-medium hover:opacity-90"
-                                                  >
-                                                    Join call
-                                                  </Link>
-                                                </p>
-                                              )
-                                            }
-                                            return (
-                                              <p className="text-[15px] sm:text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                                            )
-                                          })()
+                                          <p className="text-[15px] sm:text-sm leading-relaxed whitespace-pre-wrap">
+                                            {message.content}
+                                          </p>
                                         ) : !message.attachments?.length ? (
                                           <p className="text-[15px] sm:text-sm leading-relaxed invisible select-none">.</p>
                                         ) : null}
