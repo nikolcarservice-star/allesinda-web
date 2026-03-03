@@ -1619,7 +1619,13 @@ function MessagesPageContent() {
         }
       }, 50)
 
-      // Open call inside app so that "Back" returns to messages with same conversation
+      // First, push the messages page with the current conversation into history.
+      // This ensures that Safari's browser back button (from the call page) returns
+      // to the correct chat, not just to the generic messages list.
+      router.push(`/messages?conversation_id=${conversationId}`, { scroll: false })
+
+      // Then open the video call inside the app so that "Back" (in-page button)
+      // still returns to messages with the same conversation.
       router.push(`/messages/call?room=${encodeURIComponent(roomSlug)}&conversation_id=${conversationId}`)
       toast.success("Videoanruf-Link gesendet")
     } catch (error: any) {
@@ -1652,7 +1658,9 @@ function MessagesPageContent() {
         toast.info("Dieser Benutzer hat keine Telefonnummer angegeben")
         return
       }
-      window.open(`tel:${sanitized}`)
+      // Use same-tab navigation so that on iOS Safari,
+      // returning from the phone app brings the user back to the chat page
+      window.location.href = `tel:${sanitized}`
       return
     }
 
