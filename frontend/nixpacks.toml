@@ -7,9 +7,9 @@ cmds = ["pnpm install --frozen-lockfile"]
 [phases.build]
 cmds = ["pnpm build"]
 
+# next.config.mjs: output standalone — не использовать `next start` / `pnpm start`
 [start]
-cmd = "pnpm start"
+cmd = "node .next/standalone/server.js"
 
 [variables]
 NODE_ENV = "production"
-
