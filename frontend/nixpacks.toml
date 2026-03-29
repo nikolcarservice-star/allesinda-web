@@ -4,12 +4,19 @@ nixPkgs = ["nodejs_20", "pnpm"]
 [phases.install]
 cmds = ["pnpm install --frozen-lockfile"]
 
+# Next standalone: в .next/standalone нужно явно положить public и .next/static,
+# иначе /_next/static/* даёт 404/HTML → «белая» страница и MIME text/html для .css
 [phases.build]
-cmds = ["pnpm build"]
+cmds = [
+  "pnpm build",
+  "cp -r public .next/standalone/public",
+  "mkdir -p .next/standalone/.next",
+  "cp -r .next/static .next/standalone/.next/static",
+]
 
-# next.config.mjs: output standalone — не использовать `next start` / `pnpm start`
+# Старт из каталога standalone + HOSTNAME для Traefik/Coolify
 [start]
-cmd = "env HOSTNAME=0.0.0.0 node .next/standalone/server.js"
+cmd = "cd .next/standalone && exec env HOSTNAME=0.0.0.0 node server.js"
 
 [variables]
 NODE_ENV = "production"
