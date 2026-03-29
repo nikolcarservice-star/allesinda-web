@@ -3,7 +3,7 @@
 // Force dynamic rendering to avoid static generation issues
 export const dynamic = 'force-dynamic'
 
-import { useCallback, useEffect, useMemo, useRef, useState, startTransition, type ComponentProps, type ReactNode, Suspense } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, startTransition, type ComponentProps, type ReactNode, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { LocateFixed, MapPin, Target, Loader2, Info, SlidersHorizontal, ChevronDown, X, RotateCcw, Search, ChevronRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -481,8 +481,13 @@ export function FeaturedPageContent() {
     }
   }, [activeSearchTerm, sortOption, city, latitude, longitude, radiusKm, minPrice, maxPrice, pageSize, mobileFiltersOpen])
 
-  useEffect(() => {
+  // Sync search from URL before paint so loadFeatured (useEffect) sees the same q as the address bar.
+  // Otherwise the first fetch runs with a stale empty activeSearchTerm, then strips q from the URL on replace.
+  useLayoutEffect(() => {
     setActiveSearchTerm(initialQuery)
+  }, [initialQuery])
+
+  useEffect(() => {
     setPage(1)
   }, [initialQuery])
 
@@ -904,26 +909,14 @@ export function FeaturedPageContent() {
       })
     }
 
-    const trimmedSearch = activeSearchTerm.trim()
+    const fromUrl = (searchParams?.get("q") ?? searchParams?.get("search") ?? "").trim()
+    const trimmedSearch = (fromUrl || activeSearchTerm.trim()).trim()
     
-    // Get category directly from URL params to avoid race conditions with state updates
+    // Get category only from URL. Do not fall back to selectedParentCategory / selectedSubcategory:
+    // after text search the URL drops `category`, but React state can still be one render behind,
+    // which previously sent the old category to the API and returned 0 results.
     const urlCategoryParam = searchParams?.get("category") ?? null
-    
-    const resolvedCategorySlug =
-      activeType === "master"
-        ? undefined
-        : urlCategoryParam ?? (selectedSubcategory !== "all"
-          ? selectedSubcategory
-          : selectedParentCategory !== "all"
-            ? selectedParentCategory
-            : undefined)
-    const categoryParamValueForUrl = urlCategoryParam ?? (
-      selectedSubcategory !== "all"
-        ? selectedSubcategory
-        : selectedParentCategory !== "all"
-          ? selectedParentCategory
-          : null
-    )
+    const categoryParamValueForUrl = urlCategoryParam
     // Convert category slug to ID for API call (backend accepts numeric string in category param)
     const categoryQueryParamForRequest = categoryParamValueForUrl
       ? (() => {

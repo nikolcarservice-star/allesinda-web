@@ -4,12 +4,26 @@ import re
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import Float, cast, func, or_, and_, case
 from sqlalchemy.sql import exists
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from ..config import settings
 from ..database import get_db
 from ..helpers import calculate_distance, create_paginated_response, paginate_query
-from ..models import Favorite, Product, Profile, Rental, Role, Service, User, City, Category, Review, Order
+
+from ..models import (
+    CategoryType,
+    Favorite,
+    Product,
+    Profile,
+    Rental,
+    Role,
+    Service,
+    User,
+    City,
+    Category,
+    Review,
+    Order,
+)
 from ..security import get_current_user_optional
 from ..utils.notifications import create_search_alert_notification
 
@@ -116,19 +130,25 @@ def _build_search_conditions(query_text: str, fields: list, use_fulltext: bool =
     return filter_condition, relevance_score
 
 
-def _build_master_search_conditions(query_text: str, profile_alias, user_alias):
+def _build_master_search_conditions(
+    query_text: str,
+    profile_alias,
+    user_alias,
+    extra_fields: Optional[list] = None,
+):
     """Build search conditions for masters/profiles with comprehensive field coverage."""
     if not query_text or not query_text.strip():
         return None, None
     
-    # Define searchable fields with weights (higher = more important)
-    # Title/Name matches are most important, then category (via join), then description
-    # Note: category search is done via Category join, not direct field
+    # Name and keywords first; category fields supplied via outer join (see _perform_search)
     fields = [
-        (user_alias.name, 10.0),  # Master name - highest priority
-        (profile_alias.about, 5.0),  # About section
+        (user_alias.name, 10.0),
+        (profile_alias.keywords, 8.0),
+        (profile_alias.about, 5.0),
     ]
-    
+    if extra_fields:
+        fields.extend(extra_fields)
+
     filter_condition, relevance_score = _build_search_conditions(query_text, fields)
     
     # Also search in services (related entities)
@@ -201,19 +221,23 @@ def _build_master_search_conditions(query_text: str, profile_alias, user_alias):
     return filter_condition, relevance_score
 
 
-def _build_product_search_conditions(query_text: str, product_alias):
+def _build_product_search_conditions(
+    query_text: str,
+    product_alias,
+    extra_fields: Optional[list] = None,
+):
     """Build search conditions for products with comprehensive field coverage."""
     if not query_text or not query_text.strip():
         return None, None
     
-    # Define searchable fields with weights
-    # Note: category search is done via Category join, not direct field
     fields = [
-        (product_alias.title, 10.0),  # Product title - highest priority
-        (product_alias.brand, 8.0),  # Brand - very important
-        (product_alias.description, 5.0),  # Description
+        (product_alias.title, 10.0),
+        (product_alias.brand, 8.0),
+        (product_alias.description, 5.0),
     ]
-    
+    if extra_fields:
+        fields.extend(extra_fields)
+
     filter_condition, relevance_score = _build_search_conditions(query_text, fields)
     
     # Also search in reviews (via Order -> Product)
@@ -253,18 +277,22 @@ def _build_product_search_conditions(query_text: str, product_alias):
     return filter_condition, relevance_score
 
 
-def _build_rental_search_conditions(query_text: str, rental_alias):
+def _build_rental_search_conditions(
+    query_text: str,
+    rental_alias,
+    extra_fields: Optional[list] = None,
+):
     """Build search conditions for rentals with comprehensive field coverage."""
     if not query_text or not query_text.strip():
         return None, None
     
-    # Define searchable fields with weights
-    # Note: category search is done via Category join, not direct field
     fields = [
-        (rental_alias.title, 10.0),  # Rental title - highest priority
-        (rental_alias.description, 5.0),  # Description
+        (rental_alias.title, 10.0),
+        (rental_alias.description, 5.0),
     ]
-    
+    if extra_fields:
+        fields.extend(extra_fields)
+
     filter_condition, relevance_score = _build_search_conditions(query_text, fields)
     
     # Also search in reviews (via Order -> Rental)
@@ -391,6 +419,23 @@ def _perform_search(
             .subquery()
         )
         query = query.outerjoin(likes_subq, Profile.id == likes_subq.c.profile_id)
+
+        MasterCategory = aliased(Category)
+        MasterCategoryParent = aliased(Category)
+        query = query.outerjoin(
+            MasterCategory,
+            and_(
+                Profile.category_id == MasterCategory.id,
+                MasterCategory.type == CategoryType.master,
+            ),
+        )
+        query = query.outerjoin(
+            MasterCategoryParent,
+            and_(
+                MasterCategory.parent_id == MasterCategoryParent.id,
+                MasterCategoryParent.type == CategoryType.master,
+            ),
+        )
         
         # City filtering: support both normalized city_id and legacy textual city field
         # If both city and city_id are provided, city_id takes precedence for exact matching
@@ -411,7 +456,15 @@ def _perform_search(
         relevance_score = None
         if normalized_query:
             search_condition, relevance_score = _build_master_search_conditions(
-                normalized_query, Profile, User
+                normalized_query,
+                Profile,
+                User,
+                extra_fields=[
+                    (MasterCategory.name, 9.0),
+                    (MasterCategory.slug, 7.0),
+                    (MasterCategoryParent.name, 8.0),
+                    (MasterCategoryParent.slug, 6.0),
+                ],
             )
             if search_condition is not None:
                 query = query.filter(search_condition)
@@ -650,6 +703,23 @@ def _perform_search(
             .subquery()
         )
         query = query.outerjoin(likes_subq, Product.id == likes_subq.c.product_id)
+
+        ProductCategory = aliased(Category)
+        ProductCategoryParent = aliased(Category)
+        query = query.outerjoin(
+            ProductCategory,
+            and_(
+                Product.category_id == ProductCategory.id,
+                ProductCategory.type == CategoryType.product,
+            ),
+        )
+        query = query.outerjoin(
+            ProductCategoryParent,
+            and_(
+                ProductCategory.parent_id == ProductCategoryParent.id,
+                ProductCategoryParent.type == CategoryType.product,
+            ),
+        )
         
         # City filtering: support both normalized city_id and legacy textual city field
         # If both city and city_id are provided, city_id takes precedence for exact matching
@@ -670,7 +740,14 @@ def _perform_search(
         relevance_score = None
         if normalized_query:
             search_condition, relevance_score = _build_product_search_conditions(
-                normalized_query, Product
+                normalized_query,
+                Product,
+                extra_fields=[
+                    (ProductCategory.name, 9.0),
+                    (ProductCategory.slug, 7.0),
+                    (ProductCategoryParent.name, 8.0),
+                    (ProductCategoryParent.slug, 6.0),
+                ],
             )
             if search_condition is not None:
                 query = query.filter(search_condition)
@@ -784,6 +861,23 @@ def _perform_search(
             .subquery()
         )
         query = query.outerjoin(likes_subq, Rental.id == likes_subq.c.rental_id)
+
+        RentalCategory = aliased(Category)
+        RentalCategoryParent = aliased(Category)
+        query = query.outerjoin(
+            RentalCategory,
+            and_(
+                Rental.category_id == RentalCategory.id,
+                RentalCategory.type == CategoryType.rental,
+            ),
+        )
+        query = query.outerjoin(
+            RentalCategoryParent,
+            and_(
+                RentalCategory.parent_id == RentalCategoryParent.id,
+                RentalCategoryParent.type == CategoryType.rental,
+            ),
+        )
         
         # City filtering: support both normalized city_id and legacy textual city field
         # If both city and city_id are provided, city_id takes precedence for exact matching
@@ -804,7 +898,14 @@ def _perform_search(
         relevance_score = None
         if normalized_query:
             search_condition, relevance_score = _build_rental_search_conditions(
-                normalized_query, Rental
+                normalized_query,
+                Rental,
+                extra_fields=[
+                    (RentalCategory.name, 9.0),
+                    (RentalCategory.slug, 7.0),
+                    (RentalCategoryParent.name, 8.0),
+                    (RentalCategoryParent.slug, 6.0),
+                ],
             )
             if search_condition is not None:
                 query = query.filter(search_condition)

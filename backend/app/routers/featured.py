@@ -5,7 +5,8 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, or_, func
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session, aliased, joinedload, selectinload
+from sqlalchemy.sql import exists
 
 logger = logging.getLogger(__name__)
 
@@ -511,6 +512,8 @@ def list_featured_items(
         [CategoryType(t.strip()) for t in types.split(",") if t.strip() in CategoryType.__members__]
     ) if types else {CategoryType.master, CategoryType.product, CategoryType.rental}
 
+    search_term = (q or "").strip()
+
     aggregated: List[dict] = []
 
     if CategoryType.master in requested_types:
@@ -567,11 +570,44 @@ def list_featured_items(
             )
         if city_id is not None:
             master_query = master_query.filter(Profile.city_id == city_id)
-        if q:
+        if search_term:
+            pattern = f"%{search_term}%"
+            MasterCategory = aliased(Category)
+            MasterCategoryParent = aliased(Category)
+            master_query = (
+                master_query.outerjoin(
+                    MasterCategory,
+                    and_(
+                        Profile.category_id == MasterCategory.id,
+                        MasterCategory.type == CategoryType.master,
+                    ),
+                ).outerjoin(
+                    MasterCategoryParent,
+                    and_(
+                        MasterCategory.parent_id == MasterCategoryParent.id,
+                        MasterCategoryParent.type == CategoryType.master,
+                    ),
+                )
+            )
+            service_match = exists().where(
+                and_(
+                    Service.profile_id == Profile.id,
+                    or_(
+                        Service.title.ilike(pattern),
+                        Service.description.ilike(pattern),
+                    ),
+                )
+            )
             master_query = master_query.filter(
                 or_(
-                    Profile.about.ilike(f"%{q}%"),
-                    User.name.ilike(f"%{q}%"),
+                    Profile.about.ilike(pattern),
+                    User.name.ilike(pattern),
+                    Profile.keywords.ilike(pattern),
+                    MasterCategory.name.ilike(pattern),
+                    MasterCategory.slug.ilike(pattern),
+                    MasterCategoryParent.name.ilike(pattern),
+                    MasterCategoryParent.slug.ilike(pattern),
+                    service_match,
                 )
             )
         if min_rating is not None:
@@ -652,11 +688,34 @@ def list_featured_items(
             )
         if city_id is not None:
             product_query = product_query.filter(Product.city_id == city_id)
-        if q:
+        if search_term:
+            pattern = f"%{search_term}%"
+            ProductCategory = aliased(Category)
+            ProductCategoryParent = aliased(Category)
+            product_query = (
+                product_query.outerjoin(
+                    ProductCategory,
+                    and_(
+                        Product.category_id == ProductCategory.id,
+                        ProductCategory.type == CategoryType.product,
+                    ),
+                ).outerjoin(
+                    ProductCategoryParent,
+                    and_(
+                        ProductCategory.parent_id == ProductCategoryParent.id,
+                        ProductCategoryParent.type == CategoryType.product,
+                    ),
+                )
+            )
             product_query = product_query.filter(
                 or_(
-                    Product.title.ilike(f"%{q}%"),
-                    Product.description.ilike(f"%{q}%"),
+                    Product.title.ilike(pattern),
+                    Product.description.ilike(pattern),
+                    Product.brand.ilike(pattern),
+                    ProductCategory.name.ilike(pattern),
+                    ProductCategory.slug.ilike(pattern),
+                    ProductCategoryParent.name.ilike(pattern),
+                    ProductCategoryParent.slug.ilike(pattern),
                 )
             )
         if min_price is not None:
@@ -723,11 +782,33 @@ def list_featured_items(
             )
         if city_id is not None:
             rental_query = rental_query.filter(Rental.city_id == city_id)
-        if q:
+        if search_term:
+            pattern = f"%{search_term}%"
+            RentalCategory = aliased(Category)
+            RentalCategoryParent = aliased(Category)
+            rental_query = (
+                rental_query.outerjoin(
+                    RentalCategory,
+                    and_(
+                        Rental.category_id == RentalCategory.id,
+                        RentalCategory.type == CategoryType.rental,
+                    ),
+                ).outerjoin(
+                    RentalCategoryParent,
+                    and_(
+                        RentalCategory.parent_id == RentalCategoryParent.id,
+                        RentalCategoryParent.type == CategoryType.rental,
+                    ),
+                )
+            )
             rental_query = rental_query.filter(
                 or_(
-                    Rental.title.ilike(f"%{q}%"),
-                    Rental.description.ilike(f"%{q}%"),
+                    Rental.title.ilike(pattern),
+                    Rental.description.ilike(pattern),
+                    RentalCategory.name.ilike(pattern),
+                    RentalCategory.slug.ilike(pattern),
+                    RentalCategoryParent.name.ilike(pattern),
+                    RentalCategoryParent.slug.ilike(pattern),
                 )
             )
         if min_price is not None:

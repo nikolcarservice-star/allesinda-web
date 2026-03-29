@@ -273,7 +273,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                 ) : (
                   categories
                     .filter((cat) => cat.id !== -1)
-                    .map((category, index) => {
+                    .map((category) => {
                       const rawImageUrl = category.image_url?.trim() ? category.image_url : null
                       const relativePath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
                       const imageSrc = rawImageUrl
@@ -282,7 +282,14 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                           : getOptimizedImageUrl(rawImageUrl, "thumbnail")
                         : PLACEHOLDER_IMAGE
                       const isLocal = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                      const isActive = selectedCategory ? selectedCategory.id === category.id : index === 0
+                      const urlCategorySlug = searchParams?.get("category")
+                      const matchesUrlCategory =
+                        Boolean(urlCategorySlug) &&
+                        (category.slug === urlCategorySlug ||
+                          category.children?.some((ch) => ch.slug === urlCategorySlug))
+                      const isActive = selectedCategory
+                        ? selectedCategory.id === category.id
+                        : matchesUrlCategory
                       return (
                         <button
                           key={category.id}
