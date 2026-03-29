@@ -22,6 +22,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+# Docker/Coolify подставляет HOSTNAME=id контейнера — Next слушает не весь интерфейс → 502 за Traefik.
+# Принудительно задаём HOSTNAME только в момент запуска Node (перебивает рантайм).
 ENV HOSTNAME=0.0.0.0
 
 RUN groupadd --system --gid 1001 nodejs && \
@@ -33,4 +35,4 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "exec env HOSTNAME=0.0.0.0 node server.js"]

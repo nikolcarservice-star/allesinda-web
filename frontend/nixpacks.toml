@@ -9,7 +9,7 @@ cmds = ["pnpm build"]
 
 # next.config.mjs: output standalone — не использовать `next start` / `pnpm start`
 [start]
-cmd = "node .next/standalone/server.js"
+cmd = "env HOSTNAME=0.0.0.0 node .next/standalone/server.js"
 
 [variables]
 NODE_ENV = "production"
