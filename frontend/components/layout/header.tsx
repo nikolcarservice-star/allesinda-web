@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter, useSearchParams, type ReadonlyURLSearchParams } from "next/navigation"
 import type { MouseEvent } from "react"
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Menu,
   User,
@@ -305,7 +305,6 @@ export function Header() {
   const [isDesktopSearchSuggestionsOpen, setIsDesktopSearchSuggestionsOpen] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const lastScrollYRef = useRef(0)
-  const prevHeaderVisibleForScrollRef = useRef(true)
 
   const featuredSearchParams = useMemo(() => {
     return pathname === "/" ? searchParams : null
@@ -375,40 +374,19 @@ export function Header() {
         ? window.scrollY || document.documentElement.scrollTop || 0
         : 0
     setIsHeaderVisible(true)
-    prevHeaderVisibleForScrollRef.current = true
   }, [pathname])
-
-  useLayoutEffect(() => {
-    if (typeof window === "undefined") return
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
-
-    const H = headerHeight > 0 ? headerHeight : 64
-    const wasVisible = prevHeaderVisibleForScrollRef.current
-    prevHeaderVisibleForScrollRef.current = isHeaderVisible
-    if (wasVisible === isHeaderVisible) return
-
-    const y = window.scrollY || document.documentElement.scrollTop || 0
-    let next = y
-    if (wasVisible && !isHeaderVisible) {
-      next = Math.max(0, y - H)
-    } else if (!wasVisible && isHeaderVisible) {
-      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
-      next = Math.min(max, y + H)
-    }
-    if (next !== y) {
-      window.scrollTo({ left: 0, top: next, behavior: "instant" as ScrollBehavior })
-      lastScrollYRef.current = next
-    }
-  }, [isHeaderVisible, headerHeight])
 
   useEffect(() => {
     if (typeof window === "undefined") return
 
     const getScrollY = () => window.scrollY || document.documentElement.scrollTop || 0
-    /** Не скрываем шапку в зоне героя/карусели — избегаем дёрганья документа у верха */
-    const AUTO_HIDE_MIN_SCROLL = 220
-    const DELTA_HIDE = 10
-    const DELTA_SHOW = 6
+    /**
+     * Ниже этого offset шапка может скрываться (ниже героя + полосы категорий),
+     * иначе при прокрутке через категории ловится граница и скачок документа.
+     */
+    const AUTO_HIDE_MIN_SCROLL = 380
+    const DELTA_HIDE = 12
+    const DELTA_SHOW = 8
 
     let raf = 0
     const media = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -1668,7 +1646,11 @@ return (
 
   return (
     <>
-      <div aria-hidden className="shrink-0 overflow-hidden" style={{ height: headerSpacerHeight }} />
+      <div
+        aria-hidden
+        className="shrink-0 overflow-hidden [overflow-anchor:none]"
+        style={{ height: headerSpacerHeight }}
+      />
       <header
         ref={headerRef}
         className={cn("fixed top-0 left-0 right-0 z-50", !isHeaderVisible && "pointer-events-none")}
