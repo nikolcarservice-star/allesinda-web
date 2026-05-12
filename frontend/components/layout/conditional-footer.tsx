@@ -12,5 +12,9 @@ export function ConditionalFooter() {
   if (pathname?.startsWith("/messages")) {
     return null
   }
-  return <Footer />
+  return (
+    <div className="pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+      <Footer />
+    </div>
+  )
 }

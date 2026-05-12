@@ -7,6 +7,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { DebugGrid } from "@/components/debug-grid"
 import { isDevelopment } from "@/lib/constants"
 import { Header } from "../components/layout/header"
+import { MobileAppChrome } from "../components/layout/mobile-app-chrome"
 import { BodyScrollReset } from "../components/layout/body-scroll-reset"
 import { ConditionalFooter } from "../components/layout/conditional-footer"
 import { InstallPrompt } from "../components/layout/install-prompt"
@@ -86,7 +87,7 @@ export default async function RootLayout({
                   <Header />
                 </Suspense>
                 <div className="-mt-14 sm:-mt-[72px] pt-14 sm:pt-[72px]">
-                {children}
+                  <MobileAppChrome>{children}</MobileAppChrome>
                 </div>
               </main>
               <ConditionalFooter />
