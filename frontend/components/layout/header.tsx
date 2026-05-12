@@ -380,13 +380,10 @@ export function Header() {
     if (typeof window === "undefined") return
 
     const getScrollY = () => window.scrollY || document.documentElement.scrollTop || 0
-    /**
-     * Ниже этого offset шапка может скрываться (ниже героя + полосы категорий),
-     * иначе при прокрутке через категории ловится граница и скачок документа.
-     */
-    const AUTO_HIDE_MIN_SCROLL = 380
-    const DELTA_HIDE = 12
-    const DELTA_SHOW = 8
+    /** Только у самого верха страницы шапка закреплена (bounce / микродрожь). Дальше — скрытие при прокрутке вниз. */
+    const PIN_TOP = 20
+    const DELTA_HIDE = 10
+    const DELTA_SHOW = 6
 
     let raf = 0
     const media = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -411,7 +408,7 @@ export function Header() {
         }
 
         const delta = y - prev
-        if (y < AUTO_HIDE_MIN_SCROLL) {
+        if (y <= PIN_TOP) {
           setIsHeaderVisible(true)
           return
         }
