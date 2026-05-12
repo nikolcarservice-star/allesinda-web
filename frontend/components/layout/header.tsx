@@ -22,7 +22,6 @@ import {
   Award,
   Store,
 } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -233,7 +232,7 @@ export function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, loading, logout } = useAuth()
+  const { user, logout } = useAuth()
 
   const routeNav = useMemo<NavItem>(() => {
     // Check if we're on homepage
@@ -260,9 +259,6 @@ export function Header() {
   }, [pathname, searchParams])
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [mobileNavView, setMobileNavView] = useState<"root" | "categories" | "subcategories">("root")
-  const [mobileSelectedNav, setMobileSelectedNav] = useState<NavItem | null>(null)
-  const [mobileSelectedCategory, setMobileSelectedCategory] = useState<CategoryTree | null>(null)
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false)
   const searchPanelInputRef = useRef<HTMLInputElement | null>(null)
   const [searchValue, setSearchValue] = useState("")
@@ -307,6 +303,8 @@ export function Header() {
   const megaMenuContainerRef = useRef<HTMLDivElement | null>(null)
   const [megaMenuHeight, setMegaMenuHeight] = useState(0)
   const [isDesktopSearchSuggestionsOpen, setIsDesktopSearchSuggestionsOpen] = useState(false)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+  const lastScrollYRef = useRef(0)
 
   const featuredSearchParams = useMemo(() => {
     return pathname === "/" ? searchParams : null
@@ -369,6 +367,65 @@ export function Header() {
     const rect = headerRef.current.getBoundingClientRect()
     setHeaderHeight(rect.height)
   }, [isDesktopMegaMenuOpen])
+
+  useEffect(() => {
+    lastScrollYRef.current =
+      typeof window !== "undefined"
+        ? window.scrollY || document.documentElement.scrollTop || 0
+        : 0
+    setIsHeaderVisible(true)
+  }, [pathname])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const getScrollY = () => window.scrollY || document.documentElement.scrollTop || 0
+
+    let raf = 0
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+
+    const onScroll = () => {
+      if (raf) return
+      raf = window.requestAnimationFrame(() => {
+        raf = 0
+        const y = getScrollY()
+        const prev = lastScrollYRef.current
+        lastScrollYRef.current = y
+
+        const lockOpen =
+          isMobileMenuOpen ||
+          isSearchPanelOpen ||
+          isDesktopMegaMenuOpen ||
+          isDesktopSearchSuggestionsOpen
+
+        if (lockOpen || media.matches) {
+          setIsHeaderVisible(true)
+          return
+        }
+
+        const delta = y - prev
+        if (y < 40) {
+          setIsHeaderVisible(true)
+        } else if (delta > 8) {
+          setIsHeaderVisible(false)
+        } else if (delta < -5) {
+          setIsHeaderVisible(true)
+        }
+      })
+    }
+
+    lastScrollYRef.current = getScrollY()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      if (raf) window.cancelAnimationFrame(raf)
+    }
+  }, [
+    isMobileMenuOpen,
+    isSearchPanelOpen,
+    isDesktopMegaMenuOpen,
+    isDesktopSearchSuggestionsOpen,
+  ])
 
   const selectedCategories = categoryTree[selectedNav.type] ?? []
 
@@ -878,54 +935,11 @@ export function Header() {
     setIsMobileMenuOpen(false)
   }
 
-  const handleMobileMenuChange = useCallback(
-    (next: boolean) => {
-      setIsMobileMenuOpen(next)
-      setMobileNavView("root")
-      setMobileSelectedNav(null)
-      setMobileSelectedCategory(null)
-    },
-    []
-  )
+  const handleMobileMenuChange = useCallback((next: boolean) => {
+    setIsMobileMenuOpen(next)
+  }, [])
   const mobileNavButtonClass =
     "flex w-full items-center justify-between rounded-md px-3 py-3 text-base font-semibold text-neutral-900 transition hover:bg-neutral-100"
-  const mobileListItemBaseClass =
-    "flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100"
-  const mobileListItemClass = `${mobileListItemBaseClass} justify-between`
-  const mobileListItemWithIconClass = `${mobileListItemBaseClass} gap-3`
-  const accountNavigationLinks: Array<{ label: string; href: string; icon: LucideIcon }> = [
-    { label: "Profil", href: "/profile", icon: User },
-    { label: "Favoriten", href: "/favorites", icon: Heart },
-    { label: "Benachrichtigungen", href: "/notifications", icon: Bell },
-    { label: "Buchungen", href: "/bookings", icon: CalendarCheck },
-    { label: "Nachrichten", href: "/messages", icon: MessageSquare },
-  ]
-  const accountNavigationRows: Array<
-    | { kind: "link"; icon: LucideIcon; label: string; href: string; badge?: string }
-    | { kind: "role" }
-    | { kind: "auth" }
-    | { kind: "break" }
-  > = user ? [
-    ...accountNavigationLinks.map((link) => ({
-      kind: "link" as const,
-      icon: link.icon,
-      label: link.label,
-      href: link.href,
-    })),
-    { kind: "role" },
-    { kind: "break" },
-    { kind: "auth" },
-  ] : [
-    { kind: "auth" },
-  ]
-  const roleSpecificLinks: Record<string, { label: string; href: string; icon: LucideIcon }> = {
-    master: { label: "Mein Dashboard", href: "/dashboard/master", icon: Award },
-    seller: { label: "Mein Dashboard", href: "/dashboard/seller", icon: Store },
-    admin: { label: "Admin-Panel", href: "/admin", icon: Shield },
-  }
-  const mobileRoleLink = user?.role ? roleSpecificLinks[user.role] : undefined
-  const mobileRoleIcon = mobileRoleLink?.icon
-  const RoleIcon = mobileRoleIcon
   const mobileHighlightTiles = [
     {
       key: "featured-items",
@@ -941,7 +955,7 @@ export function Header() {
     },
   ]
   const mobileAriaTitle = "Hauptnavigation"
-  const mobileAriaDescription = "Verwenden Sie dieses Menü, um Kategorien und Kontolinks zu durchsuchen."
+  const mobileAriaDescription = "Öffnen Sie die Übersicht aller Kategorien."
 
   const trendingForSelected = trendingByType[selectedNavType] ?? { status: "idle", items: [] }
 
@@ -1420,12 +1434,6 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
   }, [activeHighlightCategory, hoveredNavType, ensureCategoryHighlights, selectedNav])
 
   useEffect(() => {
-    if (mobileNavView === "subcategories" && mobileSelectedNav && mobileSelectedCategory) {
-      ensureCategoryHighlights(mobileSelectedNav, mobileSelectedCategory)
-    }
-  }, [mobileNavView, mobileSelectedNav, mobileSelectedCategory, ensureCategoryHighlights])
-
-  useEffect(() => {
     if (!isDesktopMegaMenuOpen) {
       setMegaMenuHeight(0)
       return
@@ -1619,8 +1627,20 @@ return (
 )
   }
 
+  const headerSpacerHeight =
+    isHeaderVisible && headerHeight > 0 ? headerHeight : isHeaderVisible ? 64 : 0
+
   return (
-    <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
+    <>
+      <div
+        aria-hidden
+        className="shrink-0 transition-[height] duration-300 ease-out overflow-hidden"
+        style={{ height: headerSpacerHeight }}
+      />
+      <header
+        ref={headerRef}
+        className={cn("fixed top-0 left-0 right-0 z-50", !isHeaderVisible && "pointer-events-none")}
+      >
     {isDesktopMegaMenuOpen && headerHeight > 0 && (
       <div
         className="fixed inset-x-0 bottom-0 hidden lg:block z-[45] bg-black/55 transition-opacity duration-200 pointer-events-none"
@@ -1645,7 +1665,13 @@ return (
       />
     )}
 
-    <div className="bg-white text-black">
+    <div
+      className={cn(
+        "bg-white text-black border-b border-gray-300",
+        "transition-transform duration-300 ease-out",
+        !isHeaderVisible && "-translate-y-full",
+      )}
+    >
       <div className="container mx-auto px-sides h-16 flex items-center gap-2 sm:gap-3">
         {/* Mobile: menu + space; Desktop: logo слева */}
         <div className="flex-1 flex items-center min-w-0 lg:flex-initial">
@@ -1680,109 +1706,15 @@ return (
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-6">
-                {mobileNavView === "root" && (
-                  <div className="space-y-6">
-                    {/* Скрыто: кнопки Meister/Mieten в мобильном меню */}
-                    <nav className="space-y-3 hidden">
-                      {NAV_ITEMS
-                        .filter((item) => item.type !== "product")
-                        .map((item) => (
-                          <button
-                            key={item.type}
-                            type="button"
-                            onClick={() => {
-                              setIsMobileMenuOpen(false);
-                              setSelectedNavType(item.type);
-                              router.push(`/?types=${item.type}`, { scroll: false });
-                            }}
-                            className={mobileNavButtonClass}
-                          >
-                            <span>{item.label}</span>
-                            <ChevronRight className="h-4 w-4 text-neutral-500" aria-hidden="true" />
-                          </button>
-                        ))}
-                    </nav>
-                  </div>
-                )}
-
-                <div className="mt-6 space-y-4 border-t border-black/20 pt-4">
-                  {loading ? (
-                    <div className="space-y-3">
-                      <div className="h-4 w-2/3 rounded bg-neutral-200 animate-pulse" />
-                      <div className="h-10 w-full rounded bg-neutral-200 animate-pulse" />
-                    </div>
-                  ) : (
-                    <nav className="space-y-2">
-                      {accountNavigationRows.map((row, index) => {
-                        const { kind } = row;
-                        if (kind === "break") {
-                          return <div key={`divider-${index}`} className="my-2 border-t border-neutral-200" />;
-                        }
-
-                        if (kind === "auth" && !user) {
-                          return (
-                            <SheetClose asChild key="mobile-sign-in">
-                              <Link href="/login" className={mobileListItemWithIconClass}>
-                                <LogIn className="h-4 w-4 text-neutral-600" />
-                                <span className="flex-1 text-left">Anmelden</span>
-                              </Link>
-                            </SheetClose>
-                          );
-                        }
-
-                        if (kind === "role" && mobileRoleLink && RoleIcon) {
-                          return (
-                            <SheetClose asChild key="mobile-role-link">
-                              <Link href={mobileRoleLink.href} className={mobileListItemWithIconClass}>
-                                <RoleIcon className="h-4 w-4 text-neutral-600" />
-                                <span className="flex-1 text-left">{mobileRoleLink.label}</span>
-                              </Link>
-                            </SheetClose>
-                          );
-                        }
-
-                        if (kind === "role" || kind === "auth") return null;
-
-                        return (
-                          <SheetClose asChild key={row.href}>
-                            <Link href={row.href ?? "#"} className={mobileListItemWithIconClass}>
-                              <row.icon className="h-4 w-4 text-neutral-600" />
-                              <span className="flex-1 text-left">{row.label}</span>
-                              {row.badge && (
-                                <Badge variant="secondary" className="ml-auto h-5 px-2 text-[11px] font-semibold">
-                                  {row.badge}
-                                </Badge>
-                              )}
-                            </Link>
-                          </SheetClose>
-                        );
-                      })}
-                    </nav>
-                  )}
-                </div>
+                <nav className="space-y-3">
+                  <SheetClose asChild>
+                    <Link href={buildCategoryUrl(selectedNav)} className={mobileNavButtonClass}>
+                      <span>Все категории</span>
+                      <ChevronRight className="h-4 w-4 text-neutral-500" aria-hidden="true" />
+                    </Link>
+                  </SheetClose>
+                </nav>
               </div>
-
-              {user && (
-                <div className="border-t border-neutral-200 bg-neutral-50 px-6 py-5">
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Angemeldet als</p>
-                      <p className="text-sm font-medium text-neutral-900 truncate">{user.email}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full rounded-md border-neutral-300 font-semibold"
-                      onClick={() => {
-                        logout();
-                        handleMobileMenuChange(false);
-                      }}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" aria-hidden="true" /> Abmelden
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -1891,10 +1823,7 @@ return (
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className={cn(
-                  "flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0",
-                  !user && "lg:hidden"
-                )}
+                className="hidden lg:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
                 aria-label="Kontomenü"
               >
                 <User className="h-5 w-5" />
@@ -2087,6 +2016,7 @@ return (
         </Sheet>
       </div>
     </div>
-  </header>
-);
+      </header>
+    </>
+  );
 }
