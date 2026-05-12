@@ -30,7 +30,7 @@ function MobileBottomNav() {
   const items: NavItem[] = useMemo(
     () => [
       {
-        href: "/#search-results",
+        href: "/#hero-search",
         label: "Suchen",
         icon: Search,
         match: (p) => p === "/",
@@ -79,10 +79,19 @@ function MobileBottomNav() {
     >
       {items.map(({ href, label, icon: Icon, match }) => {
         const active = match(pathname)
+        const isHeroSearch = label === "Suchen"
         return (
           <Link
             key={`${label}-${href}`}
             href={href}
+            onClick={(e) => {
+              if (!isHeroSearch || pathname !== "/") return
+              e.preventDefault()
+              document.getElementById("hero-search")?.scrollIntoView({ behavior: "smooth", block: "start" })
+              window.setTimeout(() => {
+                document.getElementById("hero-search-input")?.focus({ preventScroll: true })
+              }, 420)
+            }}
             className={cn(
               "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[10px] font-semibold leading-tight transition-colors sm:text-[11px]",
               active ? "text-black" : "text-neutral-500 hover:text-neutral-800",

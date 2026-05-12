@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Search, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,8 @@ const ERASING_PAUSE_MS = 400
 
 const PLACEHOLDER_IMAGE = "/placeholder.jpg"
 
+const HERO_SEARCH_INPUT_ID = "hero-search-input"
+
 export type HeroBannerProps = {
   categories?: CategoryTree[]
   selectedCategory?: CategoryTree | null
@@ -32,6 +34,7 @@ export type HeroBannerProps = {
 
 export function HeroBanner({ categories = [], selectedCategory = null, onCategoryClick, categoriesLoading = false }: HeroBannerProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = useState("")
   const [cityId, setCityId] = useState<number | undefined>(() => {
@@ -52,6 +55,17 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
       setCityId(undefined)
     }
   }, [searchParams])
+
+  useEffect(() => {
+    if (pathname !== "/") return
+    if (typeof window === "undefined") return
+    if (window.location.hash !== "#hero-search") return
+    const timer = window.setTimeout(() => {
+      document.getElementById(HERO_SEARCH_INPUT_ID)?.focus({ preventScroll: true })
+    }, 480)
+    return () => window.clearTimeout(timer)
+  }, [pathname])
+
   const [wordIndex, setWordIndex] = useState(0)
   const [isTyping, setIsTyping] = useState(true)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -152,7 +166,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
   // Убрано, чтобы страница всегда прокручивалась колёсиком даже над лентой.
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section id="hero-search" className="relative w-full overflow-hidden scroll-mt-16 sm:scroll-mt-[72px]">
       {/* Banner: на мобиле компактно — меньше высота и текст, чтобы карточки были видны */}
       <div className="relative min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] w-full">
         <div className="absolute inset-0 z-0">
@@ -196,6 +210,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                 </div>
                 <div className="relative flex flex-1 items-center min-w-0">
                   <Input
+                    id={HERO_SEARCH_INPUT_ID}
                     type="search"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
