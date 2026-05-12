@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter, useSearchParams, type ReadonlyURLSearchParams } from "next/navigation"
 import type { MouseEvent } from "react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import {
   Menu,
   User,
@@ -305,6 +305,7 @@ export function Header() {
   const [isDesktopSearchSuggestionsOpen, setIsDesktopSearchSuggestionsOpen] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const lastScrollYRef = useRef(0)
+  const prevHeaderVisibleForScrollRef = useRef(true)
 
   const featuredSearchParams = useMemo(() => {
     return pathname === "/" ? searchParams : null
@@ -374,7 +375,32 @@ export function Header() {
         ? window.scrollY || document.documentElement.scrollTop || 0
         : 0
     setIsHeaderVisible(true)
+    prevHeaderVisibleForScrollRef.current = true
   }, [pathname])
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+    if (media.matches) return
+
+    const H = headerHeight > 0 ? headerHeight : 64
+    const wasVisible = prevHeaderVisibleForScrollRef.current
+    prevHeaderVisibleForScrollRef.current = isHeaderVisible
+    if (wasVisible === isHeaderVisible) return
+
+    const y = window.scrollY || document.documentElement.scrollTop || 0
+    let next = y
+    if (wasVisible && !isHeaderVisible) {
+      next = Math.max(0, y - H)
+    } else if (!wasVisible && isHeaderVisible) {
+      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+      next = Math.min(max, y + H)
+    }
+    if (next !== y) {
+      window.scrollTo({ left: 0, top: next, behavior: "instant" as ScrollBehavior })
+      lastScrollYRef.current = next
+    }
+  }, [isHeaderVisible, headerHeight])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -404,11 +430,11 @@ export function Header() {
         }
 
         const delta = y - prev
-        if (y < 40) {
+        if (y < 120) {
           setIsHeaderVisible(true)
-        } else if (delta > 8) {
+        } else if (delta > 14) {
           setIsHeaderVisible(false)
-        } else if (delta < -5) {
+        } else if (delta < -10) {
           setIsHeaderVisible(true)
         }
       })
@@ -942,8 +968,6 @@ export function Header() {
   const handleMobileMenuChange = useCallback((next: boolean) => {
     setIsMobileMenuOpen(next)
   }, [])
-  const mobileNavButtonClass =
-    "flex w-full items-center justify-between rounded-md px-3 py-3 text-base font-semibold text-neutral-900 transition hover:bg-neutral-100"
   const mobileCategoryRowClass =
     "flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100"
   const mobileHighlightTiles = [
@@ -961,9 +985,7 @@ export function Header() {
     },
   ]
   const mobileAriaTitle = "Kategorien"
-  const mobileAriaDescription =
-    "Wählen Sie eine Kategorie oder öffnen Sie unten die vollständige Übersicht aller Kategorien."
-  const mobileSheetAllCategoriesLabel = "Alle Kategorien"
+  const mobileAriaDescription = "Wählen Sie eine Kategorie aus der Liste."
 
   const trendingForSelected = trendingByType[selectedNavType] ?? { status: "idle", items: [] }
 
@@ -1642,8 +1664,8 @@ return (
     <>
       <div
         aria-hidden
-        className="shrink-0 transition-[height] duration-300 ease-out overflow-hidden"
-        style={{ height: headerSpacerHeight }}
+        className="shrink-0 overflow-hidden"
+        style={{ height: headerSpacerHeight, transition: "height 120ms ease-out" }}
       />
       <header
         ref={headerRef}
@@ -1754,17 +1776,6 @@ return (
                     </ul>
                   )}
                 </div>
-              </div>
-
-              <div className="mt-auto shrink-0 border-t border-neutral-200 px-6 py-5">
-                <nav aria-label={mobileAriaTitle}>
-                  <SheetClose asChild>
-                    <Link href={buildCategoryUrl(selectedNav)} className={mobileNavButtonClass}>
-                      <span>{mobileSheetAllCategoriesLabel}</span>
-                      <ChevronRight className="h-4 w-4 text-neutral-500" aria-hidden="true" />
-                    </Link>
-                  </SheetClose>
-                </nav>
               </div>
             </div>
           </SheetContent>
