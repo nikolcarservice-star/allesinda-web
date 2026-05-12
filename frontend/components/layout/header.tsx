@@ -428,6 +428,10 @@ export function Header() {
   ])
 
   const selectedCategories = categoryTree[selectedNav.type] ?? []
+  const mobileMenuCategories = useMemo(
+    () => selectedCategories.filter((category: CategoryTree) => Boolean(category.slug)),
+    [selectedCategories],
+  )
 
   useEffect(() => {
     let isMounted = true
@@ -940,6 +944,8 @@ export function Header() {
   }, [])
   const mobileNavButtonClass =
     "flex w-full items-center justify-between rounded-md px-3 py-3 text-base font-semibold text-neutral-900 transition hover:bg-neutral-100"
+  const mobileCategoryRowClass =
+    "flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100"
   const mobileHighlightTiles = [
     {
       key: "featured-items",
@@ -956,7 +962,7 @@ export function Header() {
   ]
   const mobileAriaTitle = "Kategorien"
   const mobileAriaDescription =
-    "Öffnen Sie unten die vollständige Übersicht aller Kategorien auf der Website."
+    "Wählen Sie eine Kategorie oder öffnen Sie unten die vollständige Übersicht aller Kategorien."
   const mobileSheetAllCategoriesLabel = "Alle Kategorien"
 
   const trendingForSelected = trendingByType[selectedNavType] ?? { status: "idle", items: [] }
@@ -1711,9 +1717,46 @@ return (
                 <SheetDescription className="sr-only">{mobileAriaDescription}</SheetDescription>
               </div>
 
-              <div className="min-h-0 flex-1" aria-hidden />
+              <div className="min-h-0 flex-1 overflow-hidden flex flex-col">
+                <div className="flex-1 overflow-y-auto px-6 py-3">
+                  {categoriesLoading ? (
+                    <div className="space-y-2" aria-busy="true" aria-label="Kategorien werden geladen">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div
+                          key={i}
+                          className="h-10 w-full rounded-md bg-neutral-100 animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  ) : mobileMenuCategories.length === 0 ? (
+                    <p className="text-sm text-neutral-500">Keine Kategorien verfügbar.</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {mobileMenuCategories.map((category: CategoryTree) => (
+                        <li key={category.id}>
+                          <SheetClose asChild>
+                            <Link
+                              href={buildCategoryUrl(
+                                selectedNav,
+                                getDefaultCategorySlug(category),
+                              )}
+                              className={mobileCategoryRowClass}
+                            >
+                              <span className="min-w-0 flex-1 truncate text-left">{category.name}</span>
+                              <ChevronRight
+                                className="h-4 w-4 shrink-0 text-neutral-400"
+                                aria-hidden="true"
+                              />
+                            </Link>
+                          </SheetClose>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
 
-              <div className="mt-auto border-t border-neutral-200 px-6 py-5">
+              <div className="mt-auto shrink-0 border-t border-neutral-200 px-6 py-5">
                 <nav aria-label={mobileAriaTitle}>
                   <SheetClose asChild>
                     <Link href={buildCategoryUrl(selectedNav)} className={mobileNavButtonClass}>
