@@ -954,8 +954,10 @@ export function Header() {
       href: "/?sort=trending_desc",
     },
   ]
-  const mobileAriaTitle = "Hauptnavigation"
-  const mobileAriaDescription = "Öffnen Sie die Übersicht aller Kategorien."
+  const mobileAriaTitle = "Kategorien"
+  const mobileAriaDescription =
+    "Öffnen Sie unten die vollständige Übersicht aller Kategorien auf der Website."
+  const mobileSheetAllCategoriesLabel = "Alle Kategorien"
 
   const trendingForSelected = trendingByType[selectedNavType] ?? { status: "idle", items: [] }
 
@@ -1690,26 +1692,32 @@ return (
           </SheetTrigger>
           <SheetContent side="left" className="w-[320px] sm:w-[360px] p-0">
             <div className="flex h-full flex-col bg-white">
-              <SheetTitle className="sr-only">{mobileAriaTitle}</SheetTitle>
-              <SheetDescription className="sr-only">{mobileAriaDescription}</SheetDescription>
-              
               <div className="flex items-center gap-3 border-b border-neutral-200 px-6 py-5">
                 <div className="relative h-9 w-[140px] -ml-1">
-                  <Image 
-                    src="/logo_dark.webp" 
-                    alt="Allesinda" 
-                    fill 
-                    sizes="140px" 
-                    className="object-contain object-left" 
+                  <Image
+                    src="/logo_dark.webp"
+                    alt="Allesinda"
+                    fill
+                    sizes="140px"
+                    className="object-contain object-left"
                   />
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-6 py-6">
-                <nav className="space-y-3">
+              <div className="border-b border-neutral-200 px-6 py-4">
+                <SheetTitle className="text-lg font-bold text-neutral-900 tracking-tight">
+                  {mobileAriaTitle}
+                </SheetTitle>
+                <SheetDescription className="sr-only">{mobileAriaDescription}</SheetDescription>
+              </div>
+
+              <div className="min-h-0 flex-1" aria-hidden />
+
+              <div className="mt-auto border-t border-neutral-200 px-6 py-5">
+                <nav aria-label={mobileAriaTitle}>
                   <SheetClose asChild>
                     <Link href={buildCategoryUrl(selectedNav)} className={mobileNavButtonClass}>
-                      <span>Все категории</span>
+                      <span>{mobileSheetAllCategoriesLabel}</span>
                       <ChevronRight className="h-4 w-4 text-neutral-500" aria-hidden="true" />
                     </Link>
                   </SheetClose>
