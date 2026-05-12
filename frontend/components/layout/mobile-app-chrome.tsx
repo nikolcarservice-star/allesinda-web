@@ -14,22 +14,22 @@ function MobileBottomNav() {
   const profileHref = user ? "/profile" : "/login"
 
   const items = [
-    { href: "/", label: "Главная", icon: Home, match: (p: string) => p === "/" },
+    { href: "/", label: "Startseite", icon: Home, match: (p: string) => p === "/" },
     {
       href: "/favorites",
-      label: "Избранное",
+      label: "Favoriten",
       icon: Heart,
       match: (p: string) => p.startsWith("/favorites"),
     },
     {
       href: "/messages",
-      label: "Сообщения",
+      label: "Nachrichten",
       icon: MessageSquare,
       match: (p: string) => p.startsWith("/messages"),
     },
     {
       href: profileHref,
-      label: "Профиль",
+      label: "Profil",
       icon: User,
       match: (p: string) =>
         p.startsWith("/profile") || (!user && (p.startsWith("/login") || p.startsWith("/signup"))),
@@ -43,7 +43,7 @@ function MobileBottomNav() {
         "pb-[max(0.35rem,env(safe-area-inset-bottom,0px))] pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]",
         "lg:hidden",
       )}
-      aria-label="Основная навигация"
+      aria-label="Untere Navigation"
     >
       {items.map(({ href, label, icon: Icon, match }) => {
         const active = match(pathname)
