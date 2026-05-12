@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter, useSearchParams, type ReadonlyURLSearchParams } from "next/navigation"
 import type { MouseEvent } from "react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import {
   Menu,
   User,
@@ -303,6 +303,9 @@ export function Header() {
   const megaMenuContainerRef = useRef<HTMLDivElement | null>(null)
   const [megaMenuHeight, setMegaMenuHeight] = useState(0)
   const [isDesktopSearchSuggestionsOpen, setIsDesktopSearchSuggestionsOpen] = useState(false)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+  const lastScrollYRef = useRef(0)
+  const prevHeaderVisibleForScrollRef = useRef(true)
 
   const featuredSearchParams = useMemo(() => {
     return pathname === "/" ? searchParams : null
@@ -365,6 +368,96 @@ export function Header() {
     const rect = headerRef.current.getBoundingClientRect()
     setHeaderHeight(rect.height)
   }, [isDesktopMegaMenuOpen])
+
+  useEffect(() => {
+    lastScrollYRef.current =
+      typeof window !== "undefined"
+        ? window.scrollY || document.documentElement.scrollTop || 0
+        : 0
+    setIsHeaderVisible(true)
+    prevHeaderVisibleForScrollRef.current = true
+  }, [pathname])
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+    const H = headerHeight > 0 ? headerHeight : 64
+    const wasVisible = prevHeaderVisibleForScrollRef.current
+    prevHeaderVisibleForScrollRef.current = isHeaderVisible
+    if (wasVisible === isHeaderVisible) return
+
+    const y = window.scrollY || document.documentElement.scrollTop || 0
+    let next = y
+    if (wasVisible && !isHeaderVisible) {
+      next = Math.max(0, y - H)
+    } else if (!wasVisible && isHeaderVisible) {
+      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+      next = Math.min(max, y + H)
+    }
+    if (next !== y) {
+      window.scrollTo({ left: 0, top: next, behavior: "instant" as ScrollBehavior })
+      lastScrollYRef.current = next
+    }
+  }, [isHeaderVisible, headerHeight])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const getScrollY = () => window.scrollY || document.documentElement.scrollTop || 0
+    /** Не скрываем шапку в зоне героя/карусели — избегаем дёрганья документа у верха */
+    const AUTO_HIDE_MIN_SCROLL = 220
+    const DELTA_HIDE = 10
+    const DELTA_SHOW = 6
+
+    let raf = 0
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+
+    const onScroll = () => {
+      if (raf) return
+      raf = window.requestAnimationFrame(() => {
+        raf = 0
+        const y = getScrollY()
+        const prev = lastScrollYRef.current
+        lastScrollYRef.current = y
+
+        const lockOpen =
+          isMobileMenuOpen ||
+          isSearchPanelOpen ||
+          isDesktopMegaMenuOpen ||
+          isDesktopSearchSuggestionsOpen
+
+        if (lockOpen || media.matches) {
+          setIsHeaderVisible(true)
+          return
+        }
+
+        const delta = y - prev
+        if (y < AUTO_HIDE_MIN_SCROLL) {
+          setIsHeaderVisible(true)
+          return
+        }
+
+        if (delta > DELTA_HIDE) {
+          setIsHeaderVisible(false)
+        } else if (delta < -DELTA_SHOW) {
+          setIsHeaderVisible(true)
+        }
+      })
+    }
+
+    lastScrollYRef.current = getScrollY()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      if (raf) window.cancelAnimationFrame(raf)
+    }
+  }, [
+    isMobileMenuOpen,
+    isSearchPanelOpen,
+    isDesktopMegaMenuOpen,
+    isDesktopSearchSuggestionsOpen,
+  ])
 
   const selectedCategories = categoryTree[selectedNav.type] ?? []
   const mobileMenuCategories = useMemo(
@@ -1570,8 +1663,16 @@ return (
 )
   }
 
+  const headerSpacerHeight =
+    isHeaderVisible && headerHeight > 0 ? headerHeight : isHeaderVisible ? 64 : 0
+
   return (
-    <header ref={headerRef} className="sticky top-0 z-50 bg-white border-b border-gray-300">
+    <>
+      <div aria-hidden className="shrink-0 overflow-hidden" style={{ height: headerSpacerHeight }} />
+      <header
+        ref={headerRef}
+        className={cn("fixed top-0 left-0 right-0 z-50", !isHeaderVisible && "pointer-events-none")}
+      >
     {isDesktopMegaMenuOpen && headerHeight > 0 && (
       <div
         className="fixed inset-x-0 bottom-0 hidden lg:block z-[45] bg-black/55 transition-opacity duration-200 pointer-events-none"
@@ -1596,7 +1697,13 @@ return (
       />
     )}
 
-    <div className="bg-white text-black">
+    <div
+      className={cn(
+        "bg-white text-black border-b border-gray-300",
+        "transition-transform duration-300 ease-out will-change-transform",
+        !isHeaderVisible && "-translate-y-full",
+      )}
+    >
       <div className="container mx-auto px-sides h-16 flex items-center gap-2 sm:gap-3">
         {/* Mobile: menu + space; Desktop: logo слева */}
         <div className="flex-1 flex items-center min-w-0 lg:flex-initial">
@@ -1974,5 +2081,6 @@ return (
       </div>
     </div>
   </header>
+    </>
   );
 }
