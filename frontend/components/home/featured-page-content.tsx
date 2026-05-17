@@ -805,17 +805,18 @@ export function FeaturedPageContent() {
   const breadcrumbItems = useMemo(() => {
     const items: Array<{ label: string; slug: string | null; isLast: boolean }> = []
     
-    // First item: Type name (always present, clickable if category selected)
-    const typeLabels: Record<CategoryType, string> = {
-      master: "Meister",
-      product: "Produkt",
-      rental: "Mieten",
+    // Type label in breadcrumb (master omits "Meister" — categories only)
+    if (activeType !== "master") {
+      const typeLabels: Record<Exclude<CategoryType, "master">, string> = {
+        product: "Produkt",
+        rental: "Mieten",
+      }
+      items.push({
+        label: typeLabels[activeType],
+        slug: null, // null means "all categories" for this type
+        isLast: selectedParentCategory === "all" && selectedSubcategory === "all",
+      })
     }
-    items.push({
-      label: typeLabels[activeType],
-      slug: null, // null means "all categories" for this type
-      isLast: selectedParentCategory === "all" && selectedSubcategory === "all",
-    })
 
     // Second item: Parent category (if selected)
     if (selectedParentCategory !== "all") {
@@ -852,19 +853,16 @@ export function FeaturedPageContent() {
     params.set("types", activeType)
     params.set("page", "1")
 
-    // If clicking on type (index 0), clear all categories
-    if (index === 0) {
+    // Type segment (slug null): clear all categories
+    if (item.slug === null) {
       params.delete("category")
-      // Update URL - the useEffect will sync state from URL
       router.replace(`/?${params.toString()}`)
       return
     }
 
-    // If clicking on parent category (index 1), keep parent but clear subcategory
-    if (index === 1 && item.slug) {
-      // Set category to parent category slug - this will be handled by findCategorySelection
+    // Parent category: keep parent, clear subcategory
+    if (item.slug && !item.isLast) {
       params.set("category", item.slug)
-      // Update URL - the useEffect will sync state from URL and findCategorySelection will determine it's a parent
       router.replace(`/?${params.toString()}`)
       return
     }
@@ -1953,21 +1951,7 @@ export function FeaturedPageContent() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 pb-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {loading && hasResults ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Ergebnisse werden aktualisiert…</span>
-              </>
-            ) : (
-              <span>
-                {loading && !hasResults
-                  ? "Lädt..."
-                  : `${data?.total ?? 0} ${(data?.total ?? 0) === 1 ? "Artikel" : "Artikel"} gefunden`}
-              </span>
-            )}
-          </div>
+        <div className="flex items-center justify-end gap-4 pb-6 lg:hidden">
           {/* Filter button - hidden on large screens */}
           <Button
             variant="outline"
