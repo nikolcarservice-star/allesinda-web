@@ -598,7 +598,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
   )
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-0 flex-col lg:min-h-screen">
       <HeroBanner
         categories={categoryTree}
         selectedCategory={selectedCategory}
@@ -606,11 +606,11 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
         categoriesLoading={categoriesLoading}
       />
 
-      <section id="search-results" className="min-h-[40vh]" key={searchParams?.toString() ?? ""}>
+      <section id="search-results" key={searchParams?.toString() ?? ""}>
         <FeaturedPageContent />
       </section>
 
-      <section className="bg-white py-3 sm:py-4 md:py-5">
+      <section className="hidden bg-white py-3 sm:py-4 md:py-5 lg:block">
         <div className="container mx-auto space-y-2 px-sides sm:space-y-6 md:space-y-6">
           <div className="space-y-2">
             <div className="flex flex-row items-center justify-between gap-4">
@@ -658,7 +658,7 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
         </div>
       </section>
 
-      <section className="bg-white py-12 sm:py-16">
+      <section className="hidden bg-white py-12 sm:py-16 lg:block">
         <div className="container mx-auto flex flex-col gap-6 px-sides">
           <div className="flex flex-col gap-4">
             {/* Title row with Clear all button */}

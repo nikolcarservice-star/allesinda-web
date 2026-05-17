@@ -61,6 +61,7 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
 ]
 
 const PAGE_SIZE_OPTIONS = [12, 24, 36]
+const MOBILE_FEED_PAGE_SIZE = 24
 
 const DEFAULT_RADIUS_KM = 25
 
@@ -81,6 +82,21 @@ interface FeaturedState {
   data: PaginatedResponse<FeaturedItem> | null
   loading: boolean
   error?: string
+}
+
+function mergeFeaturedItems(
+  previous: FeaturedItem[],
+  incoming: FeaturedItem[],
+): FeaturedItem[] {
+  const seen = new Set<string>()
+  const merged: FeaturedItem[] = []
+  for (const item of [...previous, ...incoming]) {
+    const key = `${item.type}-${item.id}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(item)
+  }
+  return merged
 }
 
 interface MasterSearchResult extends Profile {
@@ -450,6 +466,11 @@ export function FeaturedPageContent() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false) // Default to closed
   const [isSheetClosing, setIsSheetClosing] = useState(false)
   const [isDesktop, setIsDesktop] = useState(false)
+  const [isMobileViewport, setIsMobileViewport] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const appendResultsRef = useRef(false)
+  const loadMoreLockRef = useRef(false)
+  const feedSentinelRef = useRef<HTMLDivElement | null>(null)
   const lastRequestSignatureRef = useRef<string | null>(null)
   const isUpdatingUrlRef = useRef(false) // Track when we're updating URL after API call to prevent sort useEffect from triggering
   const isLoadingRef = useRef(false) // Track if a request is currently in progress to prevent duplicate calls
@@ -551,6 +572,16 @@ export function FeaturedPageContent() {
     return () => {
       mediaQuery.removeEventListener("change", handleChange)
     }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const mobileQuery = window.matchMedia("(max-width: 1023px)")
+    const applyMobile = (matches: boolean) => setIsMobileViewport(matches)
+    applyMobile(mobileQuery.matches)
+    const onMobileChange = (event: MediaQueryListEvent) => applyMobile(event.matches)
+    mobileQuery.addEventListener("change", onMobileChange)
+    return () => mobileQuery.removeEventListener("change", onMobileChange)
   }, [])
 
   useEffect(() => {
@@ -964,6 +995,8 @@ export function FeaturedPageContent() {
       sortOption === "price_desc" || sortOption === "rating_desc" || sortOption === "trending_desc" ? "desc" :
       undefined
 
+    const effectivePageSize = isMobileViewport ? MOBILE_FEED_PAGE_SIZE : pageSize
+
     const requestSignature = JSON.stringify({
       type: activeType,
       search: searchQuery ?? "",
@@ -975,7 +1008,7 @@ export function FeaturedPageContent() {
       longitude: locationEnabled ? longitude : null,
       radiusKm: locationEnabled ? radiusKm : null,
       page,
-      pageSize,
+      pageSize: effectivePageSize,
       sortOption,
       category: categoryQueryParamForRequest,
       minPrice: normalizedMinPrice ?? null,
@@ -995,6 +1028,11 @@ export function FeaturedPageContent() {
           currentSignature: requestSignature,
           isLoading: isLoadingRef.current
         })
+      }
+      if (appendResultsRef.current && page > 1) {
+        appendResultsRef.current = false
+        loadMoreLockRef.current = false
+        setLoadingMore(false)
       }
       return
     }
@@ -1034,7 +1072,12 @@ export function FeaturedPageContent() {
     lastRequestSignatureRef.current = requestSignature
     isLoadingRef.current = true
 
-    setState((prev) => ({ ...prev, loading: true, error: undefined }))
+    const isAppendLoad = appendResultsRef.current && page > 1
+    if (isAppendLoad) {
+      setLoadingMore(true)
+    } else {
+      setState((prev) => ({ ...prev, loading: true, error: undefined }))
+    }
     try {
       // Use the featured endpoint which already returns FeaturedItem format
       // Use urlCityId (from URL params) instead of cityId (from state) to avoid race conditions
@@ -1060,7 +1103,7 @@ export function FeaturedPageContent() {
         max_price: normalizedMaxPrice,
         min_rating: minRating,
         page,
-        page_size: pageSize,
+        page_size: effectivePageSize,
         sort_by: sortByParam,
         sort_order: sortOrderParam,
       })
@@ -1075,10 +1118,32 @@ export function FeaturedPageContent() {
         items: orderedItems,
         total: filteredTotal,
         page: featuredResponse.page ?? page,
-        page_size: featuredResponse.page_size ?? pageSize,
+        page_size: featuredResponse.page_size ?? effectivePageSize,
         total_pages:
-          featuredResponse.total_pages ?? Math.max(1, Math.ceil(filteredTotal / pageSize)),
+          featuredResponse.total_pages ??
+          Math.max(1, Math.ceil(filteredTotal / effectivePageSize)),
       }
+
+      const shouldAppendItems = appendResultsRef.current && page > 1
+      if (shouldAppendItems) {
+        appendResultsRef.current = false
+        loadMoreLockRef.current = false
+        setLoadingMore(false)
+      }
+
+      const applyFeaturedState = (prev: FeaturedState): FeaturedState => {
+        const items =
+          shouldAppendItems && prev.data?.items?.length
+            ? mergeFeaturedItems(prev.data.items, response.items)
+            : response.items
+        return {
+          data: { ...response, items },
+          loading: false,
+          error: undefined,
+        }
+      }
+
+      const skipUrlUpdateForMobileAppend = isMobileViewport && page > 1
 
       // Verify the request signature is still valid before updating state
       // This prevents race conditions where multiple calls complete out of order
@@ -1180,12 +1245,16 @@ export function FeaturedPageContent() {
         nextParams.delete("sort")
       }
       nextParams.set("page", String(page))
-      nextParams.set("page_size", String(pageSize))
+      nextParams.set("page_size", String(effectivePageSize))
 
       // Only update URL if it's different and the request signature is still valid
       // This prevents unnecessary URL updates that would trigger another loadFeatured call
         const nextQuery = nextParams.toString()
-      if (nextQuery !== currentParams.toString() && lastRequestSignatureRef.current === requestSignature) {
+      if (
+        nextQuery !== currentParams.toString() &&
+        lastRequestSignatureRef.current === requestSignature &&
+        !skipUrlUpdateForMobileAppend
+      ) {
           // Update the sort ref BEFORE updating URL to prevent the sort useEffect from triggering another API call
           // This ensures that when the URL changes and searchParams updates, the useEffect sees the ref is already in sync
           lastSyncedSortParamRef.current = sortOption
@@ -1198,7 +1267,7 @@ export function FeaturedPageContent() {
         // Batch state update and URL update together using startTransition to reduce flicker
         startTransition(() => {
           // Update state first
-          setState({ data: response, loading: false })
+          setState(applyFeaturedState)
           
           // Then update URL in the same transition
           router.replace(nextQuery ? `/?${nextQuery}` : "/")
@@ -1215,12 +1284,15 @@ export function FeaturedPageContent() {
         })
       } else {
         // No URL update needed, just update state
-        setState({ data: response, loading: false })
+        setState(applyFeaturedState)
         isLoadingRef.current = false
       }
     } catch (err) {
       console.error("Failed to load featured items", err)
       isLoadingRef.current = false
+      setLoadingMore(false)
+      appendResultsRef.current = false
+      loadMoreLockRef.current = false
       // Only update state if this is still the current request
       if (lastRequestSignatureRef.current === requestSignature) {
         isLoadingRef.current = false
@@ -1251,6 +1323,7 @@ export function FeaturedPageContent() {
     sortOption,
     page,
     pageSize,
+    isMobileViewport,
     router,
     searchParams,
     isMasterType,
@@ -1388,6 +1461,39 @@ export function FeaturedPageContent() {
   )
   const hasResults = Boolean(data?.items && data.items.length > 0)
   const showLoadingPlaceholders = loading && !hasResults
+  const canLoadMoreOnMobile =
+    isMobileViewport && hasResults && page < totalPages && !loading && !loadingMore
+
+  useEffect(() => {
+    if (!canLoadMoreOnMobile) return
+    const node = feedSentinelRef.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        if (!entry?.isIntersecting) return
+        if (loadMoreLockRef.current || isLoadingRef.current) return
+        if (page >= totalPages) return
+
+        loadMoreLockRef.current = true
+        appendResultsRef.current = true
+        setPage((current) => current + 1)
+      },
+      { root: null, rootMargin: "280px 0px", threshold: 0 },
+    )
+
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [canLoadMoreOnMobile, page, totalPages])
+
+  const mobileLoadMorePlaceholders = useMemo(
+    () =>
+      Array.from({ length: 4 }, (_, index) => (
+        <MarketplaceItemCardSkeleton key={`load-more-skeleton-${index}`} />
+      )),
+    [],
+  )
 
   return (
     <div className="bg-background">
@@ -1794,7 +1900,7 @@ export function FeaturedPageContent() {
         </div>
       </section>
 
-      <section className="container mx-auto px-sides pb-10">
+      <section className="container mx-auto px-sides pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] lg:pb-10">
         {/* Desktop Filters - visible on large screens */}
         <div className="hidden lg:block mb-6 bg-background">
           <div className="py-1">
@@ -1993,11 +2099,16 @@ export function FeaturedPageContent() {
                 <p className="text-sm text-muted-foreground">Try changing filters or search terms.</p>
               </div>
             )}
+            {loadingMore ? mobileLoadMorePlaceholders : null}
           </div>
         )}
 
+        {canLoadMoreOnMobile ? (
+          <div ref={feedSentinelRef} className="h-px w-full" aria-hidden />
+        ) : null}
+
         {renderPagination ? (
-          <div className="mt-10 flex items-center justify-center">
+          <div className="mt-10 hidden items-center justify-center lg:flex">
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
