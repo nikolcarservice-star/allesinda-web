@@ -17,7 +17,6 @@ import {
   LogIn,
   Bell,
   CalendarCheck,
-  MessageSquare,
   Shield,
   Award,
   Store,
@@ -42,7 +41,6 @@ import {
 } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/context/auth-context"
 import { NotificationDropdown } from "@/components/layout/notification-dropdown"
-import { MessagesLinkWithBadge } from "@/components/layout/messages-link-with-badge"
 import { cn, formatPrice, getOptimizedImageUrl } from "@/lib/utils"
 import { ApiClientError, getCategoryTreeByType } from "@/lib/api"
 import { logger } from "@/lib/logger"
@@ -1862,9 +1860,6 @@ return (
               >
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
-              <div className="flex items-center gap-1 sm:gap-2 lg:hidden">
-                <MessagesLinkWithBadge variant="mobile" aria-label="Nachrichten" />
-              </div>
             </>
           )}
 
@@ -1922,12 +1917,6 @@ return (
                         <span>Buchungen</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/messages" className="flex items-center gap-3 text-sm">
-                        <MessageSquare className="h-4 w-4 text-neutral-500" />
-                        <span>Nachrichten</span>
-                      </Link>
-                    </DropdownMenuItem>
                     {user.role === "master" && (
                       <DropdownMenuItem asChild>
                         <Link href="/dashboard/master" className="flex items-center gap-3 text-sm">
@@ -1976,7 +1965,6 @@ return (
           {/* Desktop Only Actions */}
           {user && (
             <div className="hidden items-center gap-2 overflow-visible lg:flex">
-              <MessagesLinkWithBadge variant="desktop" aria-label="Nachrichten" />
               <NotificationDropdown />
             </div>
           )}
