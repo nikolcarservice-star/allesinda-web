@@ -1,7 +1,8 @@
 "use client"
 
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { VisuallyHidden } from "@/components/ui/visually-hidden"
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
+import { X } from "lucide-react"
 import { toMediaRelativePath } from "@/lib/utils"
 
 interface VideoPlayerProps {
@@ -18,18 +19,15 @@ function isVideoUrl(url: string): boolean {
   return VIDEO_EXT.test(path)
 }
 
-/** Build a URL the browser can load for video. Prefer same-origin path so rewrite applies (avoids CORS on mobile). */
 function getVideoSrc(pathOrUrl: string): string {
   if (!pathOrUrl) return ""
   const path = toMediaRelativePath(pathOrUrl)
   if (!path) return ""
-  // Use relative path when available so mobile loads video same-origin (no CORS)
   if (path.startsWith("/")) return path
   if (path.startsWith("http://") || path.startsWith("https://")) return path
   return `/${path}`
 }
 
-/** Same-origin URL for poster image so it loads on mobile; undefined if no valid thumbnail (e.g. backend sent video URL). */
 function getPosterSrc(thumbnailUrl: string | null | undefined): string | undefined {
   if (!thumbnailUrl || isVideoUrl(thumbnailUrl)) return undefined
   const path = toMediaRelativePath(thumbnailUrl)
@@ -44,38 +42,72 @@ export function VideoPlayer({
   isOpen,
   onClose,
 }: VideoPlayerProps) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+
+    document.addEventListener("keydown", handleEscape)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [isOpen, onClose])
+
+  if (!isOpen || !mounted) return null
+
   const videoSrc = videoUrl ? getVideoSrc(videoUrl) : ""
   const posterSrc = getPosterSrc(thumbnailUrl ?? undefined)
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="!grid max-w-3xl w-[calc(100vw-2rem)] p-0 gap-0 overflow-hidden border-none bg-black rounded-sm [&_[data-slot=dialog-close]]:!absolute [&_[data-slot=dialog-close]]:!top-0 [&_[data-slot=dialog-close]]:!right-0 [&_[data-slot=dialog-close]]:!z-50 [&_[data-slot=dialog-close]]:bg-transparent [&_[data-slot=dialog-close]]:backdrop-blur-sm [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:p-2.5 [&_[data-slot=dialog-close]]:text-white [&_[data-slot=dialog-close]]:hover:bg-transparent [&_[data-slot=dialog-close]]:h-9 [&_[data-slot=dialog-close]]:w-9 [&_[data-slot=dialog-close]]:flex [&_[data-slot=dialog-close]]:items-center [&_[data-slot=dialog-close]]:justify-center [&_[data-slot=dialog-close]]:border-none sm:[&_[data-slot=dialog-close]]:h-10 sm:[&_[data-slot=dialog-close]]:w-10 sm:[&_[data-slot=dialog-close]]:p-3">
-        <VisuallyHidden>
-          <DialogTitle>{title ?? "Video"}</DialogTitle>
-          <DialogDescription>Video player dialog</DialogDescription>
-        </VisuallyHidden>
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title ?? "Video"}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 z-[10000] rounded-full bg-black/70 p-2 text-white shadow-lg transition hover:bg-black/90 hover:scale-110 active:scale-95"
+        aria-label="Schließen"
+      >
+        <X className="h-6 w-6 sm:h-8 sm:w-8" />
+      </button>
+      <div
+        className="relative flex h-full w-full max-h-[100vh] max-w-[100vw] items-center justify-center p-4 pt-14"
+        onClick={(e) => e.stopPropagation()}
+      >
         {videoSrc ? (
-          <div className="relative w-full aspect-video bg-black rounded-sm overflow-hidden">
-            <video
-              src={videoSrc}
-              controls
-              autoPlay
-              playsInline
-              muted
-              preload="metadata"
-              className="w-full h-full object-contain rounded-sm"
-              poster={posterSrc}
-            >
-              Your browser does not support the video tag.
-            </video>
-          </div>
+          <video
+            src={videoSrc}
+            controls
+            autoPlay
+            playsInline
+            preload="metadata"
+            className="max-h-full max-w-full object-contain"
+            poster={posterSrc}
+          >
+            Your browser does not support the video tag.
+          </video>
         ) : (
-          <div className="relative w-full aspect-video bg-black flex items-center justify-center text-white rounded-sm">
-            <p>{videoUrl ? "Video URL konnte nicht geladen werden" : "No video URL provided"}</p>
-          </div>
+          <p className="text-sm text-white">
+            {videoUrl ? "Video URL konnte nicht geladen werden" : "Keine Video-URL"}
+          </p>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>,
+    document.body,
   )
 }
-

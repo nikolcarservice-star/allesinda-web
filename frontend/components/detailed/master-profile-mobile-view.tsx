@@ -1,8 +1,9 @@
-"use client"
+﻿"use client"
 
 import { useMemo, useState } from "react"
 import Image from "next/image"
-import { Phone, Share2, Star, Play } from "lucide-react"
+import { Phone, Star, Play } from "lucide-react"
+import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 import type { Media } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
 import { ActionButton } from "@/components/detailed/action-button"
@@ -63,12 +64,28 @@ export function MasterProfileMobileView({
 }: MasterProfileMobileViewProps) {
   const [activeTab, setActiveTab] = useState<TabId>("photo")
   const [selectedVideo, setSelectedVideo] = useState<GalleryMediaItem | null>(null)
+  const [fullscreenPhotoIndex, setFullscreenPhotoIndex] = useState<number | null>(null)
 
   const photos = useMemo(
     () => galleryItems.filter((item) => !isVideoItem(item) && !item.is_before_after),
     [galleryItems],
   )
   const videos = useMemo(() => galleryItems.filter((item) => isVideoItem(item)), [galleryItems])
+
+  const photoItems = useMemo(() => {
+    if (photos.length > 0) return photos
+    return [
+      {
+        id: 0,
+        owner_id: 0,
+        url: heroImage,
+        media_type: "image",
+        status: "approved",
+        is_before_after: false,
+        created_at: new Date().toISOString(),
+      } satisfies GalleryMediaItem,
+    ]
+  }, [photos, heroImage])
 
   const displayTitle = professionLabel
     ? `${title} | ${professionLabel}`.toUpperCase()
@@ -123,7 +140,12 @@ export function MasterProfileMobileView({
       </div>
 
       <div className="relative mx-auto w-[min(100%,280px)] px-sides">
-        <div className="relative mx-auto aspect-square w-full max-w-[280px] overflow-hidden rounded-full border border-neutral-100 bg-neutral-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+        <button
+          type="button"
+          className="relative mx-auto block aspect-square w-full max-w-[280px] overflow-hidden rounded-full border border-neutral-100 bg-neutral-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+          onClick={() => setFullscreenPhotoIndex(0)}
+          aria-label="Profilfoto vergrГ¶Гџern"
+        >
           <Image
             src={heroImage}
             alt={title}
@@ -132,7 +154,7 @@ export function MasterProfileMobileView({
             sizes="280px"
             priority
           />
-        </div>
+        </button>
         {priceFromLabel && (
           <div className="absolute right-3 top-3 z-10 rounded-md border border-neutral-200 bg-white/95 px-2.5 py-1 text-xs font-medium text-neutral-700 shadow-sm backdrop-blur-sm sm:right-4">
             <span className="text-neutral-500">Ab </span>
@@ -169,22 +191,23 @@ export function MasterProfileMobileView({
             className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             role="tabpanel"
           >
-            {(photos.length > 0 ? photos : [{ id: 0, url: heroImage, media_type: "image" } as GalleryMediaItem]).map(
-              (item) => (
-                <div
-                  key={item.id}
-                  className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100"
-                >
-                  <Image
-                    src={getItemImageUrl(item)}
-                    alt={item.title || "Arbeit"}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
-                </div>
-              ),
-            )}
+            {photoItems.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100"
+                onClick={() => setFullscreenPhotoIndex(index)}
+                aria-label={item.title || `Foto ${index + 1} anzeigen`}
+              >
+                <Image
+                  src={getItemImageUrl(item)}
+                  alt={item.title || "Arbeit"}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                />
+              </button>
+            ))}
           </div>
         )}
 
@@ -252,6 +275,30 @@ export function MasterProfileMobileView({
           onClose={() => setSelectedVideo(null)}
         />
       )}
+
+      <FullscreenImageViewer
+        isOpen={fullscreenPhotoIndex !== null}
+        onClose={() => setFullscreenPhotoIndex(null)}
+        imageUrl={
+          fullscreenPhotoIndex !== null ? getItemImageUrl(photoItems[fullscreenPhotoIndex]) : null
+        }
+        alt={
+          fullscreenPhotoIndex !== null
+            ? photoItems[fullscreenPhotoIndex]?.title || title
+            : title
+        }
+        onPrevious={
+          fullscreenPhotoIndex !== null && fullscreenPhotoIndex > 0
+            ? () => setFullscreenPhotoIndex((index) => (index !== null ? index - 1 : null))
+            : undefined
+        }
+        onNext={
+          fullscreenPhotoIndex !== null && fullscreenPhotoIndex < photoItems.length - 1
+            ? () => setFullscreenPhotoIndex((index) => (index !== null ? index + 1 : null))
+            : undefined
+        }
+      />
     </div>
   )
 }
+

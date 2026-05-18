@@ -252,7 +252,7 @@ export function ProductRentalGallery({ items, variant = "default" }: ProductRent
         imageUrl={fullscreenIndex !== null ? normalizedItems[fullscreenIndex]?.url : null}
         alt={fullscreenIndex !== null ? normalizedItems[fullscreenIndex]?.alt ?? "Gallery image" : "Gallery image"}
         onPrevious={
-          variant !== "hero" && fullscreenIndex !== null && normalizedItems.length > 1
+          fullscreenIndex !== null && normalizedItems.length > 1
             ? () => {
                 const nextIndex = fullscreenIndex - 1 < 0 ? normalizedItems.length - 1 : fullscreenIndex - 1
                 setFullscreenIndex(nextIndex)
@@ -261,7 +261,7 @@ export function ProductRentalGallery({ items, variant = "default" }: ProductRent
             : undefined
         }
         onNext={
-          variant !== "hero" && fullscreenIndex !== null && normalizedItems.length > 1
+          fullscreenIndex !== null && normalizedItems.length > 1
             ? () => {
                 const nextIndex = fullscreenIndex + 1 >= normalizedItems.length ? 0 : fullscreenIndex + 1
                 setFullscreenIndex(nextIndex)
