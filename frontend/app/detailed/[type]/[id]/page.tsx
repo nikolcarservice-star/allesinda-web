@@ -140,6 +140,38 @@ function humanizeLabel(text: string): string {
     .join(" ")
 }
 
+function buildMasterProfileCategories(detail: FeaturedDetail): string[] {
+  const categories: string[] = []
+  const add = (value?: string | null) => {
+    const trimmed = value?.trim()
+    if (!trimmed) return
+    const normalized = trimmed.toLowerCase()
+    if (categories.some((item) => item.toLowerCase() === normalized)) return
+    categories.push(trimmed)
+  }
+
+  if (detail.category) {
+    add(humanizeLabel(detail.category))
+  }
+
+  const extra = (detail.extra ?? {}) as Record<string, unknown>
+  const extraCategories = extra.categories ?? extra.category_names
+  if (Array.isArray(extraCategories)) {
+    extraCategories.forEach((item) => {
+      if (typeof item === "string") add(humanizeLabel(item))
+    })
+  } else if (typeof extraCategories === "string") {
+    extraCategories.split(",").forEach((item) => add(humanizeLabel(item)))
+  }
+
+  const keywords = extra.keywords
+  if (typeof keywords === "string") {
+    keywords.split(",").forEach((item) => add(item.trim()))
+  }
+
+  return categories
+}
+
 function formatBoolean(value: boolean): string {
   return value ? "Ja" : "Nein"
 }
@@ -604,6 +636,9 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
       ? subtitle
       : null
 
+  const masterProfileCategories = buildMasterProfileCategories(detail)
+  const masterAbout = detail.description?.trim() || null
+
   const masterAvailabilityLabel = (() => {
     if (typeof masterExtra.available === "boolean") {
       return masterExtra.available ? "Verfügbar" : "Nicht verfügbar"
@@ -634,7 +669,9 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
             shareTitle={detail.title}
             shareDescription={detail.description}
             availabilityLabel={masterAvailabilityLabel}
-            description={description}
+            cityName={cityDisplay || null}
+            categories={masterProfileCategories}
+            about={masterAbout}
             galleryItems={galleryMediaItems}
             sellerId={sellerId}
           />
