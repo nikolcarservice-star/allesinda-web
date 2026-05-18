@@ -634,6 +634,7 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
             shareTitle={detail.title}
             shareDescription={detail.description}
             availabilityLabel={masterAvailabilityLabel}
+            description={description}
             galleryItems={galleryMediaItems}
             sellerId={sellerId}
           />

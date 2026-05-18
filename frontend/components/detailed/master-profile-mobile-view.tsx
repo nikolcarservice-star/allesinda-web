@@ -12,7 +12,7 @@ import { MasterFeaturedReview } from "@/components/detailed/master-featured-revi
 import { ReviewsSection } from "@/components/detailed/reviews-section"
 import { VideoPlayer } from "@/components/shared/video-player"
 
-type TabId = "photo" | "video" | "reviews"
+type TabId = "profile" | "photo" | "video" | "reviews"
 
 type GalleryMediaItem = Media & {
   master_name?: string
@@ -32,6 +32,7 @@ interface MasterProfileMobileViewProps {
   shareTitle: string
   shareDescription?: string | null
   availabilityLabel: string
+  description?: string | null
   galleryItems: GalleryMediaItem[]
   sellerId?: number | null
 }
@@ -42,9 +43,6 @@ function isVideoItem(item: GalleryMediaItem): boolean {
 }
 
 function getItemImageUrl(item: GalleryMediaItem): string {
-  if (isVideoItem(item)) {
-    return item.thumbnail_url || item.url || "/placeholder.svg"
-  }
   return item.thumbnail_url || item.url || "/placeholder.svg"
 }
 
@@ -59,10 +57,11 @@ export function MasterProfileMobileView({
   shareTitle,
   shareDescription,
   availabilityLabel,
+  description,
   galleryItems,
   sellerId,
 }: MasterProfileMobileViewProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("photo")
+  const [activeTab, setActiveTab] = useState<TabId>("profile")
   const [selectedVideo, setSelectedVideo] = useState<GalleryMediaItem | null>(null)
   const [fullscreenPhotoIndex, setFullscreenPhotoIndex] = useState<number | null>(null)
 
@@ -92,79 +91,20 @@ export function MasterProfileMobileView({
     : title.toUpperCase()
 
   const tabs: { id: TabId; label: string }[] = [
+    { id: "profile", label: "Profil" },
     { id: "photo", label: "Foto" },
     { id: "video", label: "Video" },
     { id: "reviews", label: "Bewertungen" },
   ]
 
   return (
-    <div className="space-y-6 pb-6 lg:hidden">
-      <div className="space-y-4 px-sides pt-2 text-center">
-        <h1 className="text-base font-bold uppercase leading-snug tracking-wide text-foreground sm:text-lg">
-          {displayTitle}
-        </h1>
-
-        {typeof rating === "number" && rating > 0 && (
-          <p className="flex items-center justify-center gap-1.5 text-sm text-neutral-600">
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
-            <span className="font-semibold text-foreground">{rating.toFixed(1)}</span>
-            {typeof totalReviews === "number" && totalReviews > 0 && (
-              <span>({totalReviews} Bewertungen)</span>
-            )}
-          </p>
-        )}
-
-        <div className="flex gap-2">
-          <ActionButton
-            href={contactHref}
-            actionLabel="kontaktieren"
-            variant="outline"
-            size="lg"
-            className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
-          >
-            <Phone className="mr-2 h-4 w-4" />
-            Kontakt
-          </ActionButton>
-          <ShareProfileButton
-            title={shareTitle}
-            description={shareDescription}
-            label="Profil teilen"
-            copiedLabel="Kopiert!"
-            variant="outline"
-            size="lg"
-            className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
-          />
-        </div>
-
-        <p className="text-sm font-medium text-neutral-600">{availabilityLabel}</p>
-      </div>
-
-      <div className="relative mx-auto w-[min(100%,280px)] px-sides">
-        <button
-          type="button"
-          className="relative mx-auto block aspect-square w-full max-w-[280px] overflow-hidden rounded-full border border-neutral-100 bg-neutral-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
-          onClick={() => setFullscreenPhotoIndex(0)}
-          aria-label="Profilfoto vergrГ¶Гџern"
+    <div className="space-y-4 pb-6 lg:hidden">
+      <div className="border-b border-neutral-200 px-sides pt-2">
+        <div
+          className="flex justify-between gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          role="tablist"
+          aria-label="Profilbereiche"
         >
-          <Image
-            src={heroImage}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="280px"
-            priority
-          />
-        </button>
-        {priceFromLabel && (
-          <div className="absolute right-3 top-3 z-10 rounded-md border border-neutral-200 bg-white/95 px-2.5 py-1 text-xs font-medium text-neutral-700 shadow-sm backdrop-blur-sm sm:right-4">
-            <span className="text-neutral-500">Ab </span>
-            <span className="font-bold text-foreground">{priceFromLabel.replace(/^Ab\s*/i, "")}</span>
-          </div>
-        )}
-      </div>
-
-      <div className="border-b border-neutral-200 px-sides">
-        <div className="flex justify-center gap-8" role="tablist" aria-label="Portfolio">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -173,7 +113,7 @@ export function MasterProfileMobileView({
               aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "border-b-2 pb-2.5 text-sm font-semibold uppercase tracking-wide transition-colors",
+                "shrink-0 border-b-2 px-1 pb-2.5 text-[11px] font-semibold uppercase tracking-wide transition-colors sm:text-xs",
                 activeTab === tab.id
                   ? "border-foreground text-foreground"
                   : "border-transparent text-neutral-400 hover:text-neutral-600",
@@ -184,6 +124,87 @@ export function MasterProfileMobileView({
           ))}
         </div>
       </div>
+
+      {activeTab === "profile" && (
+        <div className="space-y-6" role="tabpanel">
+          <div className="space-y-4 px-sides text-center">
+            <h1 className="text-base font-bold uppercase leading-snug tracking-wide text-foreground sm:text-lg">
+              {displayTitle}
+            </h1>
+
+            {typeof rating === "number" && rating > 0 && (
+              <p className="flex items-center justify-center gap-1.5 text-sm text-neutral-600">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
+                <span className="font-semibold text-foreground">{rating.toFixed(1)}</span>
+                {typeof totalReviews === "number" && totalReviews > 0 && (
+                  <span>({totalReviews} Bewertungen)</span>
+                )}
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <ActionButton
+                href={contactHref}
+                actionLabel="kontaktieren"
+                variant="outline"
+                size="lg"
+                className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
+              >
+                <Phone className="mr-2 h-4 w-4" />
+                Kontakt
+              </ActionButton>
+              <ShareProfileButton
+                title={shareTitle}
+                description={shareDescription}
+                label="Profil teilen"
+                copiedLabel="Kopiert!"
+                variant="outline"
+                size="lg"
+                className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
+              />
+            </div>
+
+            <p className="text-sm font-medium text-neutral-600">{availabilityLabel}</p>
+          </div>
+
+          <div className="relative mx-auto w-[min(100%,280px)] px-sides">
+            <button
+              type="button"
+              className="relative mx-auto block aspect-square w-full max-w-[280px] overflow-hidden rounded-full border border-neutral-100 bg-neutral-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+              onClick={() => setFullscreenPhotoIndex(0)}
+              aria-label="Profilfoto vergrößern"
+            >
+              <Image
+                src={heroImage}
+                alt={title}
+                fill
+                className="object-cover"
+                sizes="280px"
+                priority
+              />
+            </button>
+            {priceFromLabel && (
+              <div className="absolute right-3 top-3 z-10 rounded-md border border-neutral-200 bg-white/95 px-2.5 py-1 text-xs font-medium shadow-sm backdrop-blur-sm">
+                <span className="text-neutral-500">Ab </span>
+                <span className="font-bold text-foreground">{priceFromLabel.replace(/^Ab\s*/i, "")}</span>
+              </div>
+            )}
+          </div>
+
+          {description?.trim() && (
+            <div className="space-y-2 px-sides">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">Über</h2>
+              <p className="text-sm leading-relaxed text-neutral-600">{description.trim()}</p>
+            </div>
+          )}
+
+          {sellerId && (
+            <div className="px-sides">
+              <MasterFeaturedReview sellerId={sellerId} />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="min-h-[100px] px-sides">
         {activeTab === "photo" && (
@@ -256,15 +277,11 @@ export function MasterProfileMobileView({
         )}
 
         {activeTab === "reviews" && !sellerId && (
-          <p className="py-4 text-center text-sm text-neutral-500">Noch keine Bewertungen</p>
+          <p className="py-4 text-center text-sm text-neutral-500" role="tabpanel">
+            Noch keine Bewertungen
+          </p>
         )}
       </div>
-
-      {sellerId && activeTab !== "reviews" && (
-        <div className="px-sides">
-          <MasterFeaturedReview sellerId={sellerId} />
-        </div>
-      )}
 
       {selectedVideo && (
         <VideoPlayer
@@ -301,4 +318,3 @@ export function MasterProfileMobileView({
     </div>
   )
 }
-
