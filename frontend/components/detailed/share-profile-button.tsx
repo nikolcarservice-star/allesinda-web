@@ -8,9 +8,21 @@ interface ShareProfileButtonProps {
   title: string
   description?: string | null
   className?: string
+  label?: string
+  copiedLabel?: string
+  variant?: "default" | "ghost" | "outline"
+  size?: "default" | "sm" | "lg" | "icon"
 }
 
-export function ShareProfileButton({ title, description, className }: ShareProfileButtonProps) {
+export function ShareProfileButton({
+  title,
+  description,
+  className,
+  label = "Profil teilen",
+  copiedLabel = "Kopiert!",
+  variant = "outline",
+  size = "lg",
+}: ShareProfileButtonProps) {
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
@@ -40,14 +52,9 @@ export function ShareProfileButton({ title, description, className }: ShareProfi
   }
 
   return (
-    <Button
-      size="lg"
-      variant="outline"
-      className={className}
-      onClick={handleShare}
-    >
-      {copied ? "Copied!" : "Share Profile"}
-      {!copied && <Share2 className="ml-2 h-4 w-4" />}
+    <Button size={size} variant={variant} className={className} onClick={handleShare}>
+      {!copied && <Share2 className="mr-2 h-4 w-4" />}
+      {copied ? copiedLabel : label}
     </Button>
   )
 }

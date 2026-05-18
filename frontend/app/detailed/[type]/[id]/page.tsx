@@ -18,6 +18,7 @@ import { ShareProfileButton } from "@/components/detailed/share-profile-button"
 import { ActionButton } from "@/components/detailed/action-button"
 import { ViewReviewsButton } from "./view-reviews-button"
 import { RecentItemsSection } from "@/components/detailed/recent-items-section"
+import { MasterProfileMobileView } from "@/components/detailed/master-profile-mobile-view"
 
 interface DetailedPageProps {
   params: Promise<{ type: string; id: string }>
@@ -597,6 +598,22 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
   const cartProduct = type !== "master" ? buildCartProductPayload(detail, type, sellerId, cartStock, heroImage) : null
   const isAvailableForCart = type !== "master" ? detail.available !== false && cartStock > 0 : false
 
+  const masterProfessionLabel = detail.category
+    ? humanizeLabel(detail.category)
+    : showSubtitle
+      ? subtitle
+      : null
+
+  const masterAvailabilityLabel = (() => {
+    if (typeof masterExtra.available === "boolean") {
+      return masterExtra.available ? "Verfügbar" : "Nicht verfügbar"
+    }
+    if (typeof masterExtra.is_available === "boolean") {
+      return masterExtra.is_available ? "Verfügbar" : "Nicht verfügbar"
+    }
+    return "Verfügbar"
+  })()
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Suspense fallback={null}>
@@ -604,7 +621,28 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
       </Suspense>
 
       <section className="border-b border-muted/60 bg-background overflow-x-hidden">
-        <div className="container mx-auto grid gap-8 px-sides py-5 md:gap-5 md:py-7 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:h-[720px] lg:max-h-[720px]">
+        {type === "master" && (
+          <MasterProfileMobileView
+            profileId={id}
+            title={detail.title}
+            professionLabel={masterProfessionLabel}
+            rating={detail.rating ?? null}
+            totalReviews={detail.total_reviews ?? null}
+            heroImage={heroImage}
+            priceFromLabel={masterPrimaryStat?.value ?? null}
+            contactHref={primaryActionHref}
+            shareTitle={detail.title}
+            shareDescription={detail.description}
+            availabilityLabel={masterAvailabilityLabel}
+            galleryItems={galleryMediaItems}
+            sellerId={sellerId}
+          />
+        )}
+
+        <div className={cn(
+          "container mx-auto grid gap-8 px-sides py-5 md:gap-5 md:py-7 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:h-[720px] lg:max-h-[720px]",
+          type === "master" && "hidden lg:grid",
+        )}>
           <div className="relative lg:sticky lg:top-0 lg:h-[720px] lg:max-h-[720px] min-w-0">
             <ProductRentalGallery items={type === "master" ? masterGalleryImages : galleryImagesAll} variant={type === "master" ? "hero" : "default"} />
             <div
@@ -811,7 +849,7 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
         </div>
 
         {detail.type === "master" && (detail.services?.length || galleryItems.length > 0 || sellerId) ? (
-          <div className="container mx-auto px-sides pt-1 md:pt-10 lg:pt-12 pb-1 md:pb-2 lg:pb-3">
+          <div className="container mx-auto hidden px-sides pt-1 md:pt-10 lg:block lg:pt-12 pb-1 md:pb-2 lg:pb-3">
             <Accordion type="single" collapsible className="border-none" defaultValue={galleryItems.length > 0 ? "recent-work" : undefined}>
               {detail.services?.length ? (
                 <AccordionItem value="featured-services" className="border-border/70">

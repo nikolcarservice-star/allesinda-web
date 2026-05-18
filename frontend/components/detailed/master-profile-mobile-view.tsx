@@ -1,0 +1,257 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import Image from "next/image"
+import { Phone, Share2, Star, Play } from "lucide-react"
+import type { Media } from "@/lib/api/types"
+import { cn } from "@/lib/utils"
+import { ActionButton } from "@/components/detailed/action-button"
+import { ShareProfileButton } from "@/components/detailed/share-profile-button"
+import { MasterFeaturedReview } from "@/components/detailed/master-featured-review"
+import { ReviewsSection } from "@/components/detailed/reviews-section"
+import { VideoPlayer } from "@/components/shared/video-player"
+
+type TabId = "photo" | "video" | "reviews"
+
+type GalleryMediaItem = Media & {
+  master_name?: string
+  master_profile_id?: number
+  master_verified?: boolean
+}
+
+interface MasterProfileMobileViewProps {
+  profileId: number
+  title: string
+  professionLabel?: string | null
+  rating?: number | null
+  totalReviews?: number | null
+  heroImage: string
+  priceFromLabel?: string | null
+  contactHref: string
+  shareTitle: string
+  shareDescription?: string | null
+  availabilityLabel: string
+  galleryItems: GalleryMediaItem[]
+  sellerId?: number | null
+}
+
+function isVideoItem(item: GalleryMediaItem): boolean {
+  const type = item.media_type?.toLowerCase() ?? ""
+  return type.includes("video")
+}
+
+function getItemImageUrl(item: GalleryMediaItem): string {
+  if (isVideoItem(item)) {
+    return item.thumbnail_url || item.url || "/placeholder.svg"
+  }
+  return item.thumbnail_url || item.url || "/placeholder.svg"
+}
+
+export function MasterProfileMobileView({
+  title,
+  professionLabel,
+  rating,
+  totalReviews,
+  heroImage,
+  priceFromLabel,
+  contactHref,
+  shareTitle,
+  shareDescription,
+  availabilityLabel,
+  galleryItems,
+  sellerId,
+}: MasterProfileMobileViewProps) {
+  const [activeTab, setActiveTab] = useState<TabId>("photo")
+  const [selectedVideo, setSelectedVideo] = useState<GalleryMediaItem | null>(null)
+
+  const photos = useMemo(
+    () => galleryItems.filter((item) => !isVideoItem(item) && !item.is_before_after),
+    [galleryItems],
+  )
+  const videos = useMemo(() => galleryItems.filter((item) => isVideoItem(item)), [galleryItems])
+
+  const displayTitle = professionLabel
+    ? `${title} | ${professionLabel}`.toUpperCase()
+    : title.toUpperCase()
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: "photo", label: "Foto" },
+    { id: "video", label: "Video" },
+    { id: "reviews", label: "Bewertungen" },
+  ]
+
+  return (
+    <div className="space-y-6 pb-6 lg:hidden">
+      <div className="space-y-4 px-sides pt-2 text-center">
+        <h1 className="text-base font-bold uppercase leading-snug tracking-wide text-foreground sm:text-lg">
+          {displayTitle}
+        </h1>
+
+        {typeof rating === "number" && rating > 0 && (
+          <p className="flex items-center justify-center gap-1.5 text-sm text-neutral-600">
+            <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
+            <span className="font-semibold text-foreground">{rating.toFixed(1)}</span>
+            {typeof totalReviews === "number" && totalReviews > 0 && (
+              <span>({totalReviews} Bewertungen)</span>
+            )}
+          </p>
+        )}
+
+        <div className="flex gap-2">
+          <ActionButton
+            href={contactHref}
+            actionLabel="kontaktieren"
+            variant="outline"
+            size="lg"
+            className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
+          >
+            <Phone className="mr-2 h-4 w-4" />
+            Kontakt
+          </ActionButton>
+          <ShareProfileButton
+            title={shareTitle}
+            description={shareDescription}
+            label="Profil teilen"
+            copiedLabel="Kopiert!"
+            variant="outline"
+            size="lg"
+            className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
+          />
+        </div>
+
+        <p className="text-sm font-medium text-neutral-600">{availabilityLabel}</p>
+      </div>
+
+      <div className="relative mx-auto w-[min(100%,280px)] px-sides">
+        <div className="relative mx-auto aspect-square w-full max-w-[280px] overflow-hidden rounded-full border border-neutral-100 bg-neutral-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+          <Image
+            src={heroImage}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="280px"
+            priority
+          />
+        </div>
+        {priceFromLabel && (
+          <div className="absolute right-3 top-3 z-10 rounded-md border border-neutral-200 bg-white/95 px-2.5 py-1 text-xs font-medium text-neutral-700 shadow-sm backdrop-blur-sm sm:right-4">
+            <span className="text-neutral-500">Ab </span>
+            <span className="font-bold text-foreground">{priceFromLabel.replace(/^Ab\s*/i, "")}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="border-b border-neutral-200 px-sides">
+        <div className="flex justify-center gap-8" role="tablist" aria-label="Portfolio">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "border-b-2 pb-2.5 text-sm font-semibold uppercase tracking-wide transition-colors",
+                activeTab === tab.id
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-neutral-400 hover:text-neutral-600",
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="min-h-[100px] px-sides">
+        {activeTab === "photo" && (
+          <div
+            className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            role="tabpanel"
+          >
+            {(photos.length > 0 ? photos : [{ id: 0, url: heroImage, media_type: "image" } as GalleryMediaItem]).map(
+              (item) => (
+                <div
+                  key={item.id}
+                  className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100"
+                >
+                  <Image
+                    src={getItemImageUrl(item)}
+                    alt={item.title || "Arbeit"}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
+                  />
+                </div>
+              ),
+            )}
+          </div>
+        )}
+
+        {activeTab === "video" && (
+          <div
+            className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            role="tabpanel"
+          >
+            {videos.length === 0 ? (
+              <p className="w-full py-4 text-center text-sm text-neutral-500">Noch keine Videos</p>
+            ) : (
+              videos.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-900"
+                  onClick={() => setSelectedVideo(item)}
+                  aria-label={item.title || "Video abspielen"}
+                >
+                  <Image
+                    src={getItemImageUrl(item)}
+                    alt={item.title || "Video"}
+                    fill
+                    className="object-cover opacity-90"
+                    sizes="80px"
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                    <Play className="h-6 w-6 fill-white text-white" />
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === "reviews" && sellerId && (
+          <div role="tabpanel" className="-mx-sides">
+            <ReviewsSection
+              sellerId={sellerId}
+              rating={rating ?? null}
+              totalReviews={totalReviews ?? null}
+              itemTitle={shareTitle}
+              className="rounded-none border-x-0 border-t-0"
+            />
+          </div>
+        )}
+
+        {activeTab === "reviews" && !sellerId && (
+          <p className="py-4 text-center text-sm text-neutral-500">Noch keine Bewertungen</p>
+        )}
+      </div>
+
+      {sellerId && activeTab !== "reviews" && (
+        <div className="px-sides">
+          <MasterFeaturedReview sellerId={sellerId} />
+        </div>
+      )}
+
+      {selectedVideo && (
+        <VideoPlayer
+          videoUrl={selectedVideo.url || ""}
+          thumbnailUrl={selectedVideo.thumbnail_url || undefined}
+          title={selectedVideo.title || undefined}
+          isOpen
+          onClose={() => setSelectedVideo(null)}
+        />
+      )}
+    </div>
+  )
+}
