@@ -3,14 +3,14 @@
 import { useMemo, type ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, Heart, PlusCircle, MessageSquare, User } from "lucide-react"
+import { Home, Heart, PlusCircle, MessageSquare, User } from "lucide-react"
 import { useAuth } from "@/lib/context/auth-context"
 import { cn } from "@/lib/utils"
 
 type NavItem = {
   href: string
   label: string
-  icon: typeof Search
+  icon: typeof Home
   match: (pathname: string) => boolean
 }
 
@@ -30,9 +30,9 @@ function MobileBottomNav() {
   const items: NavItem[] = useMemo(
     () => [
       {
-        href: "/#hero-search",
-        label: "Suchen",
-        icon: Search,
+        href: "/",
+        label: "Start",
+        icon: Home,
         match: (p) => p === "/",
       },
       {
@@ -79,18 +79,15 @@ function MobileBottomNav() {
     >
       {items.map(({ href, label, icon: Icon, match }) => {
         const active = match(pathname)
-        const isHeroSearch = label === "Suchen"
+        const isHome = href === "/"
         return (
           <Link
             key={`${label}-${href}`}
             href={href}
             onClick={(e) => {
-              if (!isHeroSearch || pathname !== "/") return
+              if (!isHome || pathname !== "/") return
               e.preventDefault()
-              document.getElementById("hero-search")?.scrollIntoView({ behavior: "smooth", block: "start" })
-              window.setTimeout(() => {
-                document.getElementById("hero-search-input")?.focus({ preventScroll: true })
-              }, 420)
+              window.scrollTo({ top: 0, behavior: "smooth" })
             }}
             className={cn(
               "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[10px] font-semibold leading-tight transition-colors sm:text-[11px]",
