@@ -234,6 +234,26 @@ export function Header() {
   const searchParams = useSearchParams()
   const { user, logout } = useAuth()
 
+  const isMasterDetailPage = useMemo(
+    () => Boolean(pathname?.match(/^\/detailed\/master\/[^/]+/)),
+    [pathname],
+  )
+
+  const handleMasterDetailBack = useCallback(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const ref = document.referrer
+        if (ref && new URL(ref).origin === window.location.origin) {
+          router.back()
+          return
+        }
+      } catch {
+        // ignore invalid referrer
+      }
+    }
+    router.push("/?types=master")
+  }, [router])
+
   const routeNav = useMemo<NavItem>(() => {
     // Check if we're on homepage
     if (pathname === "/") {
@@ -400,7 +420,8 @@ export function Header() {
           isMobileMenuOpen ||
           isSearchPanelOpen ||
           isDesktopMegaMenuOpen ||
-          isDesktopSearchSuggestionsOpen
+          isDesktopSearchSuggestionsOpen ||
+          isMasterDetailPage
 
         if (lockOpen || media.matches) {
           setIsHeaderVisible(true)
@@ -428,6 +449,7 @@ export function Header() {
       if (raf) window.cancelAnimationFrame(raf)
     }
   }, [
+    isMasterDetailPage,
     isMobileMenuOpen,
     isSearchPanelOpen,
     isDesktopMegaMenuOpen,
@@ -1686,7 +1708,19 @@ return (
       <div className="container mx-auto px-sides h-16 flex items-center gap-2 sm:gap-3">
         {/* Mobile: menu + space; Desktop: logo слева */}
         <div className="flex-1 flex items-center min-w-0 lg:flex-initial">
-          {/* Mobile Menu (Sheet) */}
+          {/* Mobile: back on master profile, otherwise category menu */}
+          {isMasterDetailPage ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
+              aria-label="Zurück"
+              onClick={handleMasterDetailBack}
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </Button>
+          ) : (
           <Sheet open={isMobileMenuOpen} onOpenChange={handleMobileMenuChange}>
           <SheetTrigger asChild>
             <Button
@@ -1761,6 +1795,7 @@ return (
             </div>
           </SheetContent>
         </Sheet>
+          )}
           {/* Desktop: лого с краю слева */}
           <Link href="/" className="hidden lg:flex items-center shrink-0 -ml-1 min-w-0">
             <div className="relative h-10 w-[140px]">
