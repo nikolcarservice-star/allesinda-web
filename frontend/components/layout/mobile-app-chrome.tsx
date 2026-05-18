@@ -14,9 +14,7 @@ type NavItem = {
   match: (pathname: string) => boolean
 }
 
-const MASTER_DETAIL_PATH = /^\/detailed\/master\/[^/]+/
-
-function MobileBottomNav({ position = "fixed" }: { position?: "fixed" | "static" }) {
+function MobileBottomNav() {
   const pathname = usePathname() ?? ""
   const { user } = useAuth()
 
@@ -73,11 +71,8 @@ function MobileBottomNav({ position = "fixed" }: { position?: "fixed" | "static"
   return (
     <nav
       className={cn(
-        "flex border-t border-neutral-200 bg-white",
-        "pb-[max(0.35rem,env(safe-area-inset-bottom,0px))] pt-1.5",
-        position === "fixed"
-          ? "fixed bottom-0 left-0 right-0 z-40 bg-white/95 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md"
-          : "relative w-full shrink-0",
+        "fixed inset-x-0 bottom-0 z-50 flex border-t border-neutral-200 bg-white/95 backdrop-blur-md",
+        "pb-[max(0.35rem,env(safe-area-inset-bottom,0px))] pt-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]",
         "lg:hidden",
       )}
       aria-label="Untere Navigation"
@@ -112,25 +107,17 @@ function MobileBottomNav({ position = "fixed" }: { position?: "fixed" | "static"
 export function MobileAppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? ""
   const hideBottomChrome = pathname.startsWith("/messages")
-  const scrollableBottomNav = MASTER_DETAIL_PATH.test(pathname)
-
-  if (hideBottomChrome) {
-    return <>{children}</>
-  }
-
-  if (scrollableBottomNav) {
-    return (
-      <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col lg:min-h-0 lg:block">
-        <div className="flex-1">{children}</div>
-        <MobileBottomNav position="static" />
-      </div>
-    )
-  }
 
   return (
     <>
-      <div className="pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">{children}</div>
-      <MobileBottomNav position="fixed" />
+      <div
+        className={cn(
+          !hideBottomChrome && "pb-[calc(4.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0",
+        )}
+      >
+        {children}
+      </div>
+      {!hideBottomChrome && <MobileBottomNav />}
     </>
   )
 }
