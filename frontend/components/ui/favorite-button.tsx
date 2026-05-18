@@ -16,6 +16,8 @@ interface FavoriteButtonProps {
   className?: string
   size?: "sm" | "md" | "lg"
   variant?: "default" | "ghost" | "outline"
+  /** Icon-only (default) or text label for header actions */
+  display?: "icon" | "label"
 }
 
 export function FavoriteButton({
@@ -24,6 +26,7 @@ export function FavoriteButton({
   className,
   size = "md",
   variant = "ghost",
+  display = "icon",
 }: FavoriteButtonProps) {
   const { user } = useAuth()
   const router = useRouter()
@@ -114,6 +117,30 @@ export function FavoriteButton({
     lg: "h-5 w-5",
   }
 
+  const labelText = isFavorited ? "Gespeichert" : "Speichern"
+  const ariaLabel = isFavorited ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"
+
+  if (display === "label") {
+    return (
+      <Button
+        variant={variant}
+        size="sm"
+        className={cn(
+          "h-9 shrink-0 px-3 text-sm font-semibold text-foreground hover:text-foreground",
+          isFavorited && "text-rose-600 hover:text-rose-700",
+          toggling && "opacity-50 cursor-not-allowed",
+          className,
+        )}
+        onClick={handleToggle}
+        disabled={loading || toggling}
+        aria-label={ariaLabel}
+        aria-pressed={isFavorited}
+      >
+        {labelText}
+      </Button>
+    )
+  }
+
   return (
     <Button
       variant={variant}
@@ -129,7 +156,7 @@ export function FavoriteButton({
       )}
       onClick={handleToggle}
       disabled={loading || toggling}
-      aria-label={isFavorited ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen"}
+      aria-label={ariaLabel}
     >
       <Heart
         className={cn(

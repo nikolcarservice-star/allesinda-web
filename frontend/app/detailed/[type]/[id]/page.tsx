@@ -607,7 +607,12 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
         <div className="container mx-auto grid gap-8 px-sides py-5 md:gap-5 md:py-7 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:h-[720px] lg:max-h-[720px]">
           <div className="relative lg:sticky lg:top-0 lg:h-[720px] lg:max-h-[720px] min-w-0">
             <ProductRentalGallery items={type === "master" ? masterGalleryImages : galleryImagesAll} variant={type === "master" ? "hero" : "default"} />
-            <div className="absolute right-3 top-3 z-10">
+            <div
+              className={cn(
+                "absolute right-3 top-3 z-10",
+                type === "master" && "hidden lg:block",
+              )}
+            >
               <FavoriteButton
                 favoriteType={type === "master" ? "profile" : (type === "product" ? "product" : "rental")}
                 favoriteId={id}
