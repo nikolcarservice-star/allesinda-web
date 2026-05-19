@@ -112,7 +112,7 @@ export function MasterProfileMobileView({
         </h1>
 
         {typeof rating === "number" && rating > 0 && (
-          <p className="flex items-center justify-center gap-1.5 text-sm text-neutral-600">
+          <p className="flex items-center justify-center gap-1.5 text-sm text-neutral-700">
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
             <span className="font-semibold text-foreground">{rating.toFixed(1)}</span>
             {typeof totalReviews === "number" && totalReviews > 0 && (
@@ -143,7 +143,7 @@ export function MasterProfileMobileView({
           />
         </div>
 
-        <p className="text-sm font-medium text-neutral-600">{availabilityLabel}</p>
+        <p className="text-sm font-medium text-neutral-700">{availabilityLabel}</p>
       </div>
 
       <div className="relative mx-auto w-[min(100%,280px)] px-sides">
@@ -187,7 +187,7 @@ export function MasterProfileMobileView({
                 "shrink-0 border-b-2 pb-2.5 text-xs font-semibold uppercase tracking-wide transition-colors sm:text-sm",
                 activeTab === tab.id
                   ? "border-foreground text-foreground"
-                  : "border-transparent text-neutral-400 hover:text-neutral-600",
+                  : "border-transparent text-neutral-500 hover:text-neutral-700",
               )}
             >
               {tab.label}
@@ -200,19 +200,19 @@ export function MasterProfileMobileView({
         {activeTab === "profile" && (
           <div className="space-y-5 py-1 text-left" role="tabpanel">
             <section className="space-y-1.5">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Stadt</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Stadt</h2>
               {cityName ? (
                 <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                  <MapPin className="h-4 w-4 shrink-0 text-neutral-500" aria-hidden />
+                  <MapPin className="h-4 w-4 shrink-0 text-neutral-600" aria-hidden />
                   {cityName}
                 </p>
               ) : (
-                <p className="text-sm text-neutral-500">Keine Angabe</p>
+                <p className="text-sm text-neutral-600">Keine Angabe</p>
               )}
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Kategorien</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Kategorien</h2>
               {categories.length > 0 ? (
                 <ul className="flex flex-wrap gap-2">
                   {categories.map((category) => (
@@ -225,16 +225,16 @@ export function MasterProfileMobileView({
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-neutral-500">Keine Kategorien angegeben</p>
+                <p className="text-sm text-neutral-600">Keine Kategorien angegeben</p>
               )}
             </section>
 
             <section className="space-y-1.5">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Über mich</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">Über mich</h2>
               {about?.trim() ? (
-                <p className="text-sm leading-relaxed text-neutral-600">{about.trim()}</p>
+                <p className="text-sm leading-relaxed text-neutral-700">{about.trim()}</p>
               ) : (
-                <p className="text-sm text-neutral-500">Keine Beschreibung vorhanden</p>
+                <p className="text-sm text-neutral-600">Keine Beschreibung vorhanden</p>
               )}
             </section>
           </div>
@@ -271,7 +271,7 @@ export function MasterProfileMobileView({
             role="tabpanel"
           >
             {videos.length === 0 ? (
-              <p className="w-full py-4 text-center text-sm text-neutral-500">Noch keine Videos</p>
+              <p className="w-full py-4 text-center text-sm text-neutral-600">Noch keine Videos</p>
             ) : (
               videos.map((item) => (
                 <button
@@ -310,7 +310,7 @@ export function MasterProfileMobileView({
         )}
 
         {activeTab === "reviews" && !sellerId && (
-          <p className="py-4 text-center text-sm text-neutral-500" role="tabpanel">
+          <p className="py-4 text-center text-sm text-neutral-600" role="tabpanel">
             Noch keine Bewertungen
           </p>
         )}
