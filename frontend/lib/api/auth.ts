@@ -2,8 +2,8 @@
  * Authentication API functions
  */
 
-import { apiPost, apiGet, setAuthToken, removeAuthToken } from './client';
-import type { User, UserCreate, LoginRequest, Token } from './types';
+import { apiPost, apiGet, apiPatch, setAuthToken, removeAuthToken } from './client';
+import type { User, UserCreate, LoginRequest, Token, UserSelfUpdate } from './types';
 
 /**
  * Register a new user
@@ -40,6 +40,13 @@ export function logout(): void {
 export async function getCurrentUser(): Promise<User> {
   const response = await apiGet<User>('/auth/me');
   return response;
+}
+
+/**
+ * Update current user's account fields (name, phone)
+ */
+export async function updateCurrentUser(data: UserSelfUpdate): Promise<User> {
+  return apiPatch<User>('/auth/me', data);
 }
 
 /**

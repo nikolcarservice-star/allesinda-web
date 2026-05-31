@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { Footer } from "./footer"
+import { useAuth } from "@/lib/context/auth-context"
 
 /**
  * Renders Footer on all routes except the messages page,
@@ -9,7 +10,10 @@ import { Footer } from "./footer"
  */
 export function ConditionalFooter() {
   const pathname = usePathname()
-  if (pathname?.startsWith("/messages") || pathname === "/") {
+  const { user } = useAuth()
+  const isMasterCabinet = pathname === "/profile" && user?.role === "master"
+
+  if (pathname?.startsWith("/messages") || pathname === "/" || isMasterCabinet) {
     return null
   }
   return (

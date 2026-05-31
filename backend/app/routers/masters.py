@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional, Dict, Any
 import os
 import re
@@ -11,7 +11,8 @@ from ..schemas import (
     ServiceIn, ServiceOut,
     AvailabilitySlotIn, AvailabilitySlotOut,
     PromotionIn, PromotionOut,
-    PaginationParams, PaginatedResponse, SearchParams
+    PaginationParams, PaginatedResponse, SearchParams,
+    MasterCabinetIn, MasterCabinetOut, UserOut,
 )
 from ..security import require_role, get_current_user
 from ..helpers import paginate_query, create_paginated_response, calculate_distance
@@ -19,6 +20,42 @@ from ..config import settings
 from ..utils.storage import get_upload_folder, build_media_url
 
 router = APIRouter(prefix="/masters", tags=["masters"])
+
+def _serialize_profile(profile: Profile) -> ProfileOut:
+    data = ProfileOut.model_validate(profile)
+    city_name = profile.city_ref.name if getattr(profile, "city_ref", None) else None
+    if city_name:
+        return data.model_copy(update={"city_name": city_name})
+    return data
+
+def _get_user_profile(db: Session, user_id: int) -> Optional[Profile]:
+    return (
+        db.query(Profile)
+        .options(joinedload(Profile.city_ref))
+        .filter(Profile.user_id == user_id)
+        .first()
+    )
+
+def _get_display_price_from(db: Session, profile_id: int) -> Optional[float]:
+    services = db.query(Service).filter(Service.profile_id == profile_id).all()
+    prices = [s.price_from for s in services if s.price_from is not None and s.price_from > 0]
+    return min(prices) if prices else None
+
+def _upsert_display_price(db: Session, profile: Profile, price_from: float, default_title: str) -> None:
+    services = (
+        db.query(Service)
+        .filter(Service.profile_id == profile.id)
+        .order_by(Service.created_at.asc())
+        .all()
+    )
+    if services:
+        positive = [s for s in services if s.price_from is not None and s.price_from > 0]
+        primary = min(positive, key=lambda s: s.price_from) if positive else services[0]
+        primary.price_from = float(price_from)
+        return
+
+    title = (default_title or "Service").strip()[:255] or "Service"
+    db.add(Service(profile_id=profile.id, title=title, price_from=float(price_from)))
 
 @router.get("/cities")
 def list_german_cities(
@@ -163,8 +200,8 @@ async def upload_profile_image(
     # Update profile with new image URL
     profile.image_url = file_url
     db.commit()
-    db.refresh(profile)
-    return profile
+    profile = _get_user_profile(db, user.id)
+    return _serialize_profile(profile)
 
 @router.delete("/me/profile-image", response_model=ProfileOut)
 async def delete_profile_image(
@@ -202,8 +239,8 @@ async def delete_profile_image(
     # Set image_url to None
     profile.image_url = None
     db.commit()
-    db.refresh(profile)
-    return profile
+    profile = _get_user_profile(db, user.id)
+    return _serialize_profile(profile)
 
 @router.patch("/me", response_model=ProfileOut)
 def update_my_profile(
@@ -223,8 +260,66 @@ def update_my_profile(
         setattr(profile, key, value)
     
     db.commit()
-    db.refresh(profile)
-    return profile
+    profile = _get_user_profile(db, user.id)
+    return _serialize_profile(profile)
+
+@router.patch("/me/cabinet", response_model=MasterCabinetOut)
+def update_master_cabinet(
+    data: MasterCabinetIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update master account + profile fields in a single request."""
+    update_data = data.model_dump(exclude_unset=True)
+
+    name = update_data.pop("name", None)
+    phone = update_data.pop("phone", None)
+    price_from = update_data.pop("price_from", None)
+    if name is not None:
+        user.name = name.strip()
+    if phone is not None:
+        user.phone = phone.strip() or None
+
+    profile = db.query(Profile).filter(Profile.user_id == user.id).first()
+    if not profile:
+        profile = Profile(user_id=user.id)
+        db.add(profile)
+
+    for key, value in update_data.items():
+        setattr(profile, key, value)
+
+    db.flush()
+
+    if price_from is not None:
+        default_title = profile.profession or user.name or "Service"
+        _upsert_display_price(db, profile, price_from, default_title)
+
+    db.commit()
+    db.refresh(user)
+    profile = _get_user_profile(db, user.id)
+    return MasterCabinetOut(
+        user=user,
+        profile=_serialize_profile(profile),
+        price_from=_get_display_price_from(db, profile.id),
+    )
+
+@router.get("/me/cabinet", response_model=MasterCabinetOut)
+def get_master_cabinet(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Load master cabinet data including display price."""
+    profile = _get_user_profile(db, user.id)
+    if not profile:
+        profile = Profile(user_id=user.id)
+        db.add(profile)
+        db.commit()
+        profile = _get_user_profile(db, user.id)
+    return MasterCabinetOut(
+        user=user,
+        profile=_serialize_profile(profile),
+        price_from=_get_display_price_from(db, profile.id),
+    )
 
 @router.get("/me", response_model=ProfileOut)
 def get_my_profile(
@@ -232,14 +327,14 @@ def get_my_profile(
     db: Session = Depends(get_db)
 ):
     """Get current user's master profile. Auto-creates if it doesn't exist."""
-    profile = db.query(Profile).filter(Profile.user_id == user.id).first()
+    profile = _get_user_profile(db, user.id)
     if not profile:
         # Auto-create profile if it doesn't exist
         profile = Profile(user_id=user.id)
         db.add(profile)
         db.commit()
-        db.refresh(profile)
-    return profile
+        profile = _get_user_profile(db, user.id)
+    return _serialize_profile(profile)
 
 @router.post("/me/services", response_model=ServiceOut, dependencies=[Depends(require_role(Role.master))])
 def add_service(

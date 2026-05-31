@@ -35,6 +35,10 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     phone: Optional[str] = None
 
+class UserSelfUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    phone: Optional[str] = Field(None, max_length=20)
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
@@ -82,6 +86,7 @@ class ProfileIn(BaseModel):
     image_url: Optional[str] = Field(None, max_length=1024)
     category_id: Optional[int] = Field(None, ge=1, description="Category ID (foreign key)")
     keywords: Optional[str] = Field(None, description="Optional comma-separated keywords describing the master")
+    profession: Optional[str] = Field(None, max_length=255, description="Profession label, e.g. Elektriker")
     response_time_hours: Optional[int] = Field(None, ge=0, le=168)
 
 class ProfileOut(ProfileIn):
@@ -93,9 +98,25 @@ class ProfileOut(ProfileIn):
     completed_jobs: int
     created_at: datetime
     updated_at: datetime
+    city_name: Optional[str] = None
     
     class Config:
         from_attributes = True
+
+class MasterCabinetIn(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    phone: Optional[str] = Field(None, max_length=20)
+    city_id: Optional[int] = Field(None, ge=1)
+    about: Optional[str] = None
+    category_id: Optional[int] = Field(None, ge=1)
+    keywords: Optional[str] = None
+    profession: Optional[str] = Field(None, max_length=255)
+    price_from: Optional[float] = Field(None, ge=0)
+
+class MasterCabinetOut(BaseModel):
+    user: UserOut
+    profile: ProfileOut
+    price_from: Optional[float] = None
 
 class ProfileDetailedOut(ProfileOut):
     user: UserOut

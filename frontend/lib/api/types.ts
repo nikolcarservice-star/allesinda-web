@@ -47,6 +47,11 @@ export interface ChangePasswordRequest {
   new_password: string;
 }
 
+export interface UserSelfUpdate {
+  name?: string;
+  phone?: string;
+}
+
 export interface VerifyEmailRequest {
   token: string;
 }
@@ -94,6 +99,7 @@ export interface Profile {
   category?: string; // Category slug (deprecated, for backward compatibility)
   // Optional free-form keywords to improve search and discovery (e.g. "Elektriker, Notdienst, Berlin")
   keywords?: string | null;
+  profession?: string | null;
   verified: boolean;
   rating: number;
   total_reviews: number;
@@ -121,7 +127,25 @@ export interface ProfileInput {
   category?: string; // Category slug (deprecated, for backward compatibility)
   // Optional comma-separated keywords entered by master
   keywords?: string;
+  profession?: string | null;
   response_time_hours?: number;
+}
+
+export interface MasterCabinetInput {
+  name?: string;
+  phone?: string | null;
+  city_id?: number;
+  about?: string;
+  category_id?: number;
+  keywords?: string;
+  profession?: string | null;
+  price_from?: number | null;
+}
+
+export interface MasterCabinetResponse {
+  user: User;
+  profile: Profile;
+  price_from?: number | null;
 }
 
 export interface ProfileDetailed extends Profile {

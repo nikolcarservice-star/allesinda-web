@@ -614,6 +614,7 @@ def _perform_search(
                 "city_name": p.city_ref.name if getattr(p, "city_ref", None) else None,
                 "image_url": p.image_url,
                 "about": p.about,
+                "profession": p.profession,
                 "verified": p.verified,
                 "rating": p.rating,
                 "total_reviews": p.total_reviews,

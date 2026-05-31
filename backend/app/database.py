@@ -132,6 +132,10 @@ def ensure_schema():
                     # SQLite and Postgres both support this simple ADD COLUMN
                     conn.execute(text("ALTER TABLE profiles ADD COLUMN keywords TEXT"))
                 logger.info("Schema updated: added profiles.keywords column")
+            if "profession" not in cols:
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE profiles ADD COLUMN profession VARCHAR(255)"))
+                logger.info("Schema updated: added profiles.profession column")
         if "reviews" in insp.get_table_names():
             cols = {c.get("name") for c in insp.get_columns("reviews")}
             review_columns = {

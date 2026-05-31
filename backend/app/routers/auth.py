@@ -10,7 +10,7 @@ from ..schemas import (
     ForgotPasswordIn, ResetPasswordIn, ChangePasswordIn,
     VerifyEmailIn, ResendVerificationIn,
     TwoFactorSetupOut, TwoFactorVerifyIn, TwoFactorDisableIn,
-    SocialLoginIn
+    SocialLoginIn, UserSelfUpdate
 )
 from ..security import get_password_hash, verify_password, create_access_token, get_current_user
 from ..utils.email import send_verification_email, send_password_reset_email
@@ -339,4 +339,18 @@ async def social_login(data: SocialLoginIn, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)):
     """Get current authenticated user"""
+    return user
+
+@router.patch("/me", response_model=UserOut)
+def update_me(
+    data: UserSelfUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update current user's account fields (name, phone)."""
+    update_data = data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(user, key, value)
+    db.commit()
+    db.refresh(user)
     return user

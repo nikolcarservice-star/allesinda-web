@@ -238,6 +238,8 @@ export function Header() {
     [pathname],
   )
 
+  const isMasterCabinetPage = pathname === "/profile" && user?.role === "master"
+
   const masterProfileId = useMemo(() => {
     const match = pathname?.match(/^\/detailed\/master\/(\d+)/)
     if (!match) return null
@@ -1659,6 +1661,10 @@ return (
 
   const headerSpacerHeight =
     isHeaderVisible && headerHeight > 0 ? headerHeight : isHeaderVisible ? 64 : 0
+
+  if (isMasterCabinetPage) {
+    return null
+  }
 
   return (
     <>
