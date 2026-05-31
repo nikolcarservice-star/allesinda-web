@@ -121,8 +121,16 @@ def init_db():
 def ensure_schema():
     """
     Lightweight schema upgrader for projects without migrations.
-    Adds missing columns in-place when safe.
+    Creates missing tables and adds missing columns in-place when safe.
     """
+    from .models import Base
+
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Schema ensure: verified/created all tables")
+    except Exception as e:
+        logger.error(f"Schema ensure: create_all failed: {e}")
+
     try:
         insp = inspect(engine)
         if "profiles" in insp.get_table_names():
