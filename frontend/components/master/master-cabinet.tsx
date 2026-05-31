@@ -502,17 +502,19 @@ export function MasterCabinet() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">
+      <div className="min-h-screen bg-neutral-50 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:bg-neutral-50 lg:pb-10">
         {/* Шапка: логотип + Speichern */}
-        <header className="sticky top-0 z-50 flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <Link href="/" className="flex shrink-0 items-center">
-            <Image src="/logo_dark.webp" alt="Allesinda" width={120} height={32} className="h-7 w-auto" priority />
-          </Link>
-          <SpeichernButton
-            saving={saving}
-            onClick={handleSave}
-            className="h-9 rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
-          />
+        <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white pt-[max(0.75rem,env(safe-area-inset-top))] lg:shadow-sm">
+          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-8 lg:py-4">
+            <Link href="/" className="flex shrink-0 items-center">
+              <Image src="/logo_dark.webp" alt="Allesinda" width={120} height={32} className="h-7 w-auto lg:h-8" priority />
+            </Link>
+            <SpeichernButton
+              saving={saving}
+              onClick={handleSave}
+              className="h-9 rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700 lg:h-10 lg:px-6"
+            />
+          </div>
         </header>
 
         {loading ? (
@@ -520,10 +522,11 @@ export function MasterCabinet() {
             <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
           </div>
         ) : (
-          <div className="mx-auto max-w-lg space-y-8 px-4 py-6">
+          <div className="mx-auto max-w-lg space-y-8 px-4 py-6 lg:max-w-5xl lg:space-y-10 lg:px-8 lg:py-10">
+            <div className="space-y-8 lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-10 lg:space-y-0 xl:grid-cols-[320px_minmax(0,1fr)]">
             {/* Блок 1 — Фото профиля */}
-            <section className="flex flex-col items-center gap-4">
-              <div className="relative h-36 w-36 overflow-hidden rounded-full border-4 border-neutral-100 bg-neutral-100 shadow-md">
+            <section className="flex flex-col items-center gap-4 lg:sticky lg:top-24 lg:gap-5">
+              <div className="relative h-36 w-36 overflow-hidden rounded-full border-4 border-neutral-100 bg-neutral-100 shadow-md lg:h-44 lg:w-44">
                 {profileImageUrl ? (
                   <Image
                     src={profileImageUrl}
@@ -559,10 +562,11 @@ export function MasterCabinet() {
               </Button>
             </section>
 
+            <div className="space-y-8 lg:space-y-6">
             {/* Блок 2 — Основные данные */}
-            <section className="space-y-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Grunddaten</h2>
-              <div className="space-y-3">
+            <section className="space-y-4 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Grunddaten</h2>
+              <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-4 lg:space-y-0">
                 <div className="space-y-1.5">
                   <Label htmlFor="vorname">Vorname</Label>
                   <Input
@@ -615,7 +619,7 @@ export function MasterCabinet() {
                     className="h-11"
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 lg:col-span-2">
                   <Label htmlFor="preis">Preis ab (€)</Label>
                   <Input
                     id="preis"
@@ -634,8 +638,8 @@ export function MasterCabinet() {
             </section>
 
             {/* Блок 3 — Kategorie + теги */}
-            <section className="space-y-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Kategorie</h2>
+            <section className="space-y-4 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Kategorie</h2>
               <Select
                 value={profileForm.category_id ? String(profileForm.category_id) : ""}
                 onValueChange={(value) => {
@@ -714,8 +718,8 @@ export function MasterCabinet() {
             </section>
 
             {/* Блок 4 — Über mich */}
-            <section className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Über mich</h2>
+            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Über mich</h2>
               <Textarea
                 value={profileForm.about || ""}
                 onChange={(e) =>
@@ -727,7 +731,7 @@ export function MasterCabinet() {
                 placeholder="Erzählen Sie von Ihrer Erfahrung und Ihren Spezialgebieten..."
                 rows={7}
                 maxLength={ABOUT_LIMIT}
-                className="min-h-[160px] resize-none"
+                className="min-h-[160px] resize-none lg:min-h-[200px]"
               />
               <p className="text-right text-xs text-neutral-400">
                 {(profileForm.about || "").length}/{ABOUT_LIMIT}
@@ -735,8 +739,8 @@ export function MasterCabinet() {
             </section>
 
             {/* Блок 5 — Meine Fotos */}
-            <section className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Meine Fotos</h2>
+            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Meine Fotos</h2>
               <Input
                 ref={masterPhotoInputRef}
                 type="file"
@@ -747,7 +751,7 @@ export function MasterCabinet() {
                 disabled={masterPhotosUploading || !canAddMasterPhotos}
                 className="hidden"
               />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 lg:grid-cols-4 lg:gap-3 xl:grid-cols-5">
                 {masterPhotos.map((photo) => {
                   const photoUrl = getOptimizedImageUrl(photo.thumbnail_url || photo.url, "thumbnail")
                   const isDeleting = deletingMasterPhotoId === photo.id
@@ -780,8 +784,8 @@ export function MasterCabinet() {
             </section>
 
             {/* Блок 6 — Meine Videos */}
-            <section className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Meine Videos</h2>
+            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Meine Videos</h2>
               <Input
                 ref={masterVideoInputRef}
                 type="file"
@@ -792,7 +796,7 @@ export function MasterCabinet() {
                 className="hidden"
               />
               {masterVideos.length > 0 && (
-                <div className="space-y-2">
+                <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
                   {masterVideos.map((video) => {
                     const isDeleting = deletingMasterVideoId === video.id
                     return (
@@ -830,14 +834,14 @@ export function MasterCabinet() {
             </section>
 
             {/* Блок 7 — Bewertungen */}
-            <section className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Bewertungen</h2>
+            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Bewertungen</h2>
               {masterReviews.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-neutral-200 py-8 text-center text-sm text-neutral-400">
+                <p className="rounded-xl border border-dashed border-neutral-200 py-8 text-center text-sm text-neutral-400 lg:py-12">
                   Noch keine Bewertungen
                 </p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
                   {masterReviews.map((review) => {
                     const statusLabel = getReviewReportStatusLabel(review.report_status)
                     const isReplyOpen = activeReplyReviewId === review.id
@@ -956,12 +960,14 @@ export function MasterCabinet() {
                 </div>
               )}
             </section>
+            </div>
+            </div>
 
             {/* Нижняя кнопка Speichern */}
             <SpeichernButton
               saving={saving}
               onClick={handleSave}
-              className="h-14 w-full rounded-2xl bg-emerald-600 text-base font-semibold text-white hover:bg-emerald-700"
+              className="h-14 w-full rounded-2xl bg-emerald-600 text-base font-semibold text-white hover:bg-emerald-700 lg:mx-auto lg:max-w-md lg:h-12"
             />
           </div>
         )}
