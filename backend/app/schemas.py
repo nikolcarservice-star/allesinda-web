@@ -428,6 +428,12 @@ class ReviewReplyIn(BaseModel):
 class ReviewReportIn(BaseModel):
     reason: Literal["Falsche Angaben", "Beleidigung", "Spam"]
 
+class ReviewReportStatusIn(BaseModel):
+    status: Literal["removed", "rejected"]
+
+class ReviewListOut(ReviewOut):
+    buyer_name: Optional[str] = None
+
 class ReviewDetailedOut(ReviewOut):
     order: OrderOut
     

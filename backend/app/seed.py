@@ -670,7 +670,8 @@ RENTAL_CATEGORY_STRUCTURE = [
 
 MASTER_CATEGORY_STRUCTURE = [
     {
-        "name": "Auto",
+        "name": "KFZ & Fahrzeugservice",
+        "slug": "auto",
         "description": "Professionelle Autoservices und Reparaturen.",
         "icon": "car",
         "children": [
@@ -689,8 +690,9 @@ MASTER_CATEGORY_STRUCTURE = [
         ],
     },
     {
-        "name": "Sanitär",
-        "description": "Fachkundige Klempner für alle Ihre Wasser- und Rohrleitungsbedürfnisse.",
+        "name": "Sanitär & Heizung",
+        "slug": "sanitär",
+        "description": "Fachkundige Klempner und Heizungsexperten für Wasser, Rohre und HLK.",
         "icon": "droplet",
         "children": [
             {"name": "Reparaturen", "description": "Behebung von Lecks, Verstopfungen und defekten Armaturen."},
@@ -701,7 +703,10 @@ MASTER_CATEGORY_STRUCTURE = [
             {"name": "Notfall", "description": "24/7 dringende Klempnerservices."},
             {"name": "Armaturen", "description": "Installation von Wasserhähnen, Waschbecken und Toiletten."},
             {"name": "Inspektion", "description": "Kamera-Rohrinspektion."},
-            {"name": "Rohrzangen", "description": "Rohrzangen und Beckenzangen."},
+            {"name": "Heizungswartung", "description": "Regelmäßiger Service und Wartung von Heizungsanlagen."},
+            {"name": "Heizungsreparatur", "description": "Reparatur von Heizungs- und Klimaanlagen."},
+            {"name": "Heizungsinstallation", "description": "Neue Heizungs- und Klimaanlageninstallation."},
+            {"name": "Wärmepumpen", "description": "Wärmepumpen-Installation und -wartung."},
         ],
     },
     {
@@ -811,22 +816,9 @@ MASTER_CATEGORY_STRUCTURE = [
         ],
     },
     {
-        "name": "HLK",
-        "description": "Experten für Heizungs- und Kühlsysteme.",
-        "icon": "wind",
-        "children": [
-            {"name": "Installation", "description": "Neue Klimaanlagen- und Heizungsinstallation."},
-            {"name": "Reparatur", "description": "Klimaanlagen- und Heizungsreparaturen."},
-            {"name": "Wartung", "description": "Regelmäßiger Service und Wartung."},
-            {"name": "Kanalreinigung", "description": "Kanalreinigungsservices."},
-            {"name": "Thermostate", "description": "Smart-Thermostat-Installation."},
-            {"name": "Wärmepumpen", "description": "Wärmepumpen-Installation."},
-            {"name": "Lüftung", "description": "Lüftungssystem-Installation."},
-        ],
-    },
-    {
-        "name": "Handwerker",
-        "description": "Vielseitige Fachkräfte für verschiedene Hausreparaturen.",
+        "name": "Bau & Renovierung",
+        "slug": "handwerker",
+        "description": "Vielseitige Fachkräfte für Bau, Renovierung und Hausreparaturen.",
         "icon": "wrench",
         "children": [
             {"name": "Montage", "description": "Möbel- und Gerätemontage."},
@@ -835,6 +827,20 @@ MASTER_CATEGORY_STRUCTURE = [
             {"name": "Installation", "description": "Armaturen- und Geräteinstallation."},
             {"name": "Wartung", "description": "Hauswartungsaufgaben."},
             {"name": "Kleine Arbeiten", "description": "Schnellreparatur-Services."},
+        ],
+    },
+    {
+        "name": "Schneider / Näherei",
+        "slug": "schneider-naeherei",
+        "description": "Schneiderei und Nähservice für Kleidung, Vorhänge und Textilien.",
+        "icon": "scissors",
+        "children": [
+            {"name": "Änderungen", "description": "Kleidungsänderungen und Anpassungen."},
+            {"name": "Reparaturen", "description": "Reparatur von Kleidung und Textilien."},
+            {"name": "Maßanfertigung", "description": "Individuelle Maßanfertigungen."},
+            {"name": "Reißverschluss", "description": "Reißverschluss-Reparatur und -ersatz."},
+            {"name": "Vorhänge", "description": "Vorhangnähen und -anpassung."},
+            {"name": "Hemden", "description": "Hemden- und Blusenänderungen."},
         ],
     },
 ]
@@ -1039,9 +1045,9 @@ MASTERS_DATA = [
     {"name": "Stefan Wagner", "email": "stefan.wagner@example.com", "category": "Schreinerei", "subcategory": "Möbel", "city": "Stuttgart"},
     {"name": "Petra Becker", "email": "petra.becker@example.com", "category": "Fliesen", "subcategory": "Abdichtung", "city": "Düsseldorf"},
     {"name": "Sabine Hoffmann", "email": "sabine.hoffmann@example.com", "category": "Malerei", "subcategory": "Gewerblich", "city": "Dortmund"},
-    {"name": "Klaus Weber", "email": "klaus.weber@example.com", "category": "Auto", "subcategory": "Reparaturen", "city": "Berlin"},
-    {"name": "Hans Bauer", "email": "hans.bauer@example.com", "category": "Auto", "subcategory": "Motor", "city": "Munich"},
-    {"name": "Peter Koch", "email": "peter.koch@example.com", "category": "Auto", "subcategory": "Bremsen", "city": "Hamburg"},
+    {"name": "Klaus Weber", "email": "klaus.weber@example.com", "category": "KFZ & Fahrzeugservice", "subcategory": "Reparaturen", "city": "Berlin"},
+    {"name": "Hans Bauer", "email": "hans.bauer@example.com", "category": "KFZ & Fahrzeugservice", "subcategory": "Motor", "city": "Munich"},
+    {"name": "Peter Koch", "email": "peter.koch@example.com", "category": "KFZ & Fahrzeugservice", "subcategory": "Bremsen", "city": "Hamburg"},
 ]
 
 # Predefined products data (23 products)
@@ -2179,17 +2185,17 @@ def seed_database(create_media_files: bool = False):
                 {"title": "Einzelhandelsraum-Malerei", "description": "Malen von Einzelhandelsgeschäften und Läden", "price_from": 1500.0}
             ],
             # HVAC subcategories
-            "HLK:Installation": [
+            "Sanitär & Heizung:Heizungsinstallation": [
                 {"title": "Klimaanlagen-Installation", "description": "Installation neuer Klimaanlagensysteme", "price_from": 2000.0},
                 {"title": "Heizungsanlagen-Installation", "description": "Installation von Heizungssystemen", "price_from": 2500.0},
                 {"title": "HLK-System-Installation", "description": "Komplette HLK-Systeminstallation", "price_from": 4000.0}
             ],
-            "HLK:Reparatur": [
+            "Sanitär & Heizung:Heizungsreparatur": [
                 {"title": "Klimaanlagen-Reparaturservice", "description": "Reparatur von Klimaanlagen", "price_from": 200.0},
                 {"title": "Heizungsreparatur", "description": "Behebung von Heizungssystemproblemen", "price_from": 250.0},
                 {"title": "HLK-Systemreparatur", "description": "Reparatur kompletter HLK-Systeme", "price_from": 300.0}
             ],
-            "HLK:Wartung": [
+            "Sanitär & Heizung:Heizungswartung": [
                 {"title": "Klimaanlagen-Wartungsservice", "description": "Regelmäßige Klimaanlagen-Wartung und Service", "price_from": 150.0},
                 {"title": "Heizungssystem-Wartung", "description": "Jährliche Heizungssystem-Wartung", "price_from": 180.0},
                 {"title": "HLK-System-Wartung", "description": "Komplette HLK-System-Wartung", "price_from": 200.0}
@@ -2211,97 +2217,97 @@ def seed_database(create_media_files: bool = False):
                 {"title": "Badezimmer-Lüftung", "description": "Installation von Badezimmer-Abluftventilatoren", "price_from": 300.0}
             ],
             # Handyman subcategories
-            "Handwerker:Reparaturen": [
+            "Bau & Renovierung:Reparaturen": [
                 {"title": "Allgemeine Hausreparaturen", "description": "Verschiedene Hausreparaturaufgaben", "price_from": 100.0},
                 {"title": "Gipskartonreparatur", "description": "Reparatur von Löchern und Schäden in Gipskarton", "price_from": 150.0},
                 {"title": "Türscharnierreparatur", "description": "Reparatur von Türscharnieren und Ausrichtung", "price_from": 80.0}
             ],
-            "Handwerker:Montage": [
+            "Bau & Renovierung:Montage": [
                 {"title": "Möbelmontage", "description": "Montage von Flachpackmöbeln", "price_from": 80.0},
                 {"title": "Gerätemontage", "description": "Montage von Fitnessgeräten und Haushaltsgeräten", "price_from": 100.0},
                 {"title": "IKEA-Möbelmontage", "description": "Professionelle IKEA-Möbelmontage", "price_from": 90.0}
             ],
-            "Handwerker:Befestigung": [
+            "Bau & Renovierung:Befestigung": [
                 {"title": "TV-Montageservice", "description": "Sichere Wandmontage von Fernsehern", "price_from": 120.0},
                 {"title": "Regal-Montage", "description": "Montage von Regalen und Wandaufbewahrung", "price_from": 80.0},
                 {"title": "Bildaufhängung", "description": "Aufhängen von Bildern und Kunstwerken", "price_from": 50.0}
             ],
-            "Handwerker:Installation": [
+            "Bau & Renovierung:Installation": [
                 {"title": "Geräte-Installation", "description": "Installation von Geschirrspülern, Öfen und Geräten", "price_from": 150.0},
                 {"title": "Leuchten-Installation", "description": "Installation von Leuchten und Beschlägen", "price_from": 100.0},
                 {"title": "Jalousien-Installation", "description": "Installation von Fensterjalousien und Vorhängen", "price_from": 120.0}
             ],
-            "Handwerker:Wartung": [
+            "Bau & Renovierung:Wartung": [
                 {"title": "Hauswartungsservice", "description": "Regelmäßige Hauswartungsaufgaben", "price_from": 120.0},
                 {"title": "Saisonale Wartung", "description": "Saisonale Hauswartungs-Checkliste", "price_from": 200.0}
             ],
-            "Handwerker:Kleine Arbeiten": [
+            "Bau & Renovierung:Kleine Arbeiten": [
                 {"title": "Schnellreparatur-Service", "description": "Kleine Reparaturarbeiten und schnelle Reparaturen", "price_from": 60.0},
                 {"title": "Handwerker-Stundensatz", "description": "Stündlicher Handwerkerservice", "price_from": 50.0}
             ],
             # Car subcategories
-            "Auto:Reparaturen": [
+            "KFZ & Fahrzeugservice:Reparaturen": [
                 {"title": "Allgemeine Autoreparatur", "description": "Umfassender Autoreparatur- und Wartungsservice", "price_from": 150.0},
                 {"title": "Diagnoseservice", "description": "Komplette Fahrzeugdiagnose und Fehlerbehebung", "price_from": 100.0},
                 {"title": "Auto-Wartungsservice", "description": "Regelmäßige Wartung und Einstellung", "price_from": 120.0},
                 {"title": "Getriebereparatur", "description": "Reparatur und Service von Getriebesystemen", "price_from": 400.0}
             ],
-            "Auto:Motor": [
+            "KFZ & Fahrzeugservice:Motor": [
                 {"title": "Motordiagnose", "description": "Komplette Motordiagnose und Analyse", "price_from": 150.0},
                 {"title": "Motorreparatur-Service", "description": "Reparatur von Motorproblemen und -fehlern", "price_from": 300.0},
                 {"title": "Motor-Aufbau", "description": "Kompletter Motor-Aufbau-Service", "price_from": 2000.0},
                 {"title": "Zahnriemen-Austausch", "description": "Austausch von Zahnriemen und Wasserpumpe", "price_from": 400.0}
             ],
-            "Auto:Bremsen": [
+            "KFZ & Fahrzeugservice:Bremsen": [
                 {"title": "Bremsbelag-Austausch", "description": "Austausch von Bremsbelägen und Scheiben", "price_from": 200.0},
                 {"title": "Bremsenservice", "description": "Komplette Bremsenprüfung und Service", "price_from": 150.0},
                 {"title": "Bremsflüssigkeitswechsel", "description": "Austausch von Bremsflüssigkeit und Entlüftung der Bremsen", "price_from": 100.0},
                 {"title": "Bremscheiben-Austausch", "description": "Austausch abgenutzter Bremscheiben", "price_from": 250.0}
             ],
-            "Auto:Reifen": [
+            "KFZ & Fahrzeugservice:Reifen": [
                 {"title": "Reifenwechsel", "description": "Austausch alter Reifen durch neue", "price_from": 150.0},
                 {"title": "Reifenauswuchtung", "description": "Auswuchtung von Reifen für sanftes Fahren", "price_from": 50.0},
                 {"title": "Achseinstellung", "description": "Achseinstellung für ordnungsgemäße Handhabung", "price_from": 100.0},
                 {"title": "Reifenrotation", "description": "Reifenrotation für gleichmäßigen Verschleiß", "price_from": 40.0}
             ],
-            "Auto:Ölwechsel": [
+            "KFZ & Fahrzeugservice:Ölwechsel": [
                 {"title": "Ölwechsel-Service", "description": "Standard-Öl- und Filterwechsel", "price_from": 60.0},
                 {"title": "Vollservice-Ölwechsel", "description": "Ölwechsel mit Flüssigkeitsauffüllung und Inspektion", "price_from": 90.0},
                 {"title": "Synthetischer Ölwechsel", "description": "Premium-Synthetiköl-Wechselservice", "price_from": 80.0}
             ],
-            "Auto:Batterie": [
+            "KFZ & Fahrzeugservice:Batterie": [
                 {"title": "Batteriewechsel", "description": "Austausch der Autobatterie", "price_from": 120.0},
                 {"title": "Batterietest", "description": "Prüfung der Batteriegesundheit und Ladesystem", "price_from": 30.0},
                 {"title": "Batterie-Installation", "description": "Installation neuer Autobatterie", "price_from": 100.0}
             ],
-            "Auto:Klimaservice": [
+            "KFZ & Fahrzeugservice:Klimaservice": [
                 {"title": "Klimaanlagen-Auffüllservice", "description": "Auffüllung des Autoklimaanlagensystems", "price_from": 150.0},
                 {"title": "Klimaanlagenreparatur", "description": "Reparatur von Klimaanlagenproblemen", "price_from": 200.0},
                 {"title": "Klimaanlagendiagnose", "description": "Diagnose von Klimaanlagensystemproblemen", "price_from": 100.0}
             ],
-            "Auto:Elektrik": [
+            "KFZ & Fahrzeugservice:Elektrik": [
                 {"title": "Elektrikreparatur", "description": "Behebung von Auto-Elektrikproblemen", "price_from": 150.0},
                 {"title": "Lichtmaschinenreparatur", "description": "Reparatur oder Austausch der Lichtmaschine", "price_from": 300.0},
                 {"title": "Anlasserreparatur", "description": "Reparatur oder Austausch des Anlassers", "price_from": 250.0},
                 {"title": "Verkabelungsreparatur", "description": "Reparatur beschädigter elektrischer Verkabelung", "price_from": 200.0}
             ],
-            "Auto:Karosserie": [
+            "KFZ & Fahrzeugservice:Karosserie": [
                 {"title": "Dellenentfernung", "description": "Entfernung von Dellen und Restaurierung von Karosserieteilen", "price_from": 200.0},
                 {"title": "Karosseriereparatur-Service", "description": "Reparatur von Karosserieschäden und Kratzern", "price_from": 300.0},
                 {"title": "Karosserieteil-Austausch", "description": "Austausch beschädigter Karosserieteile", "price_from": 500.0}
             ],
-            "Auto:Lackierung": [
+            "KFZ & Fahrzeugservice:Lackierung": [
                 {"title": "Autolackier-Service", "description": "Professionelle Autolackierung und Aufbereitung", "price_from": 800.0},
                 {"title": "Teillackierung", "description": "Lackierung einzelner Teile", "price_from": 400.0},
                 {"title": "Nachlackierung", "description": "Nachlackierung von Kratzern und Steinschlägen", "price_from": 150.0}
             ],
-            "Auto:Aufbereitung": [
+            "KFZ & Fahrzeugservice:Aufbereitung": [
                 {"title": "Komplett-Autopflege", "description": "Komplette Innen- und Außenpflege", "price_from": 150.0},
                 {"title": "Innenpflege", "description": "Grundreinigung des Autoinnenraums", "price_from": 100.0},
                 {"title": "Außenpflege", "description": "Politur und Schutz des Äußeren", "price_from": 120.0},
                 {"title": "Wachs und Politur", "description": "Professioneller Wachs- und Polierservice", "price_from": 80.0}
             ],
-            "Auto:Inspektion": [
+            "KFZ & Fahrzeugservice:Inspektion": [
                 {"title": "Fahrzeuginspektion", "description": "Komplette Fahrzeugsicherheitsinspektion", "price_from": 80.0},
                 {"title": "Vorkaufsinspektion", "description": "Fahrzeuginspektion vor dem Kauf", "price_from": 150.0},
                 {"title": "Diagnoseinspektion", "description": "Umfassende Diagnoseprüfung", "price_from": 120.0}

@@ -303,6 +303,7 @@ export interface Review {
   report_status?: "in_review" | "removed" | "rejected" | string | null;
   reported_by_id?: number | null;
   reported_at?: string | null;
+  buyer_name?: string | null;
   created_at: string;
 }
 

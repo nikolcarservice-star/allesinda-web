@@ -11,6 +11,13 @@ from ..utils.notifications import create_notification, create_review_notificatio
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
+def _serialize_review(review: Review, db: Session) -> dict:
+    data = ReviewOut.model_validate(review).model_dump()
+    order = review.order
+    buyer = db.get(User, order.buyer_id) if order else None
+    data["buyer_name"] = buyer.name if buyer else None
+    return data
+
 @router.get("/my", response_model=dict)
 def get_my_reviews(
     user: User = Depends(get_current_user),
@@ -198,7 +205,6 @@ def get_seller_reviews(
     
     items, total = paginate_query(query, page, page_size)
     
-    # Convert SQLAlchemy models to Pydantic models
-    review_out_items = [ReviewOut.model_validate(item) for item in items]
+    review_out_items = [_serialize_review(item, db) for item in items]
     
     return create_paginated_response(review_out_items, total, page, page_size)

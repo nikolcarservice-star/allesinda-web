@@ -27,6 +27,7 @@ from ..schemas import (
     FeaturedSelectionUpdate,
     FeaturedSelectionOut,
     UserUpdate,
+    ReviewReportStatusIn,
 )
 from ..routers.orders import load_order_relations
 from .featured import _build_featured_item_from_type
@@ -825,6 +826,10 @@ def get_all_reviews(
             "rating": review.rating,
             "text": review.text,
             "created_at": review.created_at.isoformat(),
+            "master_response": review.master_response,
+            "report_reason": review.report_reason,
+            "report_status": review.report_status,
+            "reported_at": review.reported_at.isoformat() if review.reported_at else None,
             "buyer_id": order.buyer_id if order else None,
             "buyer_name": buyer.name if buyer else None,
             "seller_id": order.seller_id if order else None,
@@ -836,6 +841,43 @@ def get_all_reviews(
         })
     
     return create_paginated_response(reviews_list, total, page, page_size)
+
+@router.patch("/reviews/{review_id}/report-status")
+def moderate_review_report(
+    review_id: int,
+    data: ReviewReportStatusIn,
+    db: Session = Depends(get_db),
+):
+    """Resolve a master review report (admin only)."""
+    from ..models import Review
+    from ..utils.notifications import create_notification
+
+    review = db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    if review.report_status != "in_review":
+        raise HTTPException(status_code=400, detail="Review is not pending moderation")
+
+    review.report_status = data.status
+    db.commit()
+    db.refresh(review)
+
+    order = review.order
+    if order and order.seller_id:
+        status_label = "Entfernt" if data.status == "removed" else "Abgelehnt"
+        try:
+            create_notification(
+                db=db,
+                user_id=order.seller_id,
+                type="review_report_resolved",
+                title="Meldung bearbeitet",
+                message=f"Ihre Meldung zu Bewertung #{review.id} wurde bearbeitet: {status_label}",
+                related_id=review.id,
+            )
+        except Exception:
+            pass
+
+    return {"ok": True, "review_id": review.id, "report_status": review.report_status}
 
 @router.delete("/reviews/{review_id}")
 def delete_review(

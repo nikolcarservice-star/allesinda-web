@@ -328,6 +328,10 @@ export async function getAllReviews(params?: {
   order_amount?: number;
   category?: string;
   subcategory?: string;
+  report_reason?: string | null;
+  report_status?: "in_review" | "removed" | "rejected" | string | null;
+  reported_at?: string | null;
+  master_response?: string | null;
 }>> {
   return apiGet('/admin/reviews', params);
 }
@@ -337,6 +341,13 @@ export async function getAllReviews(params?: {
  */
 export async function deleteReview(reviewId: number): Promise<{ ok: boolean; message: string }> {
   return apiDelete(`/admin/reviews/${reviewId}`);
+}
+
+export async function moderateReviewReport(
+  reviewId: number,
+  status: "removed" | "rejected"
+): Promise<{ ok: boolean; review_id: number; report_status: string }> {
+  return apiPatch(`/admin/reviews/${reviewId}/report-status`, { status });
 }
 
 /**

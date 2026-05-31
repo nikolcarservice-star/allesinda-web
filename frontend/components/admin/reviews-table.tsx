@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Search, Trash2, Loader2, AlertCircle, Star, User, X } from "lucide-react"
-import { getAllReviews, deleteReview } from "@/lib/api/admin"
+import { getAllReviews, deleteReview, moderateReviewReport } from "@/lib/api/admin"
 import { getCategoriesByType } from "@/lib/api/categories"
 import type { CategoryType, Category } from "@/lib/api/types"
 import { toast } from "sonner"
@@ -47,6 +47,10 @@ interface Review {
   order_amount?: number;
   category?: string;
   subcategory?: string;
+  report_reason?: string | null;
+  report_status?: "in_review" | "removed" | "rejected" | string | null;
+  reported_at?: string | null;
+  master_response?: string | null;
 }
 
 export function ReviewsTable() {
@@ -65,6 +69,7 @@ export function ReviewsTable() {
     open: false,
     review: null,
   })
+  const [moderatingReviewId, setModeratingReviewId] = useState<number | null>(null)
 
   useEffect(() => {
     loadReviews()
@@ -158,6 +163,66 @@ export function ReviewsTable() {
     } catch (error: any) {
       toast.error(error.message || "Bewertung konnte nicht gelöscht werden")
     }
+  }
+
+  const handleModerateReport = async (reviewId: number, status: "removed" | "rejected") => {
+    try {
+      setModeratingReviewId(reviewId)
+      await moderateReviewReport(reviewId, status)
+      toast.success(status === "removed" ? "Bewertung als entfernt markiert" : "Meldung abgelehnt")
+      loadReviews()
+    } catch (error: any) {
+      toast.error(error.message || "Meldung konnte nicht bearbeitet werden")
+    } finally {
+      setModeratingReviewId(null)
+    }
+  }
+
+  const getReportStatusLabel = (status?: string | null) => {
+    if (status === "in_review") return "In Prüfung"
+    if (status === "removed") return "Entfernt"
+    if (status === "rejected") return "Abgelehnt"
+    return null
+  }
+
+  const renderReportModeration = (review: Review) => {
+    const statusLabel = getReportStatusLabel(review.report_status)
+    if (!review.report_status && !review.report_reason) return null
+
+    return (
+      <div className="flex flex-col gap-1.5 mt-1">
+        {review.report_reason && (
+          <span className="text-[10px] text-muted-foreground">
+            Meldung: {review.report_reason}
+            {statusLabel ? ` · ${statusLabel}` : ""}
+          </span>
+        )}
+        {review.report_status === "in_review" && (
+          <div className="flex flex-wrap gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] px-2"
+              disabled={moderatingReviewId === review.id}
+              onClick={() => handleModerateReport(review.id, "removed")}
+            >
+              Entfernt
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] px-2"
+              disabled={moderatingReviewId === review.id}
+              onClick={() => handleModerateReport(review.id, "rejected")}
+            >
+              Abgelehnt
+            </Button>
+          </div>
+        )}
+      </div>
+    )
   }
 
   const clearFilters = () => {
@@ -494,6 +559,7 @@ export function ReviewsTable() {
                           {review.text && (
                             <p className="text-[10px] text-muted-foreground line-clamp-2 mt-1">{review.text}</p>
                           )}
+                          {renderReportModeration(review)}
                           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                             <Badge
                               variant="outline"
@@ -582,11 +648,14 @@ export function ReviewsTable() {
                           </div>
                         </TableCell>
                         <TableCell className="py-2 hidden lg:table-cell">
-                          {review.text ? (
-                            <p className="text-xs text-muted-foreground line-clamp-2 min-w-0">{review.text}</p>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">Kein Kommentar</span>
-                          )}
+                          <div className="space-y-1">
+                            {review.text ? (
+                              <p className="text-xs text-muted-foreground line-clamp-2 min-w-0">{review.text}</p>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic">Kein Kommentar</span>
+                            )}
+                            {renderReportModeration(review)}
+                          </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex flex-col gap-0.5">

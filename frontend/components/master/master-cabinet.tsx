@@ -21,6 +21,8 @@ import { CityCombobox } from "@/components/shared/city-combobox"
 import type { Category, Media, Profile, ProfileInput, Review, User } from "@/lib/api/types"
 import { toast } from "sonner"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { formatDistanceToNow } from "date-fns"
+import { de } from "date-fns/locale/de"
 
 const ABOUT_LIMIT = 500
 const MASTER_PHOTO_LIMIT = 20
@@ -28,6 +30,10 @@ const MASTER_VIDEO_LIMIT = 5
 const REVIEW_REPORT_REASONS = ["Falsche Angaben", "Beleidigung", "Spam"] as const
 
 const SERVICE_TAG_SUGGESTIONS: Array<{ match: string[]; tags: string[] }> = [
+  {
+    match: ["schneider", "näherei", "naeherei", "textil"],
+    tags: ["Änderungen", "Reparaturen", "Maßanfertigung", "Reißverschluss", "Vorhänge"],
+  },
   {
     match: ["bau", "renovierung", "handwerker", "schreinerei", "fliesen", "malerei"],
     tags: ["Trockenbau", "Fliesen legen", "Malerarbeiten", "Renovierung", "Möbelmontage"],
@@ -557,27 +563,25 @@ export function MasterCabinet() {
             <section className="space-y-4">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">Grunddaten</h2>
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="vorname">Vorname</Label>
-                    <Input
-                      id="vorname"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Max"
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="nachname">Nachname</Label>
-                    <Input
-                      id="nachname"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Mustermann"
-                      className="h-11"
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="vorname">Vorname</Label>
+                  <Input
+                    id="vorname"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Max"
+                    className="h-11"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="nachname">Nachname</Label>
+                  <Input
+                    id="nachname"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Mustermann"
+                    className="h-11"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="telefon">Telefonnummer</Label>
@@ -841,23 +845,33 @@ export function MasterCabinet() {
                     return (
                       <div key={review.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex gap-0.5">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                              <Star
-                                key={index}
-                                className={
-                                  index < review.rating
-                                    ? "h-4 w-4 fill-amber-400 text-amber-400"
-                                    : "h-4 w-4 text-neutral-200"
-                                }
-                              />
-                            ))}
+                          <div className="min-w-0 space-y-1">
+                            <p className="text-sm font-medium text-neutral-800">
+                              {review.buyer_name || "Kunde"}
+                            </p>
+                            <p className="text-xs text-neutral-400">
+                              {formatDistanceToNow(new Date(review.created_at), { addSuffix: true, locale: de })}
+                            </p>
                           </div>
-                          {statusLabel && (
-                            <Badge variant="outline" className="shrink-0 text-[10px]">
-                              {statusLabel}
-                            </Badge>
-                          )}
+                          <div className="flex shrink-0 flex-col items-end gap-1">
+                            <div className="flex gap-0.5">
+                              {Array.from({ length: 5 }).map((_, index) => (
+                                <Star
+                                  key={index}
+                                  className={
+                                    index < review.rating
+                                      ? "h-4 w-4 fill-amber-400 text-amber-400"
+                                      : "h-4 w-4 text-neutral-200"
+                                  }
+                                />
+                              ))}
+                            </div>
+                            {statusLabel && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {statusLabel}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <p className="text-sm text-neutral-700">
                           {review.report_status === "removed" ? "Diese Bewertung wurde entfernt." : review.text || "Ohne Text"}

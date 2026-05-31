@@ -150,9 +150,103 @@ def ensure_schema():
                     with engine.begin() as conn:
                         conn.execute(text(f"ALTER TABLE reviews ADD COLUMN {column_name} {column_type}"))
                     logger.info(f"Schema updated: added reviews.{column_name} column")
+        ensure_master_category_updates()
     except Exception as e:
         # Never crash startup if schema checks fail
         logger.warning(f"Schema ensure failed: {e}")
+
+def ensure_master_category_updates():
+    """Rename/merge master categories for existing databases without re-seeding."""
+    from .models import Category, Profile, CategoryType
+
+    session = SessionLocal()
+    try:
+        renames = {
+            "master-auto": "KFZ & Fahrzeugservice",
+            "master-handwerker": "Bau & Renovierung",
+            "master-sanitär": "Sanitär & Heizung",
+        }
+        for slug, new_name in renames.items():
+            category = session.query(Category).filter(
+                Category.slug == slug,
+                Category.type == CategoryType.master,
+            ).first()
+            if category and category.name != new_name:
+                category.name = new_name
+
+        sanitär = session.query(Category).filter(
+            Category.slug == "master-sanitär",
+            Category.type == CategoryType.master,
+        ).first()
+        hlk = session.query(Category).filter(
+            Category.slug == "master-hlk",
+            Category.type == CategoryType.master,
+        ).first()
+        if sanitär and hlk:
+            hlk_subcategories = session.query(Category).filter(
+                Category.parent_id == hlk.id,
+                Category.type == CategoryType.master,
+            ).all()
+            sanitär_subs = {
+                sub.name.lower(): sub.id
+                for sub in session.query(Category).filter(
+                    Category.parent_id == sanitär.id,
+                    Category.type == CategoryType.master,
+                ).all()
+            }
+            for sub in hlk_subcategories:
+                target_id = sanitär_subs.get(sub.name.lower()) or sanitär.id
+                session.query(Profile).filter(Profile.category_id == sub.id).update(
+                    {Profile.category_id: target_id},
+                    synchronize_session=False,
+                )
+            session.query(Profile).filter(Profile.category_id == hlk.id).update(
+                {Profile.category_id: sanitär.id},
+                synchronize_session=False,
+            )
+            hlk.is_active = False
+            for sub in hlk_subcategories:
+                sub.is_active = False
+
+        schneider = session.query(Category).filter(
+            Category.slug == "master-schneider-naeherei",
+            Category.type == CategoryType.master,
+        ).first()
+        if not schneider:
+            schneider = Category(
+                name="Schneider / Näherei",
+                slug="master-schneider-naeherei",
+                type=CategoryType.master,
+                description="Schneiderei und Nähservice für Kleidung, Vorhänge und Textilien.",
+                sort_order=99,
+                is_active=True,
+            )
+            session.add(schneider)
+            session.flush()
+            for idx, (sub_name, sub_desc) in enumerate([
+                ("Änderungen", "Kleidungsänderungen und Anpassungen."),
+                ("Reparaturen", "Reparatur von Kleidung und Textilien."),
+                ("Maßanfertigung", "Individuelle Maßanfertigungen."),
+                ("Reißverschluss", "Reißverschluss-Reparatur und -ersatz."),
+                ("Vorhänge", "Vorhangnähen und -anpassung."),
+                ("Hemden", "Hemden- und Blusenänderungen."),
+            ]):
+                session.add(Category(
+                    name=sub_name,
+                    slug=f"master-schneider-naeherei-{sub_name.lower().replace('ä', 'ae').replace('ß', 'ss')}",
+                    type=CategoryType.master,
+                    description=sub_desc,
+                    parent_id=schneider.id,
+                    sort_order=idx,
+                    is_active=True,
+                ))
+
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logger.warning(f"Master category updates failed: {e}")
+    finally:
+        session.close()
 
 def drop_db():
     """Drop all tables - use with caution!"""
