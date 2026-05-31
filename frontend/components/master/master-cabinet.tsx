@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, User, X, Plus, Trash2, Video, Star, Flag } from "lucide-react"
+import { Loader2, User as UserIcon, X, Plus, Trash2, Video, Star, Flag } from "lucide-react"
 import { useAuth } from "@/lib/context/auth-context"
 import { getMasterCabinet, updateMasterCabinet, uploadProfileImage } from "@/lib/api/masters"
 import { ApiClientError } from "@/lib/api/client"
@@ -529,7 +529,7 @@ export function MasterCabinet() {
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
-                    <User className="h-16 w-16 text-neutral-300" />
+                    <UserIcon className="h-16 w-16 text-neutral-300" />
                   </div>
                 )}
               </div>
