@@ -86,7 +86,7 @@ export default async function RootLayout({
                 }>
                   <Header />
                 </Suspense>
-                <div className="-mt-14 sm:-mt-[72px] pt-14 sm:pt-[72px]">
+                <div className="-mt-14 sm:-mt-[72px] pt-14 sm:pt-[72px] lg:mt-0 lg:pt-0">
                   <MobileAppChrome>{children}</MobileAppChrome>
                 </div>
               </main>

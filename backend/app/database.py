@@ -132,6 +132,20 @@ def ensure_schema():
                     # SQLite and Postgres both support this simple ADD COLUMN
                     conn.execute(text("ALTER TABLE profiles ADD COLUMN keywords TEXT"))
                 logger.info("Schema updated: added profiles.keywords column")
+        if "reviews" in insp.get_table_names():
+            cols = {c.get("name") for c in insp.get_columns("reviews")}
+            review_columns = {
+                "master_response": "TEXT",
+                "report_reason": "VARCHAR(64)",
+                "report_status": "VARCHAR(32)",
+                "reported_by_id": "INTEGER",
+                "reported_at": "TIMESTAMP",
+            }
+            for column_name, column_type in review_columns.items():
+                if column_name not in cols:
+                    with engine.begin() as conn:
+                        conn.execute(text(f"ALTER TABLE reviews ADD COLUMN {column_name} {column_type}"))
+                    logger.info(f"Schema updated: added reviews.{column_name} column")
     except Exception as e:
         # Never crash startup if schema checks fail
         logger.warning(f"Schema ensure failed: {e}")

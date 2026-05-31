@@ -9,6 +9,12 @@ import { logger } from '@/lib/logger';
 // In production, NEXT_PUBLIC_API_URL must be set
 // Export the API base URL getter for use in other files that need direct fetch calls
 export function getApiBaseUrl(): string {
+  // In the browser during local dev, route API calls through Next.js proxy so
+  // phones on the LAN only need port 3000 open (no direct access to :8000).
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    return '/api-proxy';
+  }
+
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
   if (!apiUrl) {
@@ -30,7 +36,6 @@ export function getApiBaseUrl(): string {
   return apiUrl.replace(/\/$/, '');
 }
 
-const API_BASE_URL = getApiBaseUrl();
 const API_TIMEOUT = 10000; // 10 seconds
 
 export interface ApiError {
@@ -80,7 +85,7 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiBaseUrl()}${endpoint}`;
   const token = getAuthToken();
 
   const headers: Record<string, string> = {

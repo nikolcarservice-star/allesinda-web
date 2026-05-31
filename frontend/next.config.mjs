@@ -101,6 +101,10 @@ const enableStandalone = forceStandalone || !isWindows;
 
 const nextConfig = {
   /* config options here */
+  // Allow opening the dev server from LAN IP on phone (Safari/Chrome)
+  allowedDevOrigins: isDevelopment
+    ? ['192.168.1.27:3000', 'localhost:3000', '127.0.0.1:3000']
+    : undefined,
   // Production optimizations
   compress: true,
   poweredByHeader: false,
@@ -130,6 +134,10 @@ const nextConfig = {
       return [];
     }
     return [
+      {
+        source: '/api-proxy/:path*',
+        destination: `${apiUrl}/:path*`,
+      },
       {
         source: '/media/:path*',
         destination: `${apiUrl}/media/:path*`,

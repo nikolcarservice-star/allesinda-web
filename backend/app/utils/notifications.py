@@ -165,9 +165,14 @@ def create_review_notification(
         related_id=review_id
     )
     
-    # Send SMS notification if enabled and user has phone
+    user = None
     try:
         user = db.get(User, user_id)
+    except Exception as e:
+        logger.error(f"Failed to load user for review notification {review_id}: {e}")
+
+    # Send SMS notification if enabled and user has phone
+    try:
         if user and user.phone:
             from ..utils.sms import send_review_notification_sms
             send_review_notification_sms(
@@ -176,6 +181,29 @@ def create_review_notification(
             )
     except Exception as e:
         logger.error(f"Failed to send SMS notification for review {review_id}: {e}")
+
+    # Send Web Push to installed/mobile PWA subscriptions.
+    if user:
+        try:
+            subs = db.query(PushSubscription).filter(PushSubscription.user_id == user.id).all()
+            for sub in subs:
+                def _send_push(s=sub):
+                    try:
+                        send_web_push(
+                            endpoint=s.endpoint,
+                            p256dh=s.p256dh,
+                            auth=s.auth,
+                            title="Neue Bewertung",
+                            body=f"Du hast eine neue {rating}-Sterne-Bewertung erhalten",
+                            url="/profile",
+                            tag="review",
+                        )
+                    except Exception as e:
+                        logger.warning("Web push failed for review subscription %s: %s", s.id, e)
+                thread = threading.Thread(target=_send_push, daemon=True)
+                thread.start()
+        except Exception as e:
+            logger.warning("Failed to send web push for review notification: %s", e)
     
     return notification
 

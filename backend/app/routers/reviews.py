@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime, timezone
 from ..database import get_db
-from ..models import Review, Order, OrderStatus, User, Profile
-from ..schemas import ReviewIn, ReviewOut, ReviewDetailedOut, PaginationParams
+from ..models import Review, Order, OrderStatus, User, Profile, Role
+from ..schemas import ReviewIn, ReviewOut, ReviewDetailedOut, PaginationParams, ReviewReplyIn, ReviewReportIn
 from ..security import get_current_user
 from ..helpers import paginate_query, create_paginated_response, update_rating
-from ..utils.notifications import create_review_notification
+from ..utils.notifications import create_notification, create_review_notification
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -112,6 +113,63 @@ def list_reviews(
     review_out_items = [ReviewOut.model_validate(item) for item in items]
     
     return create_paginated_response(review_out_items, total, page, page_size)
+
+def _ensure_review_belongs_to_master(review: Review, user: User) -> None:
+    if not review.order or review.order.seller_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+@router.post("/{review_id}/reply", response_model=ReviewOut)
+def reply_to_review(
+    review_id: int,
+    data: ReviewReplyIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Allow a master to write or update their public response to a review."""
+    review = db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    _ensure_review_belongs_to_master(review, user)
+    review.master_response = data.response.strip()
+    db.commit()
+    db.refresh(review)
+    return review
+
+@router.post("/{review_id}/report", response_model=ReviewOut)
+def report_review(
+    review_id: int,
+    data: ReviewReportIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Allow a master to report a customer review for moderation."""
+    review = db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    _ensure_review_belongs_to_master(review, user)
+
+    review.report_reason = data.reason
+    review.report_status = "in_review"
+    review.reported_by_id = user.id
+    review.reported_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(review)
+
+    admins = db.query(User).filter(User.role == Role.admin, User.is_active == True).all()
+    for admin in admins:
+        try:
+            create_notification(
+                db=db,
+                user_id=admin.id,
+                type="review_report",
+                title="Review report",
+                message=f"{user.name} reported review #{review.id}: {data.reason}",
+                related_id=review.id,
+            )
+        except Exception:
+            pass
+
+    return review
 
 @router.get("/{review_id}", response_model=ReviewDetailedOut)
 def get_review(review_id: int, db: Session = Depends(get_db)):

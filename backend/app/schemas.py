@@ -391,10 +391,21 @@ class ReviewIn(BaseModel):
 
 class ReviewOut(ReviewIn):
     id: int
+    master_response: Optional[str] = None
+    report_reason: Optional[str] = None
+    report_status: Optional[str] = None
+    reported_by_id: Optional[int] = None
+    reported_at: Optional[datetime] = None
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+class ReviewReplyIn(BaseModel):
+    response: str = Field(..., min_length=1, max_length=1000)
+
+class ReviewReportIn(BaseModel):
+    reason: Literal["Falsche Angaben", "Beleidigung", "Spam"]
 
 class ReviewDetailedOut(ReviewOut):
     order: OrderOut

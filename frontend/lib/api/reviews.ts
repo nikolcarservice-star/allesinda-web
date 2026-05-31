@@ -51,3 +51,14 @@ export async function getSellerReviews(
   return apiGet<PaginatedResponse<Review>>(`/reviews/seller/${sellerId}`, params);
 }
 
+export async function replyToReview(reviewId: number, response: string): Promise<Review> {
+  return apiPost<Review>(`/reviews/${reviewId}/reply`, { response });
+}
+
+export async function reportReview(
+  reviewId: number,
+  reason: "Falsche Angaben" | "Beleidigung" | "Spam"
+): Promise<Review> {
+  return apiPost<Review>(`/reviews/${reviewId}/report`, { reason });
+}
+

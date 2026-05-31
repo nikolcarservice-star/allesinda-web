@@ -68,7 +68,7 @@ export function MasterProfileMobileView({
   galleryItems,
   sellerId,
 }: MasterProfileMobileViewProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("photo")
+  const [activeTab, setActiveTab] = useState<TabId>("profile")
   const [selectedVideo, setSelectedVideo] = useState<GalleryMediaItem | null>(null)
   const [fullscreenPhotoIndex, setFullscreenPhotoIndex] = useState<number | null>(null)
 

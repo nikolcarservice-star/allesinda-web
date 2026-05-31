@@ -274,6 +274,11 @@ export interface Review {
   order_id: number;
   rating: number;
   text?: string;
+  master_response?: string | null;
+  report_reason?: "Falsche Angaben" | "Beleidigung" | "Spam" | string | null;
+  report_status?: "in_review" | "removed" | "rejected" | string | null;
+  reported_by_id?: number | null;
+  reported_at?: string | null;
   created_at: string;
 }
 

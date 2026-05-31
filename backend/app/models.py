@@ -223,6 +223,11 @@ class Review(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), unique=True, index=True)
     rating: Mapped[int] = mapped_column(Integer)  # 1-5
     text: Mapped[Optional[str]] = mapped_column(Text())
+    master_response: Mapped[Optional[str]] = mapped_column(Text())
+    report_reason: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    report_status: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, index=True)
+    reported_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    reported_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     order: Mapped[Order] = relationship(back_populates="review")

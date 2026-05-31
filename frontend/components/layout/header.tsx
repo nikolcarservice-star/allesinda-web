@@ -419,6 +419,12 @@ export function Header() {
           return
         }
 
+        // Desktop: keep header sticky/visible while scrolling
+        if (window.matchMedia("(min-width: 1024px)").matches) {
+          setIsHeaderVisible(true)
+          return
+        }
+
         const delta = y - prev
         if (y <= PIN_TOP) {
           setIsHeaderVisible(true)
@@ -1658,12 +1664,15 @@ return (
     <>
       <div
         aria-hidden
-        className="shrink-0 overflow-hidden [overflow-anchor:none]"
+        className="shrink-0 overflow-hidden [overflow-anchor:none] lg:hidden"
         style={{ height: headerSpacerHeight }}
       />
       <header
         ref={headerRef}
-        className={cn("fixed top-0 left-0 right-0 z-50", !isHeaderVisible && "pointer-events-none")}
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 lg:sticky lg:top-0",
+          !isHeaderVisible && "pointer-events-none lg:pointer-events-auto",
+        )}
       >
     {isDesktopMegaMenuOpen && headerHeight > 0 && (
       <div
@@ -1692,8 +1701,8 @@ return (
     <div
       className={cn(
         "bg-white text-black border-b border-gray-300",
-        "transition-transform duration-300 ease-out will-change-transform",
-        !isHeaderVisible && "-translate-y-full",
+        "transition-transform duration-300 ease-out will-change-transform lg:transform-none lg:will-change-auto",
+        !isHeaderVisible && "-translate-y-full lg:translate-y-0",
       )}
     >
       {isMasterDetailPage && masterProfileId != null ? (
