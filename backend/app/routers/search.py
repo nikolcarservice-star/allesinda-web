@@ -605,11 +605,15 @@ def _perform_search(
         notification_targets: list[Tuple[int, float, Profile]] = []
         for p in items:
             user = p.user
+            display_name = None
+            if user and user.name:
+                stripped = str(user.name).strip()
+                display_name = stripped or None
             master_dict = {
                 "id": p.id,
                 "user_id": p.user_id,
-                "name": user.name if user else None,
-                "user_name": user.name if user else None,  # Alias for consistency with frontend
+                "name": display_name,
+                "user_name": display_name,  # Alias for consistency with frontend
                 "city_id": p.city_id,
                 "city_name": p.city_ref.name if getattr(p, "city_ref", None) else None,
                 "image_url": p.image_url,

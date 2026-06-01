@@ -73,6 +73,15 @@ def _favorite_type_for_category(item_type: CategoryType) -> str:
     return "rental"
 
 
+def _master_display_title(user: User | None, profile_id: int) -> str:
+    """Pydantic requires a non-null title; some legacy rows have users without names."""
+    if user and user.name:
+        name = str(user.name).strip()
+        if name:
+            return name
+    return f"Master #{profile_id}"
+
+
 def _load_like_counts(db: Session, item_type: CategoryType, item_ids: List[int]) -> Dict[int, int]:
     if not item_ids:
         return {}
@@ -101,7 +110,7 @@ def _serialize_master(profile: Profile, *, lowest_price: Optional[float] = None,
     (featured items, recently viewed, search results, etc.).
     """
     user = profile.user
-    title = user.name if user else f"Master #{profile.id}"
+    title = _master_display_title(user, profile.id)
     subtitle = profile.city_ref.name if getattr(profile, "city_ref", None) else None
     price_value = float(lowest_price) if lowest_price is not None else None
     return {
@@ -234,7 +243,7 @@ def _load_item_summaries(db: Session, ids_by_type: Dict[CategoryType, set[int]])
         for profile in profiles:
             user = profile.user
             summaries[(CategoryType.master, profile.id)] = {
-                "title": user.name if user else f"Master #{profile.id}",
+                "title": _master_display_title(user, profile.id),
                 "image_url": profile.image_url,
             }
 
@@ -856,7 +865,18 @@ def list_featured_items(
     end = start + page_size
     paged_items = aggregated[start:end]
 
-    featured_items = [FeaturedItemOut(**item) for item in paged_items]
+    featured_items: List[FeaturedItemOut] = []
+    for item in paged_items:
+        try:
+            featured_items.append(FeaturedItemOut(**item))
+        except Exception as exc:
+            logger.warning(
+                "Skipping featured item %s/%s during validation: %s",
+                item.get("type"),
+                item.get("id"),
+                exc,
+            )
+
     _attach_relationships(db, featured_items)
 
     return create_paginated_response(
