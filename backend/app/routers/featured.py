@@ -227,7 +227,7 @@ def _load_item_summaries(db: Session, ids_by_type: Dict[CategoryType, set[int]])
     if CategoryType.master in ids_by_type and ids_by_type[CategoryType.master]:
         profiles = (
             db.query(Profile)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref))
+            .options(joinedload(Profile.user))
             .filter(Profile.id.in_(ids_by_type[CategoryType.master]))
             .all()
         )
@@ -346,17 +346,10 @@ def _build_relationship_mapping(
 
 
 def _attach_relationships(db: Session, items: List[FeaturedItemOut]) -> None:
-    if not items:
-        return
-    try:
-        mapping = _build_relationship_mapping(db, items)
-        for item in items:
-            key = (item.type, item.id)
-            item.relationships = mapping.get(key, [])
-    except Exception as exc:
-        logger.warning("Failed to load item relationships, continuing without them: %s", exc)
-        for item in items:
-            item.relationships = []
+    mapping = _build_relationship_mapping(db, items)
+    for item in items:
+        key = (item.type, item.id)
+        item.relationships = mapping.get(key, [])
 
 
 def _apply_sort(items: List[dict], sort_by: str, sort_order: str) -> None:
@@ -413,7 +406,7 @@ def _build_featured_item_from_type(db: Session, item_type: CategoryType, item_id
     if item_type == CategoryType.master:
         profile = (
             db.query(Profile)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref))
+            .options(joinedload(Profile.user))
             .filter(Profile.id == item_id)
             .first()
         )
@@ -483,16 +476,7 @@ def list_curated_featured_items(
 
     curated_items: List[dict] = []
     for entry in entries:
-        try:
-            item = _build_featured_item_from_type(db, entry.item_type, entry.item_id)
-        except Exception as exc:
-            logger.warning(
-                "Skipping curated featured item %s/%s: %s",
-                entry.item_type,
-                entry.item_id,
-                exc,
-            )
-            continue
+        item = _build_featured_item_from_type(db, entry.item_type, entry.item_id)
         if not item:
             continue
         item_dict = item.model_dump(mode="json")
@@ -536,7 +520,7 @@ def list_featured_items(
         master_query = (
             db.query(Profile)
             .join(Profile.user)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref))
+            .options(joinedload(Profile.user))
             .filter(
                 User.role == Role.master,
                 User.is_active.is_(True),
@@ -860,7 +844,7 @@ def list_featured_items(
     _attach_relationships(db, featured_items)
 
     return create_paginated_response(
-        [item.model_dump(mode="json") for item in featured_items],
+        [item.model_dump() for item in featured_items],
         total,
         page,
         page_size,
@@ -877,7 +861,7 @@ def get_featured_detail(
     if item_type == CategoryType.master:
         profile = (
             db.query(Profile)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref), joinedload(Profile.services))
+            .options(joinedload(Profile.user), joinedload(Profile.services))
             .filter(Profile.id == item_id)
             .first()
         )

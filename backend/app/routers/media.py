@@ -221,7 +221,7 @@ async def upload_media(
     # Validate video format (check file extension and size)
     if media_type == "video":
         # Validate by extension or content type
-        valid_video_exts = ('mp4', 'mov', 'avi', 'webm', 'mkv')
+        valid_video_exts = ('mp4', 'mov', 'avi', 'webm', 'mkv', 'm4v', '3gp')
         if (file_ext and file_ext not in valid_video_exts) and not content_type.startswith("video/"):
             raise HTTPException(400, "Invalid video format. Supported: MP4, MOV, AVI, WebM, MKV")
         

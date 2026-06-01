@@ -9,13 +9,17 @@ import { logger } from '@/lib/logger';
 // In production, NEXT_PUBLIC_API_URL must be set
 // Export the API base URL getter for use in other files that need direct fetch calls
 export function getApiBaseUrl(): string {
-  // In the browser during local dev, route API calls through Next.js proxy so
-  // phones on the LAN only need port 3000 open (no direct access to :8000).
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  // Browser: same-origin proxy so phones only need port 3000 (not 8000).
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     return '/api-proxy';
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  // Server-side in dev: talk to backend on loopback (LAN IP often times out locally).
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+    return 'http://127.0.0.1:8000';
+  }
   
   if (!apiUrl) {
     // In production, fail if API URL is not set
@@ -140,11 +144,17 @@ async function apiRequest<T>(
         );
       }
 
-      throw new ApiClientError(
-        typeof errorDetail === 'string' ? errorDetail : 'Request failed',
-        response.status,
-        errorDetail
-      );
+      let errorMessage = 'Request failed';
+      if (typeof errorDetail === 'string') {
+        errorMessage = errorDetail;
+      } else if (errorDetail && typeof errorDetail === 'object' && !Array.isArray(errorDetail)) {
+        const record = errorDetail as Record<string, unknown>;
+        if (typeof record.message === 'string') {
+          errorMessage = record.message;
+        }
+      }
+
+      throw new ApiClientError(errorMessage, response.status, errorDetail);
     }
 
     // Handle empty responses

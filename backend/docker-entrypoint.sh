@@ -51,12 +51,6 @@ if [ "${SEED_DB_ON_START}" = "true" ]; then
     echo ""
 fi
 
-echo "Ensuring database schema is up to date..."
-python -c "from app.database import init_db, ensure_schema; init_db(); ensure_schema()" || {
-    echo "WARNING: Schema ensure failed, but continuing with server start..."
-}
-echo ""
-
 echo "Starting FastAPI server..."
 echo ""
 

@@ -2,8 +2,45 @@
  * Authentication API functions
  */
 
-import { apiPost, apiGet, apiPatch, setAuthToken, removeAuthToken } from './client';
+import { apiPost, apiGet, apiPatch, setAuthToken, removeAuthToken, ApiClientError } from './client';
 import type { User, UserCreate, LoginRequest, Token, UserSelfUpdate } from './types';
+
+export interface AccountDeletionResponse {
+  message: string;
+  recovery_until: string;
+}
+
+type PendingDeletionDetail = {
+  code?: string;
+  message?: string;
+  recovery_until?: string;
+};
+
+export function isPendingDeletionError(err: unknown): boolean {
+  if (!(err instanceof ApiClientError) || err.statusCode !== 403) return false;
+  const detail = err.errors;
+  if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+    return (detail as PendingDeletionDetail).code === 'account_pending_deletion';
+  }
+  return false;
+}
+
+export function getPendingDeletionMessage(err: unknown): string {
+  const detail = err instanceof ApiClientError ? err.errors : null;
+  if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+    const message = (detail as PendingDeletionDetail).message;
+    if (message) return message;
+  }
+  return 'Ihr Konto wurde zur Löschung vorgemerkt.';
+}
+
+export function getPendingDeletionRecoveryUntil(err: unknown): string | null {
+  const detail = err instanceof ApiClientError ? err.errors : null;
+  if (detail && typeof detail === 'object' && !Array.isArray(detail)) {
+    return (detail as PendingDeletionDetail).recovery_until ?? null;
+  }
+  return null;
+}
 
 /**
  * Register a new user
@@ -47,6 +84,30 @@ export async function getCurrentUser(): Promise<User> {
  */
 export async function updateCurrentUser(data: UserSelfUpdate): Promise<User> {
   return apiPatch<User>('/auth/me', data);
+}
+
+/**
+ * Schedule account deletion (14-day recovery period)
+ */
+export async function requestAccountDeletion(
+  password: string,
+  confirmation: string,
+): Promise<AccountDeletionResponse> {
+  return apiPost<AccountDeletionResponse>('/auth/me/request-deletion', {
+    password,
+    confirmation,
+  });
+}
+
+/**
+ * Restore account within the 14-day grace period
+ */
+export async function restoreAccount(data: LoginRequest): Promise<Token> {
+  const response = await apiPost<Token>('/auth/me/restore', data);
+  if (response.access_token) {
+    setAuthToken(response.access_token);
+  }
+  return response;
 }
 
 /**

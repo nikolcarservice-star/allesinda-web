@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { getCurrentUser, logout as logoutAPI, isAuthenticated } from "@/lib/api/auth"
+import { ApiClientError } from "@/lib/api/client"
 import type { User } from "@/lib/api/types"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -33,9 +34,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(currentUser)
     } catch (error) {
       console.error("Failed to load user:", error)
-      setUser(null)
-      // Clear invalid token
-      logoutAPI()
+      if (error instanceof ApiClientError && error.statusCode === 401) {
+        setUser(null)
+        logoutAPI()
+      } else if (isAuthenticated()) {
+        // Transient error — retry once before giving up (keeps session on refresh)
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 400))
+          const currentUser = await getCurrentUser()
+          setUser(currentUser)
+        } catch (retryError) {
+          console.error("Failed to load user after retry:", retryError)
+          setUser(null)
+        }
+      } else {
+        setUser(null)
+      }
     } finally {
       setLoading(false)
     }

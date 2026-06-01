@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Home, Heart, PlusCircle, MessageSquare, User } from "lucide-react"
 import { useAuth } from "@/lib/context/auth-context"
 import { cn } from "@/lib/utils"
+import { MobileBackBar } from "@/components/layout/mobile-back-bar"
 
 type NavItem = {
   href: string
@@ -115,6 +116,7 @@ export function MobileAppChrome({ children }: { children: ReactNode }) {
           !hideBottomChrome && "pb-[calc(4.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0",
         )}
       >
+        <MobileBackBar />
         {children}
       </div>
       {!hideBottomChrome && <MobileBottomNav />}

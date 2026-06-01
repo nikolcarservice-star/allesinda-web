@@ -1662,21 +1662,21 @@ return (
   const headerSpacerHeight =
     isHeaderVisible && headerHeight > 0 ? headerHeight : isHeaderVisible ? 64 : 0
 
-  if (isMasterCabinetPage) {
-    return null
-  }
-
   return (
     <>
       <div
         aria-hidden
-        className="shrink-0 overflow-hidden [overflow-anchor:none] lg:hidden"
+        className={cn(
+          "shrink-0 overflow-hidden [overflow-anchor:none] lg:hidden",
+          isMasterCabinetPage && "hidden",
+        )}
         style={{ height: headerSpacerHeight }}
       />
       <header
         ref={headerRef}
         className={cn(
           "fixed top-0 left-0 right-0 z-50 lg:sticky lg:top-0",
+          isMasterCabinetPage && "hidden lg:block",
           !isHeaderVisible && "pointer-events-none lg:pointer-events-auto",
         )}
       >

@@ -9,7 +9,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="relative border-t-2 border-border/50 bg-slate-900 dark:bg-black overflow-hidden">
+    <footer className="relative hidden border-t-2 border-border/50 bg-slate-900 dark:bg-black overflow-hidden lg:block">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-900/95 via-slate-800/95 to-slate-900/95 dark:from-black/95 dark:via-slate-950/95 dark:to-black/95"></div>
       

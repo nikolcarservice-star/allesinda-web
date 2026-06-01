@@ -3,8 +3,8 @@
 // Force dynamic rendering to avoid static generation issues
 export const dynamic = 'force-dynamic'
 
-import { useState, FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useState, FormEvent, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,37 +12,84 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Lock, AlertCircle, LogIn } from "lucide-react"
-import { login, getCurrentUser } from "@/lib/api/auth"
+import {
+  login,
+  getCurrentUser,
+  restoreAccount,
+  isPendingDeletionError,
+  getPendingDeletionMessage,
+  getPendingDeletionRecoveryUntil,
+} from "@/lib/api/auth"
 import { useAuth } from "@/lib/context/auth-context"
 import { toast } from "sonner"
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { login: setUser } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [restoring, setRestoring] = useState(false)
   const [error, setError] = useState("")
+  const [pendingDeletion, setPendingDeletion] = useState(false)
+  const [recoveryUntil, setRecoveryUntil] = useState<string | null>(null)
+
+  const accountDeletedNotice = searchParams.get("account_deleted") === "1"
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
+    setPendingDeletion(false)
+    setRecoveryUntil(null)
     setLoading(true)
 
     try {
       await login({ email, password })
-      // Get current user and update auth context
       const user = await getCurrentUser()
       setUser(user)
       toast.success("Anmeldung erfolgreich!")
       router.push("/")
       router.refresh()
-    } catch (err: any) {
-      const errorMessage = err?.errors || err?.message || "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten."
-      setError(errorMessage)
-      toast.error(errorMessage)
+    } catch (err: unknown) {
+      if (isPendingDeletionError(err)) {
+        setPendingDeletion(true)
+        setRecoveryUntil(getPendingDeletionRecoveryUntil(err))
+        const message = getPendingDeletionMessage(err)
+        setError(message)
+        toast.error(message)
+      } else {
+        const errorMessage =
+          (err as { errors?: string; message?: string })?.errors ||
+          (err instanceof Error ? err.message : "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.")
+        setError(typeof errorMessage === "string" ? errorMessage : "Anmeldung fehlgeschlagen.")
+        toast.error(typeof errorMessage === "string" ? errorMessage : "Anmeldung fehlgeschlagen.")
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRestoreAccount = async () => {
+    setRestoring(true)
+    setError("")
+    try {
+      await restoreAccount({ email, password })
+      const user = await getCurrentUser()
+      setUser(user)
+      setPendingDeletion(false)
+      toast.success("Konto erfolgreich wiederhergestellt!")
+      router.push("/profile")
+      router.refresh()
+    } catch (err: unknown) {
+      const errorMessage =
+        (err as { errors?: string; message?: string })?.errors ||
+        (err instanceof Error ? err.message : "Wiederherstellung fehlgeschlagen")
+      const text = typeof errorMessage === "string" ? errorMessage : "Wiederherstellung fehlgeschlagen"
+      setError(text)
+      toast.error(text)
+    } finally {
+      setRestoring(false)
     }
   }
 
@@ -68,10 +115,41 @@ export default function LoginPage() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-3 sm:space-y-4 p-5 sm:p-6 md:p-8 pt-3 sm:pt-4">
+              {accountDeletedNotice && (
+                <Alert className="rounded-lg border-emerald-200 bg-emerald-50 text-emerald-900">
+                  <AlertDescription className="text-sm">
+                    Ihr Konto wurde zur Löschung vorgemerkt. Sie können es innerhalb von 14 Tagen durch Anmeldung
+                    wiederherstellen.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {error && (
-                <Alert variant="destructive" className="rounded-lg border-2">
+                <Alert variant={pendingDeletion ? "default" : "destructive"} className="rounded-lg border-2">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-sm font-medium">{error}</AlertDescription>
+                  <AlertDescription className="space-y-2 text-sm font-medium">
+                    <p>{error}</p>
+                    {recoveryUntil && (
+                      <p className="text-xs font-normal opacity-90">
+                        Wiederherstellung möglich bis:{" "}
+                        {new Date(recoveryUntil).toLocaleDateString("de-DE", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                    )}
+                    {pendingDeletion && (
+                      <Button
+                        type="button"
+                        className="mt-1 h-9 w-full"
+                        disabled={restoring || !email || !password}
+                        onClick={() => void handleRestoreAccount()}
+                      >
+                        {restoring ? <Loader2 className="h-4 w-4 animate-spin" /> : "Konto wiederherstellen"}
+                      </Button>
+                    )}
+                  </AlertDescription>
                 </Alert>
               )}
 
@@ -209,3 +287,10 @@ export default function LoginPage() {
   )
 }
 
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[calc(100vh-4rem)] flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+      <LoginPageContent />
+    </Suspense>
+  )
+}

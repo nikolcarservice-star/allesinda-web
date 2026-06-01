@@ -10,7 +10,14 @@ from ..schemas import (
     ForgotPasswordIn, ResetPasswordIn, ChangePasswordIn,
     VerifyEmailIn, ResendVerificationIn,
     TwoFactorSetupOut, TwoFactorVerifyIn, TwoFactorDisableIn,
-    SocialLoginIn, UserSelfUpdate
+    SocialLoginIn, UserSelfUpdate, AccountDeletionIn, AccountDeletionOut,
+)
+from ..utils.account_deletion import (
+    ACCOUNT_DELETION_GRACE_DAYS,
+    get_recovery_until,
+    is_within_recovery_period,
+    permanently_delete_user,
+    finalize_expired_deletion,
 )
 from ..security import get_password_hash, verify_password, create_access_token, get_current_user
 from ..utils.email import send_verification_email, send_password_reset_email
@@ -82,6 +89,23 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not user.is_active:
+        if user.deletion_requested_at:
+            if finalize_expired_deletion(db, user):
+                db.commit()
+                raise HTTPException(status_code=403, detail="Account has been permanently deleted")
+            if is_within_recovery_period(user):
+                recovery_until = get_recovery_until(user)
+                raise HTTPException(
+                    status_code=403,
+                    detail={
+                        "code": "account_pending_deletion",
+                        "message": (
+                            f"Ihr Konto wurde zur Löschung vorgemerkt. "
+                            f"Sie können es innerhalb von {ACCOUNT_DELETION_GRACE_DAYS} Tagen wiederherstellen."
+                        ),
+                        "recovery_until": recovery_until.isoformat() if recovery_until else None,
+                    },
+                )
         raise HTTPException(status_code=403, detail="Account is inactive")
     
     # Check if 2FA is enabled
@@ -354,3 +378,57 @@ def update_me(
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.post("/me/request-deletion", response_model=AccountDeletionOut)
+def request_account_deletion(
+    data: AccountDeletionIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Schedule account deletion with a 14-day recovery period."""
+    confirm = data.confirmation.strip().upper()
+    if confirm not in ("LÖSCHEN", "DELETE"):
+        raise HTTPException(status_code=400, detail="Bitte geben Sie LÖSCHEN zur Bestätigung ein")
+
+    if not user.hashed_password:
+        raise HTTPException(status_code=400, detail="Passwort ist für dieses Konto nicht gesetzt")
+
+    if not verify_password(data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Falsches Passwort")
+
+    now = datetime.now(timezone.utc)
+    user.deletion_requested_at = now
+    user.is_active = False
+    db.commit()
+
+    recovery_until = now + timedelta(days=ACCOUNT_DELETION_GRACE_DAYS)
+    return AccountDeletionOut(
+        message="Ihr Konto wurde zur Löschung vorgemerkt.",
+        recovery_until=recovery_until,
+    )
+
+
+@router.post("/me/restore", response_model=Token)
+def restore_account(data: LoginIn, db: Session = Depends(get_db)):
+    """Restore an account within the 14-day deletion grace period."""
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user.deletion_requested_at:
+        raise HTTPException(status_code=400, detail="Dieses Konto ist nicht zur Löschung vorgemerkt")
+
+    if finalize_expired_deletion(db, user):
+        db.commit()
+        raise HTTPException(status_code=410, detail="Die Wiederherstellungsfrist ist abgelaufen")
+
+    if not user.hashed_password or not verify_password(data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    user.deletion_requested_at = None
+    user.is_active = True
+    db.commit()
+
+    token = create_access_token({"sub": str(user.id)})
+    return {"access_token": token, "token_type": "bearer"}

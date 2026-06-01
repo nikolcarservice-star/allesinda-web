@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,11 +15,13 @@ import { ApiClientError } from "@/lib/api/client"
 import { getCategoriesByType } from "@/lib/api/categories"
 import { getMyMedia, uploadMedia, deleteMedia } from "@/lib/api/media"
 import { getSellerReviews, replyToReview, reportReview } from "@/lib/api/reviews"
-import { getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
 import { CityCombobox } from "@/components/shared/city-combobox"
 import type { Category, Media, Profile, ProfileInput, Review, User } from "@/lib/api/types"
 import { toast } from "sonner"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { AccountSessionSection } from "@/components/profile/account-session-section"
+import { MasterCabinetDesktop } from "@/components/master/master-cabinet-desktop"
 import { formatDistanceToNow } from "date-fns"
 import { de } from "date-fns/locale/de"
 
@@ -28,6 +29,15 @@ const ABOUT_LIMIT = 500
 const MASTER_PHOTO_LIMIT = 20
 const MASTER_VIDEO_LIMIT = 5
 const REVIEW_REPORT_REASONS = ["Falsche Angaben", "Beleidigung", "Spam"] as const
+
+type CabinetTabId = "profile" | "photo" | "video" | "reviews"
+
+const CABINET_TABS: { id: CabinetTabId; label: string }[] = [
+  { id: "profile", label: "Profil" },
+  { id: "photo", label: "Foto" },
+  { id: "video", label: "Video" },
+  { id: "reviews", label: "Bewertungen" },
+]
 
 const SERVICE_TAG_SUGGESTIONS: Array<{ match: string[]; tags: string[] }> = [
   {
@@ -106,10 +116,58 @@ function getReviewReportStatusLabel(status?: string | null) {
   return null
 }
 
+function getFileExtension(filename: string) {
+  return filename.split(".").pop()?.toLowerCase() ?? ""
+}
+
+const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "bmp", "heic", "heif"])
+const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp"])
+
+function isImageFile(file: File) {
+  if (file.type.startsWith("image/")) return true
+  return IMAGE_EXTENSIONS.has(getFileExtension(file.name))
+}
+
+function isVideoFile(file: File) {
+  if (file.type.startsWith("video/")) return true
+  return VIDEO_EXTENSIONS.has(getFileExtension(file.name))
+}
+
 function getVideoTitle(video: Media) {
   if (video.title?.trim()) return video.title.trim()
   const path = video.url.split("?")[0]
   return decodeURIComponent(path.split("/").pop() || `Video ${video.id}`)
+}
+
+const FIELD_CLASS =
+  "h-12 rounded-xl border-neutral-200 bg-neutral-50 text-base shadow-none transition-colors focus-visible:border-emerald-500 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-emerald-500/20 lg:h-10 lg:rounded-md lg:border-input lg:bg-background lg:text-sm lg:shadow-sm lg:focus-visible:border-ring lg:focus-visible:ring-ring/50"
+
+const SECTION_CARD =
+  "rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] lg:rounded-lg lg:border-border lg:p-6 lg:shadow-sm"
+
+function CabinetSection({
+  title,
+  children,
+  className,
+}: {
+  title: string
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <section className={cn("space-y-4", SECTION_CARD, className)}>
+      <h2 className="text-[15px] font-semibold tracking-tight text-neutral-900">{title}</h2>
+      {children}
+    </section>
+  )
+}
+
+function FieldLabel({ htmlFor, children }: { htmlFor?: string; children: React.ReactNode }) {
+  return (
+    <Label htmlFor={htmlFor} className="text-sm font-medium text-neutral-700">
+      {children}
+    </Label>
+  )
 }
 
 function SpeichernButton({
@@ -160,6 +218,7 @@ export function MasterCabinet() {
   const [reportingReviewId, setReportingReviewId] = useState<number | null>(null)
   const [masterCategories, setMasterCategories] = useState<Category[]>([])
   const [serviceTagInput, setServiceTagInput] = useState("")
+  const [activeTab, setActiveTab] = useState<CabinetTabId>("profile")
   const profilePhotoInputRef = useRef<HTMLInputElement>(null)
   const masterPhotoInputRef = useRef<HTMLInputElement>(null)
   const masterVideoInputRef = useRef<HTMLInputElement>(null)
@@ -365,15 +424,23 @@ export function MasterCabinet() {
       return
     }
 
-    const imageFiles = selectedFiles.filter((file) => file.type.startsWith("image/"))
+    const imageFiles = selectedFiles.filter(isImageFile)
     const filesToUpload = imageFiles.slice(0, remainingSlots)
+    if (!imageFiles.length) {
+      toast.error("Bitte wählen Sie eine Bilddatei (JPG, PNG, WebP …)")
+      return
+    }
     if (!filesToUpload.length) return
 
     try {
       setMasterPhotosUploading(true)
       const uploadedPhotos: Media[] = []
+      let skippedLarge = 0
       for (const file of filesToUpload) {
-        if (file.size > 10 * 1024 * 1024) continue
+        if (file.size > 10 * 1024 * 1024) {
+          skippedLarge += 1
+          continue
+        }
         const uploaded = await uploadMedia(file, {
           media_type: "photo",
           profile_id: profile.id,
@@ -384,6 +451,9 @@ export function MasterCabinet() {
       if (uploadedPhotos.length > 0) {
         setMasterPhotos((prev) => [...prev, ...uploadedPhotos].slice(0, MASTER_PHOTO_LIMIT))
         toast.success(`${uploadedPhotos.length} Foto${uploadedPhotos.length === 1 ? "" : "s"} hochgeladen`)
+      }
+      if (skippedLarge > 0) {
+        toast.error("Einige Fotos sind größer als 10 MB")
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Foto konnte nicht hochgeladen werden"
@@ -418,15 +488,23 @@ export function MasterCabinet() {
       return
     }
 
-    const videoFiles = selectedFiles.filter((file) => file.type.startsWith("video/"))
+    const videoFiles = selectedFiles.filter(isVideoFile)
     const filesToUpload = videoFiles.slice(0, remainingSlots)
+    if (!videoFiles.length) {
+      toast.error("Bitte wählen Sie eine Videodatei (MP4, MOV, WebM …)")
+      return
+    }
     if (!filesToUpload.length) return
 
     try {
       setMasterVideosUploading(true)
       const uploadedVideos: Media[] = []
+      let skippedLarge = 0
       for (const file of filesToUpload) {
-        if (file.size > 50 * 1024 * 1024) continue
+        if (file.size > 50 * 1024 * 1024) {
+          skippedLarge += 1
+          continue
+        }
         const uploaded = await uploadMedia(file, {
           media_type: "video",
           profile_id: profile.id,
@@ -438,6 +516,11 @@ export function MasterCabinet() {
       if (uploadedVideos.length > 0) {
         setMasterVideos((prev) => [...prev, ...uploadedVideos].slice(0, MASTER_VIDEO_LIMIT))
         toast.success(`${uploadedVideos.length} Video${uploadedVideos.length === 1 ? "" : "s"} hochgeladen`)
+      } else if (skippedLarge > 0) {
+        toast.error("Video ist größer als 50 MB")
+      }
+      if (skippedLarge > 0 && uploadedVideos.length > 0) {
+        toast.error("Einige Videos sind größer als 50 MB und wurden übersprungen")
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Video konnte nicht hochgeladen werden"
@@ -500,127 +583,228 @@ export function MasterCabinet() {
     ? getOptimizedImageUrl(profile.image_url, "thumbnail")
     : null
 
+  const displayName = joinName(firstName, lastName)
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-neutral-50 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:bg-neutral-50 lg:pb-10">
-        {/* Шапка: логотип + Speichern */}
-        <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white pt-[max(0.75rem,env(safe-area-inset-top))] lg:shadow-sm">
-          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-8 lg:py-4">
-            <Link href="/" className="flex shrink-0 items-center">
-              <Image src="/logo_dark.webp" alt="Allesinda" width={120} height={32} className="h-7 w-auto lg:h-8" priority />
-            </Link>
-            <SpeichernButton
-              saving={saving}
-              onClick={handleSave}
-              className="h-9 rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700 lg:h-10 lg:px-6"
-            />
-          </div>
-        </header>
+      {loading ? (
+        <div className="flex min-h-[50vh] items-center justify-center py-24 lg:min-h-[calc(100vh-4rem)]">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+        </div>
+      ) : (
+        <>
+          <MasterCabinetDesktop
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            saving={saving}
+            onSave={handleSave}
+            profile={profile}
+            profileImageUrl={profileImageUrl}
+            displayName={displayName}
+            profilePhotoInputRef={profilePhotoInputRef}
+            profileImageUploading={profileImageUploading}
+            onProfilePhotoChange={handleProfilePhotoChange}
+            firstName={firstName}
+            onFirstNameChange={setFirstName}
+            lastName={lastName}
+            onLastNameChange={setLastName}
+            phone={phone}
+            onPhoneChange={setPhone}
+            profession={profession}
+            onProfessionChange={setProfession}
+            priceFrom={priceFrom}
+            onPriceFromChange={setPriceFrom}
+            profileForm={profileForm}
+            setProfileForm={setProfileForm}
+            masterCategories={masterCategories}
+            serviceTagInput={serviceTagInput}
+            onServiceTagInputChange={setServiceTagInput}
+            onServiceTagKeyDown={handleServiceTagKeyDown}
+            serviceTags={serviceTags}
+            suggestedTags={suggestedTags}
+            onAddServiceTag={addServiceTag}
+            onRemoveServiceTag={removeServiceTag}
+            aboutLimit={ABOUT_LIMIT}
+            masterPhotos={masterPhotos}
+            masterPhotoInputRef={masterPhotoInputRef}
+            masterPhotosUploading={masterPhotosUploading}
+            canAddMasterPhotos={canAddMasterPhotos}
+            onMasterPhotoInputChange={handleMasterPhotoInputChange}
+            onDeleteMasterPhoto={handleDeleteMasterPhoto}
+            deletingMasterPhotoId={deletingMasterPhotoId}
+            photoLimit={MASTER_PHOTO_LIMIT}
+            masterVideos={masterVideos}
+            masterVideoInputRef={masterVideoInputRef}
+            masterVideosUploading={masterVideosUploading}
+            canAddMasterVideos={canAddMasterVideos}
+            onMasterVideoInputChange={handleMasterVideoInputChange}
+            onDeleteMasterVideo={handleDeleteMasterVideo}
+            deletingMasterVideoId={deletingMasterVideoId}
+            videoLimit={MASTER_VIDEO_LIMIT}
+            getVideoTitle={getVideoTitle}
+            masterReviews={masterReviews}
+            activeReplyReviewId={activeReplyReviewId}
+            setActiveReplyReviewId={setActiveReplyReviewId}
+            activeReportReviewId={activeReportReviewId}
+            setActiveReportReviewId={setActiveReportReviewId}
+            replyDrafts={replyDrafts}
+            setReplyDrafts={setReplyDrafts}
+            savingReviewId={savingReviewId}
+            reportingReviewId={reportingReviewId}
+            onReplyToReview={handleReplyToReview}
+            onReportReview={(reviewId, reason) =>
+              handleReportReview(reviewId, reason as (typeof REVIEW_REPORT_REASONS)[number])
+            }
+            reviewReportReasons={REVIEW_REPORT_REASONS}
+            getReviewReportStatusLabel={getReviewReportStatusLabel}
+            getOptimizedPhotoUrl={(url) => getOptimizedImageUrl(url, "thumbnail")}
+          />
 
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          </div>
-        ) : (
-          <div className="mx-auto max-w-lg space-y-8 px-4 py-6 lg:max-w-5xl lg:space-y-10 lg:px-8 lg:py-10">
-            <div className="space-y-8 lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-10 lg:space-y-0 xl:grid-cols-[320px_minmax(0,1fr)]">
-            {/* Блок 1 — Фото профиля */}
-            <section className="flex flex-col items-center gap-4 lg:sticky lg:top-24 lg:gap-5">
-              <div className="relative h-36 w-36 overflow-hidden rounded-full border-4 border-neutral-100 bg-neutral-100 shadow-md lg:h-44 lg:w-44">
-                {profileImageUrl ? (
-                  <Image
-                    src={profileImageUrl}
-                    alt="Profilfoto"
-                    fill
-                    className="object-cover"
-                    unoptimized={shouldUseUnoptimized(profileImageUrl)}
-                    sizes="144px"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <UserIcon className="h-16 w-16 text-neutral-300" />
+          <div
+            className={cn(
+              "min-h-screen bg-neutral-100 pt-[max(0.5rem,env(safe-area-inset-top))] lg:hidden",
+              activeTab === "profile"
+                ? "pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]"
+                : "pb-[calc(5rem+env(safe-area-inset-bottom,0px))]",
+            )}
+          >
+          <div className="mx-auto max-w-lg space-y-0 px-4 py-4">
+            <p className="mb-4 px-1 text-xl font-bold tracking-tight text-neutral-900">Mein Profil</p>
+
+            {/* Фото профиля + вкладки под ним */}
+            <section className={cn("overflow-hidden", SECTION_CARD, "p-0")}>
+              <div className="bg-gradient-to-b from-emerald-50/90 via-white to-white px-5 pb-5 pt-8 lg:flex lg:items-center lg:gap-8 lg:px-8 lg:py-8">
+                <div className="flex flex-col items-center gap-4 lg:flex-1 lg:flex-row lg:items-center lg:justify-start lg:gap-6">
+                  <div className="relative h-[7.5rem] w-[7.5rem] shrink-0 overflow-hidden rounded-full bg-white shadow-lg ring-4 ring-white lg:h-28 lg:w-28">
+                    {profileImageUrl ? (
+                      <Image
+                        src={profileImageUrl}
+                        alt="Profilfoto"
+                        fill
+                        className="object-cover"
+                        unoptimized={shouldUseUnoptimized(profileImageUrl)}
+                        sizes="120px"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-neutral-100">
+                        <UserIcon className="h-14 w-14 text-neutral-300" />
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div className="flex min-w-0 flex-col items-center gap-2 text-center lg:items-start lg:text-left">
+                    {displayName ? (
+                      <p className="max-w-full truncate text-lg font-semibold text-neutral-900 lg:text-xl">{displayName}</p>
+                    ) : (
+                      <p className="text-sm text-neutral-500">Profil vervollständigen</p>
+                    )}
+                    <Input
+                      ref={profilePhotoInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePhotoChange}
+                      disabled={profileImageUploading}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => profilePhotoInputRef.current?.click()}
+                      disabled={profileImageUploading}
+                      className="h-10 rounded-full border-emerald-200 bg-white px-6 text-sm font-medium text-emerald-800 shadow-sm hover:bg-emerald-50 lg:rounded-md"
+                    >
+                      {profileImageUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Foto ändern"}
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <Input
-                ref={profilePhotoInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleProfilePhotoChange}
-                disabled={profileImageUploading}
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => profilePhotoInputRef.current?.click()}
-                disabled={profileImageUploading}
-                className="rounded-full px-6"
-              >
-                {profileImageUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Foto ändern"}
-              </Button>
+
+              <div className="border-t border-neutral-200 bg-white px-2 lg:px-4">
+                <div
+                  className="flex justify-between gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:gap-2"
+                  role="tablist"
+                  aria-label="Profilbereiche"
+                >
+                  {CABINET_TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeTab === tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        "min-w-0 flex-1 shrink-0 border-b-2 pb-3 pt-2.5 text-[11px] font-semibold uppercase tracking-wide transition-colors sm:text-xs lg:pb-3.5 lg:pt-3 lg:text-sm",
+                        activeTab === tab.id
+                          ? "border-neutral-900 text-neutral-900"
+                          : "border-transparent text-neutral-500 hover:text-neutral-700",
+                      )}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </section>
 
-            <div className="space-y-8 lg:space-y-6">
-            {/* Блок 2 — Основные данные */}
-            <section className="space-y-4 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Grunddaten</h2>
-              <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-4 lg:space-y-0">
-                <div className="space-y-1.5">
-                  <Label htmlFor="vorname">Vorname</Label>
+            <div className="min-h-[40vh] space-y-4 pt-4 lg:pt-0">
+            {activeTab === "profile" && (
+            <div className="space-y-4" role="tabpanel">
+            {/* Grunddaten, Kategorie, Über mich */}
+            <CabinetSection title="Grunddaten">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-2 lg:gap-x-6 lg:gap-y-4">
+                <div className="col-span-1 space-y-2">
+                  <FieldLabel htmlFor="vorname">Vorname</FieldLabel>
                   <Input
                     id="vorname"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="Max"
-                    className="h-11"
+                    className={FIELD_CLASS}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="nachname">Nachname</Label>
+                <div className="col-span-1 space-y-2">
+                  <FieldLabel htmlFor="nachname">Nachname</FieldLabel>
                   <Input
                     id="nachname"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Mustermann"
-                    className="h-11"
+                    className={FIELD_CLASS}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="telefon">Telefonnummer</Label>
+                <div className="col-span-2 space-y-2">
+                  <FieldLabel htmlFor="telefon">Telefonnummer</FieldLabel>
                   <Input
                     id="telefon"
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+49 170 1234567"
-                    className="h-11"
+                    className={FIELD_CLASS}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Stadt</Label>
+                <div className="col-span-2 space-y-2">
+                  <FieldLabel>Stadt</FieldLabel>
                   <CityCombobox
                     variant="form"
                     size="md"
-                    className="h-11 w-full"
+                    className={cn("h-12 w-full rounded-xl border-neutral-200 bg-neutral-50", FIELD_CLASS)}
                     value={profileForm.city_id ?? undefined}
                     onChange={(id) => setProfileForm((prev) => ({ ...prev, city_id: id }))}
                     placeholder="Stadt wählen"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="beruf">Beruf</Label>
+                <div className="col-span-2 space-y-2">
+                  <FieldLabel htmlFor="beruf">Beruf</FieldLabel>
                   <Input
                     id="beruf"
                     value={profession}
                     onChange={(e) => setProfession(e.target.value)}
                     placeholder="z.B. Elektriker, Schneider"
-                    className="h-11"
+                    className={FIELD_CLASS}
                   />
                 </div>
-                <div className="space-y-1.5 lg:col-span-2">
-                  <Label htmlFor="preis">Preis ab (€)</Label>
+                <div className="col-span-2 space-y-2">
+                  <FieldLabel htmlFor="preis">Preis ab (€)</FieldLabel>
                   <Input
                     id="preis"
                     type="number"
@@ -630,16 +814,15 @@ export function MasterCabinet() {
                     value={priceFrom}
                     onChange={(e) => setPriceFrom(e.target.value)}
                     placeholder="z.B. 45.00"
-                    className="h-11"
+                    className={FIELD_CLASS}
                   />
-                  <p className="text-xs text-neutral-400">Wird als „Ab … €“ auf Ihrem Profil angezeigt</p>
+                  <p className="text-xs leading-relaxed text-neutral-500">Wird als „Ab … €“ auf Ihrem Profil angezeigt</p>
                 </div>
               </div>
-            </section>
+            </CabinetSection>
 
             {/* Блок 3 — Kategorie + теги */}
-            <section className="space-y-4 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Kategorie</h2>
+            <CabinetSection title="Kategorie">
               <Select
                 value={profileForm.category_id ? String(profileForm.category_id) : ""}
                 onValueChange={(value) => {
@@ -650,7 +833,7 @@ export function MasterCabinet() {
                   }))
                 }}
               >
-                <SelectTrigger className="h-11">
+                <SelectTrigger className={FIELD_CLASS}>
                   <SelectValue placeholder="Kategorie auswählen" />
                 </SelectTrigger>
                 <SelectContent>
@@ -662,8 +845,8 @@ export function MasterCabinet() {
                 </SelectContent>
               </Select>
 
-              <div className="space-y-2">
-                <Label htmlFor="service_tags">Service-Tags</Label>
+              <div className="space-y-3 border-t border-neutral-100 pt-4">
+                <FieldLabel htmlFor="service_tags">Service-Tags</FieldLabel>
                 <div className="flex gap-2">
                   <Input
                     id="service_tags"
@@ -671,27 +854,31 @@ export function MasterCabinet() {
                     onChange={(e) => setServiceTagInput(e.target.value)}
                     onKeyDown={handleServiceTagKeyDown}
                     placeholder="z.B. Lampen montieren"
-                    className="h-11"
+                    className={cn(FIELD_CLASS, "flex-1")}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => addServiceTag(serviceTagInput)}
                     disabled={!serviceTagInput.trim()}
-                    className="h-11 shrink-0 px-4"
+                    className="h-12 w-12 shrink-0 rounded-xl border-neutral-200 bg-neutral-50 p-0 text-lg font-medium lg:h-10 lg:w-10 lg:rounded-md"
                   >
                     +
                   </Button>
                 </div>
                 {serviceTags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  <div className="flex flex-wrap gap-2">
                     {serviceTags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="gap-1.5 rounded-full px-3 py-1.5">
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-emerald-900"
+                      >
                         {tag}
                         <button
                           type="button"
                           onClick={() => removeServiceTag(tag)}
-                          className="rounded-full hover:text-foreground"
+                          className="rounded-full hover:text-emerald-950"
                           aria-label={`${tag} entfernen`}
                         >
                           <X className="h-3 w-3" />
@@ -701,25 +888,27 @@ export function MasterCabinet() {
                   </div>
                 )}
                 {suggestedTags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {suggestedTags.slice(0, 5).map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => addServiceTag(tag)}
-                        className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-600 hover:border-emerald-400 hover:text-emerald-700"
-                      >
-                        + {tag}
-                      </button>
-                    ))}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-neutral-500">Vorschläge</p>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestedTags.slice(0, 5).map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => addServiceTag(tag)}
+                          className="rounded-full border border-dashed border-neutral-300 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-neutral-600 active:scale-[0.98]"
+                        >
+                          + {tag}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            </section>
+            </CabinetSection>
 
             {/* Блок 4 — Über mich */}
-            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Über mich</h2>
+            <CabinetSection title="Über mich" className="space-y-3">
               <Textarea
                 value={profileForm.about || ""}
                 onChange={(e) =>
@@ -731,22 +920,25 @@ export function MasterCabinet() {
                 placeholder="Erzählen Sie von Ihrer Erfahrung und Ihren Spezialgebieten..."
                 rows={7}
                 maxLength={ABOUT_LIMIT}
-                className="min-h-[160px] resize-none lg:min-h-[200px]"
+                className="min-h-[160px] resize-none rounded-xl border-neutral-200 bg-neutral-50 text-base leading-relaxed focus-visible:border-emerald-500 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-emerald-500/20 lg:min-h-[200px] lg:rounded-md lg:border-input lg:bg-background lg:text-sm lg:focus-visible:border-ring lg:focus-visible:ring-ring/50"
               />
-              <p className="text-right text-xs text-neutral-400">
+              <p className="text-right text-xs tabular-nums text-neutral-500">
                 {(profileForm.about || "").length}/{ABOUT_LIMIT}
               </p>
-            </section>
+            </CabinetSection>
 
-            {/* Блок 5 — Meine Fotos */}
-            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Meine Fotos</h2>
+            <AccountSessionSection />
+            </div>
+            )}
+
+            {activeTab === "photo" && (
+            <div role="tabpanel">
+            <CabinetSection title="Meine Fotos" className="space-y-3">
               <Input
                 ref={masterPhotoInputRef}
                 type="file"
                 accept="image/*"
                 multiple
-                capture="environment"
                 onChange={handleMasterPhotoInputChange}
                 disabled={masterPhotosUploading || !canAddMasterPhotos}
                 className="hidden"
@@ -774,22 +966,24 @@ export function MasterCabinet() {
                   type="button"
                   onClick={() => masterPhotoInputRef.current?.click()}
                   disabled={masterPhotosUploading || !canAddMasterPhotos}
-                  className="flex aspect-square flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 text-xs font-medium text-neutral-500 hover:border-emerald-400 hover:text-emerald-700 disabled:opacity-40"
+                  className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-emerald-200/80 bg-emerald-50/40 text-xs font-semibold text-emerald-700 active:scale-[0.98] disabled:opacity-40"
                 >
                   {masterPhotosUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="mb-1 h-5 w-5" />}
                   Foto
                 </button>
               </div>
-              <p className="text-xs text-neutral-400">{masterPhotos.length}/{MASTER_PHOTO_LIMIT} Fotos</p>
-            </section>
+              <p className="text-xs font-medium text-neutral-500">{masterPhotos.length}/{MASTER_PHOTO_LIMIT} Fotos</p>
+            </CabinetSection>
+            </div>
+            )}
 
-            {/* Блок 6 — Meine Videos */}
-            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Meine Videos</h2>
+            {activeTab === "video" && (
+            <div role="tabpanel">
+            <CabinetSection title="Meine Videos" className="space-y-3">
               <Input
                 ref={masterVideoInputRef}
                 type="file"
-                accept="video/*"
+                accept="video/*,.mp4,.mov,.webm,.mkv,.m4v,.3gp"
                 multiple
                 onChange={handleMasterVideoInputChange}
                 disabled={masterVideosUploading || !canAddMasterVideos}
@@ -802,7 +996,7 @@ export function MasterCabinet() {
                     return (
                       <div
                         key={video.id}
-                        className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+                        className="flex items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-3.5"
                       >
                         <Video className="h-5 w-5 shrink-0 text-neutral-400" />
                         <p className="min-w-0 flex-1 truncate text-sm font-medium">{getVideoTitle(video)}</p>
@@ -825,19 +1019,21 @@ export function MasterCabinet() {
                 variant="outline"
                 onClick={() => masterVideoInputRef.current?.click()}
                 disabled={masterVideosUploading || !canAddMasterVideos}
-                className="h-11 w-full border-dashed"
+                className="h-12 w-full rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50 font-medium"
               >
                 {masterVideosUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 Video hochladen
               </Button>
-              <p className="text-xs text-neutral-400">{masterVideos.length}/{MASTER_VIDEO_LIMIT} Videos</p>
-            </section>
+              <p className="text-xs font-medium text-neutral-500">{masterVideos.length}/{MASTER_VIDEO_LIMIT} Videos</p>
+            </CabinetSection>
+            </div>
+            )}
 
-            {/* Блок 7 — Bewertungen */}
-            <section className="space-y-3 rounded-none bg-transparent lg:rounded-2xl lg:border lg:border-neutral-200 lg:bg-white lg:p-6 lg:shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500 lg:text-base">Bewertungen</h2>
+            {activeTab === "reviews" && (
+            <div role="tabpanel">
+            <CabinetSection title="Bewertungen" className="space-y-3">
               {masterReviews.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-neutral-200 py-8 text-center text-sm text-neutral-400 lg:py-12">
+                <p className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50/80 py-10 text-center text-sm text-neutral-500 lg:py-12">
                   Noch keine Bewertungen
                 </p>
               ) : (
@@ -847,7 +1043,7 @@ export function MasterCabinet() {
                     const isReplyOpen = activeReplyReviewId === review.id
                     const isReportOpen = activeReportReviewId === review.id
                     return (
-                      <div key={review.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 space-y-3">
+                      <div key={review.id} className="space-y-3 rounded-xl border border-neutral-100 bg-neutral-50 p-4">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 space-y-1">
                             <p className="text-sm font-medium text-neutral-800">
@@ -959,19 +1155,25 @@ export function MasterCabinet() {
                   })}
                 </div>
               )}
-            </section>
+            </CabinetSection>
             </div>
+            )}
             </div>
 
-            {/* Нижняя кнопка Speichern */}
-            <SpeichernButton
-              saving={saving}
-              onClick={handleSave}
-              className="h-14 w-full rounded-2xl bg-emerald-600 text-base font-semibold text-white hover:bg-emerald-700 lg:mx-auto lg:max-w-md lg:h-12"
-            />
+            {/* Speichern — nur auf Tab Profil */}
+            {activeTab === "profile" && (
+              <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-neutral-200/80 bg-white/90 px-4 py-3 backdrop-blur-md lg:hidden">
+                <SpeichernButton
+                  saving={saving}
+                  onClick={handleSave}
+                  className="h-12 w-full rounded-xl bg-emerald-600 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700 active:scale-[0.99]"
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </ProtectedRoute>
   )
 }

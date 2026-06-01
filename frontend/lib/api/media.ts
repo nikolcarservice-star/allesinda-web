@@ -5,6 +5,25 @@
 import { apiGet, apiPost, apiDelete, getApiBaseUrl } from './client';
 import type { Media, PaginatedResponse } from './types';
 
+/** Prefer direct API URL for multipart uploads (large videos, mobile gallery MIME quirks). */
+function getMediaUploadBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const direct = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '');
+    if (direct) return direct;
+  }
+  return getApiBaseUrl();
+}
+
+function parseUploadError(detail: unknown): string {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => (typeof item === 'object' && item && 'message' in item ? String(item.message) : String(item)))
+      .join(', ');
+  }
+  return 'Upload failed';
+}
+
 /**
  * Upload media for work gallery, products, or rentals
  */
@@ -49,15 +68,31 @@ export async function uploadMedia(
   }
   // Don't set Content-Type for FormData - browser will set it with boundary
 
-  const response = await fetch(`${getApiBaseUrl()}/media/upload`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
+  const isVideo = data.media_type === 'video';
+  const controller = new AbortController();
+  const timeoutMs = isVideo ? 180_000 : 90_000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(`${getMediaUploadBaseUrl()}/media/upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(isVideo ? 'Video-Upload hat zu lange gedauert' : 'Upload hat zu lange gedauert');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Upload failed' }));
-    throw new Error(typeof error.detail === 'string' ? error.detail : 'Upload failed');
+    throw new Error(parseUploadError(error.detail ?? error.message));
   }
 
   return response.json();
@@ -88,7 +123,7 @@ export async function uploadMediaBatch(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/media/upload/batch`, {
+  const response = await fetch(`${getMediaUploadBaseUrl()}/media/upload/batch`, {
     method: 'POST',
     headers,
     body: formData,
@@ -96,7 +131,7 @@ export async function uploadMediaBatch(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Upload failed' }));
-    throw new Error(typeof error.detail === 'string' ? error.detail : 'Upload failed');
+    throw new Error(parseUploadError(error.detail ?? error.message));
   }
 
   return response.json();

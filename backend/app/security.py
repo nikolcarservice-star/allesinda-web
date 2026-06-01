@@ -42,6 +42,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.get(User, int(user_id))
     if not user:
         raise credentials_exception
+    if user.deletion_requested_at:
+        raise HTTPException(status_code=403, detail="Account pending deletion")
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is inactive")
     return user
 
 def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme_optional), db: Session = Depends(get_db)) -> Optional[User]:

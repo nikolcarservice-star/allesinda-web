@@ -39,6 +39,14 @@ class UserSelfUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     phone: Optional[str] = Field(None, max_length=20)
 
+class AccountDeletionIn(BaseModel):
+    password: str = Field(..., min_length=1)
+    confirmation: str = Field(..., description="Type LÖSCHEN to confirm")
+
+class AccountDeletionOut(BaseModel):
+    message: str
+    recovery_until: datetime
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str

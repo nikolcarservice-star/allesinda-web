@@ -4,7 +4,8 @@ import { useAuth } from "@/lib/context/auth-context"
 import { usePathname } from "next/navigation"
 
 /**
- * Offsets root layout header padding when the master cabinet renders its own header.
+ * On mobile, master cabinet hides the global header — cancel root layout top padding.
+ * Desktop keeps the normal header offset.
  */
 export function ProfileLayoutWrapper({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
@@ -15,9 +16,5 @@ export function ProfileLayoutWrapper({ children }: { children: React.ReactNode }
     return <>{children}</>
   }
 
-  return (
-    <div className="-mt-14 sm:-mt-[72px] pt-0 lg:mt-0 lg:pt-0">
-      {children}
-    </div>
-  )
+  return <div className="-mt-14 pt-0 sm:-mt-[72px] lg:mt-0 lg:pt-0">{children}</div>
 }
