@@ -478,10 +478,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions"""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    detail = "Internal server error"
+    if not settings.IS_PRODUCTION:
+        detail = f"{detail}: {exc}"
     response = JSONResponse(
         status_code=500,
         content={
-            "detail": "Internal server error",
+            "detail": detail,
             "status_code": 500
         }
     )

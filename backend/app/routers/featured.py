@@ -82,23 +82,39 @@ def _master_display_title(user: User | None, profile_id: int) -> str:
     return f"Master #{profile_id}"
 
 
+def _safe_float(value) -> Optional[float]:
+    if value is None:
+        return None
+    try:
+        result = float(value)
+        if result != result:  # NaN
+            return None
+        return result
+    except (TypeError, ValueError):
+        return None
+
+
 def _load_like_counts(db: Session, item_type: CategoryType, item_ids: List[int]) -> Dict[int, int]:
     if not item_ids:
         return {}
     favorite_type = _favorite_type_for_category(item_type)
-    rows = (
-        db.query(
-            Favorite.favorite_id,
-            func.count(Favorite.id).label("likes_count"),
+    try:
+        rows = (
+            db.query(
+                Favorite.favorite_id,
+                func.count(Favorite.id).label("likes_count"),
+            )
+            .filter(
+                Favorite.favorite_type == favorite_type,
+                Favorite.favorite_id.in_(item_ids),
+            )
+            .group_by(Favorite.favorite_id)
+            .all()
         )
-        .filter(
-            Favorite.favorite_type == favorite_type,
-            Favorite.favorite_id.in_(item_ids),
-        )
-        .group_by(Favorite.favorite_id)
-        .all()
-    )
-    return {favorite_id: int(likes or 0) for favorite_id, likes in rows}
+        return {favorite_id: int(likes or 0) for favorite_id, likes in rows}
+    except Exception as exc:
+        logger.warning("Failed to load like counts for %s: %s", item_type, exc)
+        return {}
 
 
 def _serialize_master(profile: Profile, *, lowest_price: Optional[float] = None, likes_count: int = 0) -> dict:
@@ -112,7 +128,7 @@ def _serialize_master(profile: Profile, *, lowest_price: Optional[float] = None,
     user = profile.user
     title = _master_display_title(user, profile.id)
     subtitle = profile.city_ref.name if getattr(profile, "city_ref", None) else None
-    price_value = float(lowest_price) if lowest_price is not None else None
+    price_value = _safe_float(lowest_price)
     return {
         "id": profile.id,
         "type": CategoryType.master,
@@ -120,8 +136,8 @@ def _serialize_master(profile: Profile, *, lowest_price: Optional[float] = None,
         "subtitle": subtitle,
         "description": profile.about,
         "image_url": profile.image_url,  # Always use profile image for masters (not portfolio/media)
-        "rating": float(profile.rating) if profile.rating is not None else None,
-        "total_reviews": profile.total_reviews,
+        "rating": _safe_float(profile.rating),
+        "total_reviews": int(profile.total_reviews) if profile.total_reviews is not None else None,
         "price": price_value,
         "price_per_day": None,
         "city_id": profile.city_id,
