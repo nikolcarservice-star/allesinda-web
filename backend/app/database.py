@@ -91,12 +91,12 @@ class Base(DeclarativeBase):
 def get_db():
     """Dependency to get database session (sync)"""
     db = SessionLocal()
-    ready, _ = profiles_schema_ready()
+    ready, _ = database_schema_ready()
     if not ready:
         try:
             repair_profiles_schema(db)
         except Exception as exc:
-            logger.error("Runtime profiles schema repair failed: %s", exc, exc_info=True)
+            logger.error("Runtime database schema repair failed: %s", exc, exc_info=True)
     try:
         yield db
     except Exception:
@@ -160,8 +160,29 @@ def profiles_schema_ready() -> tuple[bool, str | None]:
         return False, str(exc)
 
 
+def users_schema_ready() -> tuple[bool, str | None]:
+    """Return whether users table supports current ORM columns."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT deletion_requested_at FROM users LIMIT 1"))
+        return True, None
+    except Exception as exc:
+        return False, str(exc)
+
+
+def database_schema_ready() -> tuple[bool, str | None]:
+    """Return whether core tables match the current SQLAlchemy models."""
+    profiles_ok, profiles_error = profiles_schema_ready()
+    if not profiles_ok:
+        return False, profiles_error
+    users_ok, users_error = users_schema_ready()
+    if not users_ok:
+        return False, users_error
+    return True, None
+
+
 def repair_profiles_schema(db: Session | None = None) -> None:
-    """Self-heal profiles/reviews columns (safe to call at startup or first request)."""
+    """Self-heal missing columns on legacy databases (startup and first failing request)."""
     from .models import Base
 
     Base.metadata.create_all(bind=engine)
@@ -196,17 +217,17 @@ def repair_profiles_schema(db: Session | None = None) -> None:
         for column_name, column_type in review_columns.items():
             _ensure_column("reviews", column_name, column_type)
 
-    ready, schema_error = profiles_schema_ready()
+    ready, schema_error = database_schema_ready()
     if ready:
-        logger.info("Profiles schema repair: compatible")
+        logger.info("Database schema repair: compatible")
     else:
-        logger.error("Profiles schema repair failed: %s", schema_error)
-        return
+        logger.error("Database schema repair incomplete: %s", schema_error)
 
     if db is not None:
         db.commit()
 
-    ensure_master_category_updates()
+    if ready:
+        ensure_master_category_updates()
 
 
 def ensure_schema():

@@ -550,12 +550,17 @@ def health_check():
         logger.warning(f"Could not get database pool status: {e}")
         health_status["database_pool"] = {"error": str(e)}
 
-    from .database import profiles_schema_ready
+    from .database import database_schema_ready, profiles_schema_ready, users_schema_ready
 
     profiles_ok, profiles_error = profiles_schema_ready()
+    users_ok, users_error = users_schema_ready()
+    schema_ok, schema_error = database_schema_ready()
+
     health_status["profiles_schema_ok"] = profiles_ok
-    if not profiles_ok:
-        health_status["profiles_schema_error"] = profiles_error
+    health_status["users_schema_ok"] = users_ok
+    health_status["database_schema_ok"] = schema_ok
+    if not schema_ok:
+        health_status["database_schema_error"] = schema_error
         health_status["status"] = "degraded"
         health_status["ok"] = False
     
