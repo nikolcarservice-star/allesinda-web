@@ -10,8 +10,16 @@ function getMediaUploadBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const direct = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '');
     if (direct) return direct;
+    if (process.env.NODE_ENV === 'development') {
+      return '/api-proxy';
+    }
   }
   return getApiBaseUrl();
+}
+
+function getMediaUploadUrl(): string {
+  const base = getMediaUploadBaseUrl().replace(/\/$/, '');
+  return `${base}/media/upload`;
 }
 
 function parseUploadError(detail: unknown): string {
@@ -75,7 +83,7 @@ export async function uploadMedia(
 
   let response: Response;
   try {
-    response = await fetch(`${getMediaUploadBaseUrl()}/media/upload`, {
+    response = await fetch(getMediaUploadUrl(), {
       method: 'POST',
       headers,
       body: formData,

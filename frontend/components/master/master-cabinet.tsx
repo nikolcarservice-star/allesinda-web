@@ -416,7 +416,11 @@ export function MasterCabinet() {
   const handleMasterPhotoInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || [])
     if (event.target) event.target.value = ""
-    if (!selectedFiles.length || !profile?.id) return
+    if (!selectedFiles.length) return
+    if (!profile?.id) {
+      toast.error("Profil wird geladen. Bitte versuchen Sie es erneut.")
+      return
+    }
 
     const remainingSlots = MASTER_PHOTO_LIMIT - masterPhotos.length
     if (remainingSlots <= 0) {
@@ -480,7 +484,11 @@ export function MasterCabinet() {
   const handleMasterVideoInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || [])
     if (event.target) event.target.value = ""
-    if (!selectedFiles.length || !profile?.id) return
+    if (!selectedFiles.length) return
+    if (!profile?.id) {
+      toast.error("Profil wird geladen. Bitte versuchen Sie es erneut.")
+      return
+    }
 
     const remainingSlots = MASTER_VIDEO_LIMIT - masterVideos.length
     if (remainingSlots <= 0) {
@@ -524,7 +532,12 @@ export function MasterCabinet() {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Video konnte nicht hochgeladen werden"
-      toast.error(message)
+      if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+        toast.error("Verbindung zum Server fehlgeschlagen. Prüfen Sie die Internetverbindung.")
+      } else {
+        toast.error(message)
+      }
+      console.error("Video upload failed:", err)
     } finally {
       setMasterVideosUploading(false)
     }

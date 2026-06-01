@@ -25,6 +25,60 @@ except ImportError:
 
 router = APIRouter(prefix="/media", tags=["media"])
 
+VALID_VIDEO_EXTENSIONS = frozenset({"mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp"})
+
+CONTENT_TYPE_TO_VIDEO_EXT = {
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+    "video/quicktime": "mov",
+    "video/mov": "mov",
+    "video/x-msvideo": "avi",
+    "video/avi": "avi",
+    "video/x-matroska": "mkv",
+    "video/mkv": "mkv",
+    "video/3gpp": "3gp",
+    "video/3gp": "3gp",
+    "video/x-m4v": "m4v",
+    "application/mp4": "mp4",
+}
+
+
+def _extension_from_filename(filename: Optional[str]) -> str:
+    if not filename or "." not in filename:
+        return ""
+    return filename.rsplit(".", 1)[-1].lower()
+
+
+def _resolve_video_extension(content_type: str, file_ext: str) -> str:
+    normalized_type = (content_type or "").lower().split(";")[0].strip()
+    ext = (file_ext or "").lower()
+    if ext in VALID_VIDEO_EXTENSIONS:
+        return ext
+    mapped = CONTENT_TYPE_TO_VIDEO_EXT.get(normalized_type)
+    if mapped:
+        return mapped
+    if normalized_type.startswith("video/"):
+        subtype = normalized_type.split("/", 1)[1]
+        if subtype in VALID_VIDEO_EXTENSIONS:
+            return subtype
+    return "mp4"
+
+
+def _is_allowed_video_upload(content_type: str, file_ext: str) -> bool:
+    normalized_type = (content_type or "").lower().split(";")[0].strip()
+    ext = (file_ext or "").lower()
+    if ext in VALID_VIDEO_EXTENSIONS:
+        return True
+    if normalized_type.startswith("video/"):
+        return True
+    if normalized_type in ("application/octet-stream", "application/mp4"):
+        return True
+    # Mobile gallery often sends empty MIME and no extension; trust media_type=video from the form.
+    if not normalized_type and not ext:
+        return True
+    return False
+
+
 def generate_video_thumbnail(video_path: str, thumbnail_path: str, timestamp_seconds: float = 1.0) -> bool:
     """Generate a thumbnail image from a video file
     
@@ -196,34 +250,30 @@ async def upload_media(
     
     # Determine content type and file extension
     content_type = getattr(file, "content_type", None) or ""
-    # Get file extension (fallback from content type if missing)
-    file_ext = ""
-    if file.filename:
-        file_ext = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+    file_ext = _extension_from_filename(file.filename)
     if not file_ext:
-        if content_type in ("image/jpeg", "image/jpg"):
+        normalized_type = content_type.lower().split(";")[0].strip()
+        if normalized_type in ("image/jpeg", "image/jpg"):
             file_ext = "jpg"
-        elif content_type == "image/png":
+        elif normalized_type == "image/png":
             file_ext = "png"
-        elif content_type == "image/webp":
+        elif normalized_type == "image/webp":
             file_ext = "webp"
-        elif content_type == "image/gif":
+        elif normalized_type == "image/gif":
             file_ext = "gif"
-        elif content_type == "image/bmp":
+        elif normalized_type == "image/bmp":
             file_ext = "bmp"
-        elif content_type == "video/mp4":
-            file_ext = "mp4"
-        elif content_type in ("video/webm",):
-            file_ext = "webm"
-        elif content_type in ("video/quicktime", "video/mov"):
-            file_ext = "mov"
+        elif media_type == "video":
+            file_ext = _resolve_video_extension(content_type, file_ext)
     
     # Validate video format (check file extension and size)
     if media_type == "video":
-        # Validate by extension or content type
-        valid_video_exts = ('mp4', 'mov', 'avi', 'webm', 'mkv', 'm4v', '3gp')
-        if (file_ext and file_ext not in valid_video_exts) and not content_type.startswith("video/"):
-            raise HTTPException(400, "Invalid video format. Supported: MP4, MOV, AVI, WebM, MKV")
+        if not _is_allowed_video_upload(content_type, file_ext):
+            raise HTTPException(
+                400,
+                "Invalid video format. Supported: MP4, MOV, AVI, WebM, MKV, M4V, 3GP",
+            )
+        file_ext = _resolve_video_extension(content_type, file_ext)
         
         # Check file size (max 50MB for videos, recommended for vertical/stories format)
         file_size = 0
@@ -231,11 +281,13 @@ async def upload_media(
             content = await file.read()
             file_size = len(content)
             await file.seek(0)  # Reset file pointer
-        except:
-            pass
+        except Exception as read_err:
+            logger.warning("Could not read video for size check: %s", read_err)
         
         if file_size > 50 * 1024 * 1024:  # 50MB
             raise HTTPException(400, "Video file too large. Maximum size is 50MB")
+        if file_size == 0:
+            raise HTTPException(400, "Video file is empty")
         
         # Note: In production, you would validate aspect ratio (9:16 for vertical/stories)
         # This requires video processing which would be done after upload
@@ -441,8 +493,9 @@ async def upload_media_batch(
             
             # Validate file format
             if media_type == "video":
-                if file_ext not in ('mp4', 'mov', 'avi', 'webm', 'mkv'):
+                if not _is_allowed_video_upload(getattr(file, "content_type", None) or "", file_ext):
                     continue  # Skip invalid files
+                file_ext = _resolve_video_extension(getattr(file, "content_type", None) or "", file_ext)
             else:
                 if file_ext not in ('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'):
                     continue  # Skip invalid files
