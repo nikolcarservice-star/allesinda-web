@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 from sqlalchemy.engine import Engine
 from sqlalchemy import inspect, text
 from .config import settings
@@ -91,6 +91,12 @@ class Base(DeclarativeBase):
 def get_db():
     """Dependency to get database session (sync)"""
     db = SessionLocal()
+    ready, _ = profiles_schema_ready()
+    if not ready:
+        try:
+            repair_profiles_schema(db)
+        except Exception as exc:
+            logger.error("Runtime profiles schema repair failed: %s", exc, exc_info=True)
     try:
         yield db
     except Exception:
@@ -118,48 +124,100 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     logger.info("Database initialized")
 
+def _ensure_column(table: str, column: str, column_type: str) -> None:
+    """Add a column when missing. Uses IF NOT EXISTS on PostgreSQL."""
+    dialect_name = engine.dialect.name
+    try:
+        with engine.begin() as conn:
+            if dialect_name == "postgresql":
+                conn.execute(
+                    text(
+                        f'ALTER TABLE "{table}" ADD COLUMN IF NOT EXISTS "{column}" {column_type}'
+                    )
+                )
+            else:
+                insp = inspect(engine)
+                if table not in insp.get_table_names():
+                    return
+                cols = {c.get("name") for c in insp.get_columns(table)}
+                if column not in cols:
+                    conn.execute(
+                        text(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
+                    )
+        logger.info("Schema updated: ensured %s.%s exists", table, column)
+    except Exception as exc:
+        logger.error("Failed to ensure column %s.%s: %s", table, column, exc)
+        raise
+
+
+def profiles_schema_ready() -> tuple[bool, str | None]:
+    """Return whether profiles table supports current ORM columns."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT keywords, profession FROM profiles LIMIT 1"))
+        return True, None
+    except Exception as exc:
+        return False, str(exc)
+
+
+def repair_profiles_schema(db: Session | None = None) -> None:
+    """Self-heal profiles/reviews columns (safe to call at startup or first request)."""
+    from .models import Base
+
+    Base.metadata.create_all(bind=engine)
+
+    profile_columns = {
+        "keywords": "TEXT",
+        "profession": "VARCHAR(255)",
+    }
+    review_columns = {
+        "master_response": "TEXT",
+        "report_reason": "VARCHAR(64)",
+        "report_status": "VARCHAR(32)",
+        "reported_by_id": "INTEGER",
+        "reported_at": "TIMESTAMP",
+    }
+    user_columns = {
+        "deletion_requested_at": "TIMESTAMP",
+    }
+
+    insp = inspect(engine)
+    table_names = set(insp.get_table_names())
+
+    if "profiles" in table_names:
+        for column_name, column_type in profile_columns.items():
+            _ensure_column("profiles", column_name, column_type)
+
+    if "users" in table_names:
+        for column_name, column_type in user_columns.items():
+            _ensure_column("users", column_name, column_type)
+
+    if "reviews" in table_names:
+        for column_name, column_type in review_columns.items():
+            _ensure_column("reviews", column_name, column_type)
+
+    ready, schema_error = profiles_schema_ready()
+    if ready:
+        logger.info("Profiles schema repair: compatible")
+    else:
+        logger.error("Profiles schema repair failed: %s", schema_error)
+        return
+
+    if db is not None:
+        db.commit()
+
+    ensure_master_category_updates()
+
+
 def ensure_schema():
     """
     Lightweight schema upgrader for projects without migrations.
-    Adds missing columns in-place when safe.
+    Creates missing tables and adds missing columns in-place when safe.
     """
     try:
-        insp = inspect(engine)
-        if "profiles" in insp.get_table_names():
-            cols = {c.get("name") for c in insp.get_columns("profiles")}
-            if "keywords" not in cols:
-                with engine.begin() as conn:
-                    # SQLite and Postgres both support this simple ADD COLUMN
-                    conn.execute(text("ALTER TABLE profiles ADD COLUMN keywords TEXT"))
-                logger.info("Schema updated: added profiles.keywords column")
-            if "profession" not in cols:
-                with engine.begin() as conn:
-                    conn.execute(text("ALTER TABLE profiles ADD COLUMN profession VARCHAR(255)"))
-                logger.info("Schema updated: added profiles.profession column")
-        if "users" in insp.get_table_names():
-            cols = {c.get("name") for c in insp.get_columns("users")}
-            if "deletion_requested_at" not in cols:
-                with engine.begin() as conn:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN deletion_requested_at TIMESTAMP"))
-                logger.info("Schema updated: added users.deletion_requested_at column")
-        if "reviews" in insp.get_table_names():
-            cols = {c.get("name") for c in insp.get_columns("reviews")}
-            review_columns = {
-                "master_response": "TEXT",
-                "report_reason": "VARCHAR(64)",
-                "report_status": "VARCHAR(32)",
-                "reported_by_id": "INTEGER",
-                "reported_at": "TIMESTAMP",
-            }
-            for column_name, column_type in review_columns.items():
-                if column_name not in cols:
-                    with engine.begin() as conn:
-                        conn.execute(text(f"ALTER TABLE reviews ADD COLUMN {column_name} {column_type}"))
-                    logger.info(f"Schema updated: added reviews.{column_name} column")
-        ensure_master_category_updates()
+        repair_profiles_schema()
     except Exception as e:
-        # Never crash startup if schema checks fail
-        logger.warning(f"Schema ensure failed: {e}")
+        logger.error("Schema ensure failed: %s", e, exc_info=True)
 
 def ensure_master_category_updates():
     """Rename/merge master categories for existing databases without re-seeding."""

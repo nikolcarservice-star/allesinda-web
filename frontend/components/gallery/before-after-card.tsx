@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { cn } from "@/lib/utils"
+import { cn, getMediaAbsoluteUrl } from "@/lib/utils"
 
 interface BeforeAfterCardProps {
   beforeUrl: string
@@ -26,9 +26,10 @@ export function BeforeAfterCard({
       <div className="absolute inset-0 grid grid-cols-2 gap-0.5">
         <div className="relative bg-muted">
           <Image
-            src={beforeUrl || "/placeholder.svg"}
+            src={getMediaAbsoluteUrl(beforeUrl) || beforeUrl || "/placeholder.svg"}
             alt="Vorher"
             fill
+            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             quality={90}
@@ -40,9 +41,10 @@ export function BeforeAfterCard({
         </div>
         <div className="relative bg-muted">
           <Image
-            src={afterUrl || "/placeholder.svg"}
+            src={getMediaAbsoluteUrl(afterUrl) || afterUrl || "/placeholder.svg"}
             alt="Nachher"
             fill
+            unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             quality={90}

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { BeforeAfterCard } from "./before-after-card"
 import { Play, Video, ImageIcon, Trash2 } from "lucide-react"
 import type { Media } from "@/lib/api/types"
-import { getOptimizedImageUrl, toMediaRelativePath, cn } from "@/lib/utils"
+import { getMediaAbsoluteUrl, getOptimizedImageUrl, toMediaRelativePath, cn } from "@/lib/utils"
 import { BeforeAfterFullscreenModal, VideoFullscreenModal } from "./gallery-fullscreen-modal"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 
@@ -373,8 +373,8 @@ function getItemImage(item: GalleryItem) {
   if (item?.is_before_after && beforeUrl && afterUrl) {
     return {
       type: "before-after" as const,
-      before: toMediaRelativePath(beforeUrl) || getOptimizedImageUrl(beforeUrl, 'full'),
-      after: toMediaRelativePath(afterUrl) || getOptimizedImageUrl(afterUrl, 'full'),
+      before: getMediaAbsoluteUrl(beforeUrl) || getOptimizedImageUrl(beforeUrl, "full"),
+      after: getMediaAbsoluteUrl(afterUrl) || getOptimizedImageUrl(afterUrl, "full"),
     }
   }
   if (item?.media_type === "video") {

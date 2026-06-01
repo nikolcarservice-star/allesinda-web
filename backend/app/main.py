@@ -546,6 +546,15 @@ def health_check():
     except Exception as e:
         logger.warning(f"Could not get database pool status: {e}")
         health_status["database_pool"] = {"error": str(e)}
+
+    from .database import profiles_schema_ready
+
+    profiles_ok, profiles_error = profiles_schema_ready()
+    health_status["profiles_schema_ok"] = profiles_ok
+    if not profiles_ok:
+        health_status["profiles_schema_error"] = profiles_error
+        health_status["status"] = "degraded"
+        health_status["ok"] = False
     
     return health_status
 
@@ -567,6 +576,11 @@ async def periodic_cache_cleanup():
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup"""
+    try:
+        ensure_schema()
+    except Exception as e:
+        logger.error("Startup schema ensure failed: %s", e, exc_info=True)
+
     logger.info("=" * 60)
     logger.info("Allesinda API starting up...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
