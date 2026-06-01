@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 from ..config import settings
 from ..database import get_db
 from ..helpers import create_paginated_response
+from ..profile_queries import profile_query_with_user
 from ..models import (
     Category,
     CategoryType,
@@ -251,8 +252,7 @@ def _load_item_summaries(db: Session, ids_by_type: Dict[CategoryType, set[int]])
 
     if CategoryType.master in ids_by_type and ids_by_type[CategoryType.master]:
         profiles = (
-            db.query(Profile)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref))
+            profile_query_with_user(db)
             .filter(Profile.id.in_(ids_by_type[CategoryType.master]))
             .all()
         )
@@ -436,12 +436,7 @@ def _record_recent_view(db: Session, user_id: int, item_type: CategoryType, item
 
 def _build_featured_item_from_type(db: Session, item_type: CategoryType, item_id: int) -> Optional[FeaturedItemOut]:
     if item_type == CategoryType.master:
-        profile = (
-            db.query(Profile)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref))
-            .filter(Profile.id == item_id)
-            .first()
-        )
+        profile = profile_query_with_user(db).filter(Profile.id == item_id).first()
         if not profile:
             return None
         lowest_price = (
@@ -558,14 +553,9 @@ def list_featured_items(
     aggregated: List[dict] = []
 
     if CategoryType.master in requested_types:
-        master_query = (
-            db.query(Profile)
-            .join(Profile.user)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref))
-            .filter(
-                User.role == Role.master,
-                User.is_active.is_(True),
-            )
+        master_query = profile_query_with_user(db).filter(
+            User.role == Role.master,
+            User.is_active.is_(True),
         )
         if category:
             # Try to resolve as category_id first (if it's numeric)
@@ -912,8 +902,8 @@ def get_featured_detail(
 ):
     if item_type == CategoryType.master:
         profile = (
-            db.query(Profile)
-            .options(joinedload(Profile.user), joinedload(Profile.city_ref), joinedload(Profile.services))
+            profile_query_with_user(db)
+            .options(joinedload(Profile.services))
             .filter(Profile.id == item_id)
             .first()
         )

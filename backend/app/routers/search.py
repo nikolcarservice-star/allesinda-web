@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, aliased
 from ..config import settings
 from ..database import get_db
 from ..helpers import calculate_distance, create_paginated_response, paginate_query
+from ..profile_queries import profile_query_with_user
 
 from ..models import (
     CategoryType,
@@ -407,7 +408,7 @@ def _perform_search(
                 resolved_category_ids = [category_obj.id]
     
     if scope in ["masters", "all"]:
-        query = db.query(Profile).join(User).filter(User.role == Role.master)
+        query = profile_query_with_user(db).filter(User.role == Role.master)
         price_stats_subq = None
         likes_subq = (
             db.query(
