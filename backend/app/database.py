@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 from sqlalchemy.engine import Engine
 from sqlalchemy import inspect, text
+from sqlalchemy.exc import ProgrammingError
 from .config import settings
 import logging
 
@@ -118,11 +119,25 @@ async def get_async_db():
             await session.rollback()
             raise
 
+def safe_create_all() -> None:
+    """Create missing tables; ignore duplicate index/table errors on legacy DBs."""
+    from .models import Base
+
+    try:
+        Base.metadata.create_all(bind=engine, checkfirst=True)
+        logger.info("Database tables verified/created successfully")
+    except ProgrammingError as exc:
+        logger.warning(
+            "create_all skipped existing DDL (duplicate table/index): %s",
+            getattr(exc, "orig", exc),
+        )
+    except Exception as exc:
+        logger.warning("create_all failed: %s", exc)
+
+
 def init_db():
     """Initialize database - create all tables"""
-    from .models import Base
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database initialized")
+    safe_create_all()
 
 def _ensure_column(table: str, column: str, column_type: str) -> None:
     """Add a column when missing. Uses IF NOT EXISTS on PostgreSQL."""
@@ -183,15 +198,16 @@ def database_schema_ready() -> tuple[bool, str | None]:
 
 def repair_profiles_schema(db: Session | None = None) -> None:
     """Self-heal missing columns on legacy databases (startup and first failing request)."""
-    from .models import Base
-
-    Base.metadata.create_all(bind=engine)
-
-    # Auth and listings break without this column; add it before other repairs.
     insp = inspect(engine)
     table_names = set(insp.get_table_names())
+    def _try_ensure_column(table: str, column: str, column_type: str) -> None:
+        try:
+            _ensure_column(table, column, column_type)
+        except Exception as exc:
+            logger.error("Could not add %s.%s: %s", table, column, exc)
+
     if "users" in table_names:
-        _ensure_column("users", "deletion_requested_at", "TIMESTAMPTZ")
+        _try_ensure_column("users", "deletion_requested_at", "TIMESTAMPTZ")
 
     profile_columns = {
         "keywords": "TEXT",
@@ -206,11 +222,13 @@ def repair_profiles_schema(db: Session | None = None) -> None:
     }
     if "profiles" in table_names:
         for column_name, column_type in profile_columns.items():
-            _ensure_column("profiles", column_name, column_type)
+            _try_ensure_column("profiles", column_name, column_type)
 
     if "reviews" in table_names:
         for column_name, column_type in review_columns.items():
-            _ensure_column("reviews", column_name, column_type)
+            _try_ensure_column("reviews", column_name, column_type)
+
+    safe_create_all()
 
     ready, schema_error = database_schema_ready()
     if ready:

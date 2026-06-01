@@ -53,18 +53,16 @@ fi
 
 echo "Ensuring database schema is up to date..."
 python -c "
-from app.database import init_db, ensure_schema, database_schema_ready
-init_db()
+from app.database import ensure_schema, database_schema_ready
 ensure_schema()
 ready, err = database_schema_ready()
-if not ready:
-    raise SystemExit(f'Schema incompatible after repair: {err}')
-print('Database schema OK')
-" || {
-    echo "ERROR: Database schema is incompatible. Fix DB permissions or run:"
-    echo '  ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;'
-    exit 1
-}
+if ready:
+    print('Database schema OK')
+else:
+    print(f'WARNING: schema incomplete after repair: {err}')
+    print('App will start; if login fails, run:')
+    print('  ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;')
+" || echo "WARNING: schema ensure script failed, starting server anyway..."
 echo ""
 
 echo "Starting FastAPI server..."

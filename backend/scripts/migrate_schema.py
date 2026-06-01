@@ -1,9 +1,8 @@
 """Run database schema upgrades manually (e.g. in Coolify one-off command)."""
-from app.database import init_db, ensure_schema, database_schema_ready
+from app.database import ensure_schema, database_schema_ready
 
 
 def main() -> None:
-    init_db()
     ensure_schema()
     ready, error = database_schema_ready()
     if ready:
