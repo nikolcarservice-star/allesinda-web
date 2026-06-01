@@ -8,6 +8,7 @@ from typing import Optional
 from .config import settings
 from .models import User, Role
 from .database import get_db
+from .utils.user_deletion import get_deletion_requested_at
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -42,7 +43,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.get(User, int(user_id))
     if not user:
         raise credentials_exception
-    if user.deletion_requested_at:
+    if get_deletion_requested_at(user):
         raise HTTPException(status_code=403, detail="Account pending deletion")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is inactive")

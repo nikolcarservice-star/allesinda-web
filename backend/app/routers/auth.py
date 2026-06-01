@@ -19,6 +19,7 @@ from ..utils.account_deletion import (
     permanently_delete_user,
     finalize_expired_deletion,
 )
+from ..utils.user_deletion import get_deletion_requested_at, set_deletion_requested_at
 from ..security import get_password_hash, verify_password, create_access_token, get_current_user
 from ..utils.email import send_verification_email, send_password_reset_email
 from ..utils.two_factor import (
@@ -89,7 +90,7 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not user.is_active:
-        if user.deletion_requested_at:
+        if get_deletion_requested_at(user):
             if finalize_expired_deletion(db, user):
                 db.commit()
                 raise HTTPException(status_code=403, detail="Account has been permanently deleted")
@@ -398,7 +399,7 @@ def request_account_deletion(
         raise HTTPException(status_code=400, detail="Falsches Passwort")
 
     now = datetime.now(timezone.utc)
-    user.deletion_requested_at = now
+    set_deletion_requested_at(user, now)
     user.is_active = False
     db.commit()
 
@@ -416,7 +417,7 @@ def restore_account(data: LoginIn, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    if not user.deletion_requested_at:
+    if not get_deletion_requested_at(user):
         raise HTTPException(status_code=400, detail="Dieses Konto ist nicht zur Löschung vorgemerkt")
 
     if finalize_expired_deletion(db, user):
@@ -426,7 +427,7 @@ def restore_account(data: LoginIn, db: Session = Depends(get_db)):
     if not user.hashed_password or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    user.deletion_requested_at = None
+    set_deletion_requested_at(user, None)
     user.is_active = True
     db.commit()
 

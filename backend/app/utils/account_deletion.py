@@ -6,14 +6,15 @@ import secrets
 from sqlalchemy.orm import Session
 
 from ..models import User
+from .user_deletion import get_deletion_requested_at, set_deletion_requested_at
 
 ACCOUNT_DELETION_GRACE_DAYS = 14
 
 
 def get_recovery_until(user: User) -> datetime | None:
-    if not user.deletion_requested_at:
+    requested = get_deletion_requested_at(user)
+    if not requested:
         return None
-    requested = user.deletion_requested_at
     if requested.tzinfo is None:
         requested = requested.replace(tzinfo=timezone.utc)
     return requested + timedelta(days=ACCOUNT_DELETION_GRACE_DAYS)
@@ -33,7 +34,7 @@ def permanently_delete_user(db: Session, user: User) -> None:
     user.phone = None
     user.hashed_password = None
     user.is_active = False
-    user.deletion_requested_at = None
+    set_deletion_requested_at(user, None)
     user.verification_token = None
     user.reset_token = None
     user.two_factor_enabled = False
@@ -43,7 +44,7 @@ def permanently_delete_user(db: Session, user: User) -> None:
 
 def finalize_expired_deletion(db: Session, user: User) -> bool:
     """Permanently delete if grace period ended. Returns True if finalized."""
-    if not user.deletion_requested_at:
+    if not get_deletion_requested_at(user):
         return False
     if is_within_recovery_period(user):
         return False

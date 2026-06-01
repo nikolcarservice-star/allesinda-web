@@ -52,8 +52,18 @@ if [ "${SEED_DB_ON_START}" = "true" ]; then
 fi
 
 echo "Ensuring database schema is up to date..."
-python -c "from app.database import init_db, ensure_schema; init_db(); ensure_schema()" || {
-    echo "WARNING: Schema ensure failed, but continuing with server start..."
+python -c "
+from app.database import init_db, ensure_schema, database_schema_ready
+init_db()
+ensure_schema()
+ready, err = database_schema_ready()
+if not ready:
+    raise SystemExit(f'Schema incompatible after repair: {err}')
+print('Database schema OK')
+" || {
+    echo "ERROR: Database schema is incompatible. Fix DB permissions or run:"
+    echo '  ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;'
+    exit 1
 }
 echo ""
 

@@ -40,8 +40,10 @@ class User(Base):
     social_provider: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)  # google, facebook, etc.
     social_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     
-    # Soft-delete: set when user requests account deletion; recoverable for 14 days
-    deletion_requested_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    # Soft-delete: deferred so legacy DBs without this column can still log in / list profiles
+    deletion_requested_at: Mapped[Optional[DateTime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True, deferred=True
+    )
 
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

@@ -187,6 +187,12 @@ def repair_profiles_schema(db: Session | None = None) -> None:
 
     Base.metadata.create_all(bind=engine)
 
+    # Auth and listings break without this column; add it before other repairs.
+    insp = inspect(engine)
+    table_names = set(insp.get_table_names())
+    if "users" in table_names:
+        _ensure_column("users", "deletion_requested_at", "TIMESTAMPTZ")
+
     profile_columns = {
         "keywords": "TEXT",
         "profession": "VARCHAR(255)",
@@ -198,20 +204,9 @@ def repair_profiles_schema(db: Session | None = None) -> None:
         "reported_by_id": "INTEGER",
         "reported_at": "TIMESTAMP",
     }
-    user_columns = {
-        "deletion_requested_at": "TIMESTAMP",
-    }
-
-    insp = inspect(engine)
-    table_names = set(insp.get_table_names())
-
     if "profiles" in table_names:
         for column_name, column_type in profile_columns.items():
             _ensure_column("profiles", column_name, column_type)
-
-    if "users" in table_names:
-        for column_name, column_type in user_columns.items():
-            _ensure_column("users", column_name, column_type)
 
     if "reviews" in table_names:
         for column_name, column_type in review_columns.items():
