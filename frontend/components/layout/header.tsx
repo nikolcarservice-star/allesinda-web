@@ -1752,6 +1752,77 @@ return (
 
               <div className="min-h-0 flex-1 overflow-hidden flex flex-col">
                 <div className="flex-1 overflow-y-auto px-6 py-3">
+                  {user && (
+                    <div className="mb-4 border-b border-neutral-200 pb-4">
+                      <div className="mb-3">
+                        <p className="text-sm font-semibold text-neutral-900 truncate">{user.name}</p>
+                        <p className="text-xs text-neutral-500 truncate">{user.email}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <SheetClose asChild>
+                          <Link href="/profile" className={mobileCategoryRowClass}>
+                            <span className="min-w-0 flex-1 truncate text-left">Profil</span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link href="/favorites" className={mobileCategoryRowClass}>
+                            <span className="min-w-0 flex-1 truncate text-left">Favoriten</span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link href="/notifications" className={mobileCategoryRowClass}>
+                            <span className="min-w-0 flex-1 truncate text-left">Benachrichtigungen</span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link href="/bookings" className={mobileCategoryRowClass}>
+                            <span className="min-w-0 flex-1 truncate text-left">Buchungen</span>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                          </Link>
+                        </SheetClose>
+
+                        {user.role === "master" && (
+                          <SheetClose asChild>
+                            <Link href="/dashboard/master" className={mobileCategoryRowClass}>
+                              <span className="min-w-0 flex-1 truncate text-left">Mein Dashboard</span>
+                              <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                            </Link>
+                          </SheetClose>
+                        )}
+                        {user.role === "seller" && (
+                          <SheetClose asChild>
+                            <Link href="/dashboard/seller" className={mobileCategoryRowClass}>
+                              <span className="min-w-0 flex-1 truncate text-left">Mein Dashboard</span>
+                              <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                            </Link>
+                          </SheetClose>
+                        )}
+                        {user.role === "admin" && (
+                          <SheetClose asChild>
+                            <Link href="/admin" className={mobileCategoryRowClass}>
+                              <span className="min-w-0 flex-1 truncate text-left">Admin-Panel</span>
+                              <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                            </Link>
+                          </SheetClose>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            logout()
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className={cn(mobileCategoryRowClass, "w-full")}
+                        >
+                          <span className="min-w-0 flex-1 truncate text-left">Abmelden</span>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {categoriesLoading ? (
                     <div className="space-y-2" aria-busy="true" aria-label="Kategorien werden geladen">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
