@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -206,6 +207,16 @@ export function AccountSettingsPage() {
                       <Input value={user.role} disabled className="capitalize h-10 sm:h-11 text-sm sm:text-base" />
                     </div>
                   </div>
+                  {user.role === "admin" && (
+                    <div className="pt-1">
+                      <Button asChild className="w-full sm:w-auto">
+                        <Link href="/admin">
+                          <Shield className="h-4 w-4" />
+                          Admin-Panel
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
