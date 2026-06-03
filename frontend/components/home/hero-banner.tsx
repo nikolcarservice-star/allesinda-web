@@ -188,10 +188,10 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
         <div className="relative z-10 container mx-auto h-full min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-3 sm:py-10 md:py-14 lg:py-20 px-sides sm:px-8 md:px-12 lg:px-16">
           <div className="max-w-2xl w-full min-w-0">
             <div className="max-w-md sm:max-w-lg min-w-0">
-              <h1 className="text-lg font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl md:text-5xl sm:text-white">
+              <h1 className="text-lg font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl md:text-5xl">
                 {HERO_HEADLINE}
               </h1>
-              <p className="mt-1.5 sm:mt-4 text-xs text-neutral-800 sm:text-lg sm:text-white/90 max-w-md">
+              <p className="mt-1.5 sm:mt-4 text-xs text-neutral-700 sm:text-lg max-w-md">
                 {HERO_SUBHEADLINE}
               </p>
             </div>
