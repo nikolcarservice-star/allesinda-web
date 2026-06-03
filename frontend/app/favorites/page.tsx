@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, Star, MapPin, Euro, Trash2, Loader2, Grid3x3, User, Package, Home } from "lucide-react"
+import { Heart, Star, Euro, Trash2, Loader2, Grid3x3, User } from "lucide-react"
 import { getFavorites, removeFavorite } from "@/lib/api/favorites"
 import { toast } from "sonner"
 import Link from "next/link"
@@ -79,10 +79,18 @@ export default function FavoritesPage() {
   }
 
   const getItemImage = (favorite: Favorite) => {
-    if (favorite.favorite_type === "profile") {
-      return "/professional-plumber-portrait.png"
+    const url = favorite.item?.image_url?.trim()
+    if (url) {
+      return getOptimizedImageUrl(url, "card") || "/placeholder.svg"
     }
-    return getOptimizedImageUrl(favorite.item?.image_url, 'card') || "/placeholder.svg"
+    return "/placeholder.svg"
+  }
+
+  const getItemTypeLabel = (favorite: Favorite) => {
+    if (favorite.favorite_type === "profile") return "Meister"
+    if (favorite.favorite_type === "product") return "Produkt"
+    if (favorite.favorite_type === "rental") return "Miete"
+    return favorite.favorite_type
   }
 
   if (loading) {
@@ -111,12 +119,12 @@ export default function FavoritesPage() {
                   Meine Favoriten
                 </span>
               </h1>
-              <p className="text-sm sm:text-base text-muted-foreground/90">Verwalten Sie Ihre gespeicherten Meister, Produkt und Verleih</p>
+              <p className="text-sm sm:text-base text-muted-foreground/90">Verwalten Sie Ihre gespeicherten Meister</p>
             </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="space-y-6 sm:space-y-8">
-            <TabsList variant="modern" className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 sm:mb-8">
+            <TabsList variant="modern" className="grid w-full grid-cols-2 mb-6 sm:mb-8">
               <TabsTrigger variant="modern" value="all" className="flex items-center justify-center gap-1.5">
                 <Grid3x3 className="shrink-0" />
                 <span>Alle</span>
@@ -124,14 +132,6 @@ export default function FavoritesPage() {
               <TabsTrigger variant="modern" value="profile" className="flex items-center justify-center gap-1.5">
                 <User className="shrink-0" />
                 <span>Meister</span>
-              </TabsTrigger>
-              <TabsTrigger variant="modern" value="product" className="flex items-center justify-center gap-1.5">
-                <Package className="shrink-0" />
-                <span>Produkt</span>
-              </TabsTrigger>
-              <TabsTrigger variant="modern" value="rental" className="flex items-center justify-center gap-1.5">
-                <Home className="shrink-0" />
-                <span>Mieten</span>
               </TabsTrigger>
             </TabsList>
 
@@ -166,7 +166,7 @@ export default function FavoritesPage() {
                             <h3 className="font-bold text-base sm:text-lg truncate group-hover:text-primary transition-colors">
                               {favorite.item?.title || favorite.item?.name || "Ohne Titel"}
                             </h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground/90 capitalize">{favorite.favorite_type}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground/90">{getItemTypeLabel(favorite)}</p>
                             {favorite.favorite_type === "profile" && favorite.item?.rating !== undefined && (
                               <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground/90">
                                 <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />

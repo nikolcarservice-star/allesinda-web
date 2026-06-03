@@ -5,7 +5,7 @@ export function shouldShowMobileBackBar(pathname: string): boolean {
   if (!pathname) return false
   if (pathname === "/") return false
   if (/^\/detailed\/master\/[^/]+/.test(pathname)) return false
-  if (pathname.startsWith("/messages/call")) return false
+  if (pathname.startsWith("/messages")) return false
   return true
 }
 

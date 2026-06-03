@@ -172,10 +172,9 @@ function MessagesPageContent() {
     const rawId = payload.id ?? payload.message_id ?? payload.messageId
     const messageId = rawId != null ? String(rawId) : `temp-${Date.now()}`
     const createdAt = payload.created_at ?? payload.createdAt ?? new Date().toISOString()
-    const derivedTimestamp = new Date(createdAt).toLocaleTimeString("en-US", {
-      hour: "numeric",
+    const derivedTimestamp = new Date(createdAt).toLocaleTimeString("de-DE", {
+      hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
     })
 
     let sender: "me" | "them" = "them"
@@ -1123,7 +1122,7 @@ function MessagesPageContent() {
 
   // Format date for display (Today, Yesterday, or date)
   const formatDateHeader = (dateString: string | undefined): string => {
-    if (!dateString) return "Messages"
+    if (!dateString) return "Nachrichten"
     try {
       const messageDate = new Date(dateString)
       const today = new Date()
@@ -1136,20 +1135,19 @@ function MessagesPageContent() {
       const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate())
 
       if (messageDateOnly.getTime() === todayOnly.getTime()) {
-        return "Today"
+        return "Heute"
       } else if (messageDateOnly.getTime() === yesterdayOnly.getTime()) {
-        return "Yesterday"
+        return "Gestern"
       } else {
-        // Format as "Month Day, Year" or "Month Day" if same year
         const options: Intl.DateTimeFormatOptions = {
           month: "long",
           day: "numeric",
           ...(messageDate.getFullYear() !== today.getFullYear() && { year: "numeric" }),
         }
-        return messageDate.toLocaleDateString("en-US", options)
+        return messageDate.toLocaleDateString("de-DE", options)
       }
-    } catch (error) {
-      return "Messages"
+    } catch {
+      return "Nachrichten"
     }
   }
 
@@ -1248,10 +1246,9 @@ function MessagesPageContent() {
       id: `temp-${Date.now()}`,
       sender: "me",
       content: messageContent,
-      timestamp: now.toLocaleTimeString("en-US", {
-        hour: "numeric",
+      timestamp: now.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
         minute: "2-digit",
-        hour12: true,
       }),
       is_read: false,
       sender_id: currentUserId ?? undefined,

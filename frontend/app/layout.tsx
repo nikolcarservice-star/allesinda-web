@@ -80,7 +80,7 @@ export default async function RootLayout({
             <CartProvider>
               <NuqsAdapter>
               <BodyScrollReset />
-              <main data-vaul-drawer-wrapper="true" className="min-h-screen">
+              <main data-vaul-drawer-wrapper="true" className="min-h-screen overflow-x-hidden">
                 <Suspense fallback={
                   <div className="h-16 bg-background border-b" />
                 }>
