@@ -23,6 +23,7 @@ import { useAuth } from "@/lib/context/auth-context"
 import { changePassword, setup2FA, verify2FA, disable2FA } from "@/lib/api/auth"
 import { toast } from "sonner"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { AccountSessionSection } from "@/components/profile/account-session-section"
 
 export function AccountSettingsPage() {
   const { user, refreshUser } = useAuth()
@@ -365,6 +366,8 @@ export function AccountSettingsPage() {
               </Card>
             </TabsContent>
           </Tabs>
+
+          <AccountSessionSection className="mt-6 sm:mt-8" />
         </div>
       </div>
     </ProtectedRoute>
