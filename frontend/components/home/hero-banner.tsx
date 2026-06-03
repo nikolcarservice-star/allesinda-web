@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { Search, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
+import { Search, ChevronRight, ChevronLeft, Loader2, MapPin, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CityCombobox } from "@/components/shared/city-combobox"
@@ -55,6 +55,8 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
     } else {
       setCityId(undefined)
     }
+    const q = searchParams?.get("q") ?? searchParams?.get("search") ?? ""
+    setSearchValue(q)
   }, [searchParams])
 
   useEffect(() => {
@@ -62,7 +64,10 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
     if (typeof window === "undefined") return
     if (window.location.hash !== "#hero-search") return
     const timer = window.setTimeout(() => {
-      document.getElementById(HERO_SEARCH_INPUT_ID)?.focus({ preventScroll: true })
+      const input =
+        document.getElementById(`${HERO_SEARCH_INPUT_ID}-mobile`) ??
+        document.getElementById(HERO_SEARCH_INPUT_ID)
+      input?.focus({ preventScroll: true })
     }, 480)
     return () => window.clearTimeout(timer)
   }, [pathname])
@@ -166,95 +171,171 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
   // и прокручивал горизонтальную ленту категорий, блокируя скролл страницы.
   // Убрано, чтобы страница всегда прокручивалась колёсиком даже над лентой.
 
+  const desktopSearchForm = (
+    <form onSubmit={handleSubmit} className="mt-5 w-full max-w-2xl sm:mt-6 shadow-lg shadow-black/5">
+      <div className="flex w-full min-w-0 flex-col gap-2 overflow-hidden rounded-xl border border-border/60 bg-background p-0 sm:flex-row sm:gap-0 sm:rounded-md">
+        <div className="flex shrink-0 items-center sm:border-r sm:border-border/60 sm:bg-muted/30">
+          <CityCombobox
+            value={cityId}
+            onChange={setCityId}
+            placeholder="Stadt"
+            size="md"
+            variant="form"
+            className="h-11 w-full min-w-0 rounded-lg border border-border/50 bg-background px-3 sm:h-14 sm:min-w-[160px] sm:rounded-none sm:border-0 sm:bg-transparent sm:px-3"
+          />
+        </div>
+        <div className="relative flex min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-border/50 bg-background sm:rounded-none sm:border-0">
+          <Input
+            id={HERO_SEARCH_INPUT_ID}
+            type="search"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            aria-label="Suchbegriff eingeben"
+            className={cn(
+              "h-11 pr-12 text-sm sm:h-14 sm:pr-14 sm:text-base border-0 rounded-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
+              showPlaceholder && "text-transparent caret-foreground",
+            )}
+            autoComplete="off"
+          />
+          {showPlaceholder && (
+            <div
+              className="pointer-events-none absolute left-3 right-12 top-1/2 flex -translate-y-1/2 items-center text-sm text-muted-foreground sm:left-3 sm:right-14 sm:text-base"
+              aria-hidden
+            >
+              <span>{TYPING_PREFIX}</span>
+              <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">{displayWord}</span>
+            </div>
+          )}
+          <Button
+            type="submit"
+            size="icon"
+            className="h-11 w-11 shrink-0 rounded-none border-0 border-l border-border/60 bg-primary hover:bg-primary/90 text-primary-foreground sm:h-14 sm:w-14 [&_svg]:text-black"
+            aria-label="Suchen"
+          >
+            <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+          </Button>
+        </div>
+      </div>
+    </form>
+  )
+
   return (
     <section id="hero-search" className="relative w-full overflow-hidden scroll-mt-16 sm:scroll-mt-[72px]">
-      {/* Hero: команда на фото — мобиле текст поверх, десктоп текст слева + поиск */}
-      <div className="relative w-full h-[min(34dvh,12.5rem)] sm:min-h-[50vh] sm:h-auto md:min-h-[58vh] lg:min-h-[65vh]">
+      {/* Мобиле: компактное фото + продающая карточка поиска */}
+      <div className="sm:hidden">
+        <div className="relative h-[6.75rem] w-full overflow-hidden">
+          <Image
+            src={HERO_IMAGE}
+            alt=""
+            fill
+            className="object-cover object-[50%_20%] brightness-[0.88]"
+            sizes="100vw"
+            priority
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 via-55% to-black/10"
+            aria-hidden
+          />
+          <div className="relative z-10 flex h-full flex-col justify-end px-sides pb-2 pt-12">
+            <p className="mb-1 inline-flex w-fit items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-black shadow-md">
+              <Sparkles className="h-3 w-3" aria-hidden />
+              Geprüfte Profis
+            </p>
+            <h1 className="text-base font-bold leading-tight tracking-tight text-white text-balance drop-shadow-sm">
+              {HERO_HEADLINE}
+            </h1>
+          </div>
+        </div>
+
+        <div className="relative z-20 -mt-5 px-sides pb-1">
+          <form
+            onSubmit={handleSubmit}
+            className="overflow-hidden rounded-2xl bg-white shadow-[0_18px_50px_-14px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.07]"
+          >
+            <div className="flex items-center gap-2 border-b border-neutral-100 bg-gradient-to-r from-neutral-50 to-white px-3 py-2">
+              <MapPin className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+              <CityCombobox
+                value={cityId}
+                onChange={setCityId}
+                placeholder="Alle Städte"
+                size="md"
+                variant="form"
+                className="h-10 min-h-10 w-full min-w-0 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+              />
+            </div>
+            <div className="p-2.5">
+              <div className="relative flex items-center overflow-hidden rounded-xl border border-neutral-200/90 bg-neutral-50/50 focus-within:border-emerald-500/50 focus-within:ring-2 focus-within:ring-emerald-500/15">
+                <Input
+                  id={`${HERO_SEARCH_INPUT_ID}-mobile`}
+                  type="search"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  aria-label="Suchbegriff eingeben"
+                  className={cn(
+                    "h-11 border-0 bg-transparent pl-3 pr-3 text-sm focus-visible:ring-0 focus-visible:ring-offset-0",
+                    showPlaceholder && "text-transparent caret-foreground",
+                  )}
+                  autoComplete="off"
+                />
+                {showPlaceholder && (
+                  <div
+                    className="pointer-events-none absolute left-3 right-3 top-1/2 flex -translate-y-1/2 items-center text-sm text-muted-foreground"
+                    aria-hidden
+                  >
+                    <span>{TYPING_PREFIX}</span>
+                    <span className="min-w-[2ch] border-r-2 border-emerald-500 animate-pulse">{displayWord}</span>
+                  </div>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="mt-2.5 h-11 w-full rounded-xl bg-emerald-600 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(5,150,105,0.65)] hover:bg-emerald-700 active:scale-[0.99]"
+              >
+                <Search className="mr-2 h-4 w-4" aria-hidden />
+                Handwerker finden
+              </Button>
+              <p className="mt-2 text-center text-[10px] font-medium leading-snug text-neutral-500">
+                Geprüft · Echte Bewertungen · Ohne Vermittlungsgebühr
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Десктоп: полноразмерный баннер */}
+      <div className="relative hidden w-full sm:block sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh]">
         <div className="absolute inset-0">
           <Image
             src={HERO_IMAGE}
             alt="Team aus geprüften Handwerkern und Dienstleistern"
             fill
-            className="object-cover object-[50%_22%] sm:object-[72%_center] md:object-[78%_center] brightness-[0.92] sm:brightness-[0.9]"
+            className="object-cover object-[72%_center] md:object-[78%_center] brightness-[0.9]"
             sizes="100vw"
             priority
           />
         </div>
-
-        {/* Мобиле: лёгкое затемнение только внизу под заголовок */}
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 via-28% to-transparent sm:hidden"
+          className="absolute inset-0 bg-gradient-to-r from-white/96 from-15% via-white/70 via-38% to-transparent to-72%"
           aria-hidden
         />
-        {/* Десктоп: светлая подложка слева под тёмный текст */}
-        <div
-          className="absolute inset-0 hidden sm:block bg-gradient-to-r from-white/96 from-15% via-white/70 via-38% to-transparent to-72%"
-          aria-hidden
-        />
-        <div className="absolute inset-0 hidden sm:block bg-black/10" aria-hidden />
+        <div className="absolute inset-0 bg-black/10" aria-hidden />
 
-        <div className="relative z-10 container mx-auto flex min-h-[inherit] flex-col justify-end sm:justify-center px-sides pb-3 pt-14 sm:px-8 sm:pb-5 sm:pt-20 sm:py-14 md:px-12 lg:px-16 lg:py-20">
+        <div className="relative z-10 container mx-auto flex min-h-[inherit] flex-col justify-center px-8 py-14 md:px-12 lg:px-16 lg:py-20">
           <div className="w-full max-w-2xl min-w-0">
-            <p className="mb-1 inline-flex rounded-full bg-primary/90 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-black shadow-sm sm:mb-3 sm:px-3 sm:py-1 sm:bg-primary sm:text-xs">
+            <p className="mb-3 inline-flex rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-wide text-black shadow-sm">
               Geprüfte Profis · Direkt buchen
             </p>
-            <h1 className="text-lg font-bold leading-tight tracking-tight text-white text-balance drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)] sm:text-4xl sm:leading-[1.2] sm:text-neutral-900 sm:drop-shadow-none md:text-5xl md:leading-tight">
+            <h1 className="text-4xl font-bold leading-[1.2] tracking-tight text-neutral-900 text-balance md:text-5xl md:leading-tight">
               {HERO_HEADLINE}
             </h1>
-            <p className="mt-1 max-w-md text-xs leading-snug text-white/95 text-pretty line-clamp-2 drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-lg sm:leading-relaxed sm:line-clamp-none sm:text-neutral-700 sm:drop-shadow-none">
+            <p className="mt-4 max-w-md text-lg leading-relaxed text-neutral-700 text-pretty">
               {HERO_SUBHEADLINE}
             </p>
-
-            <form
-              onSubmit={handleSubmit}
-              className="mt-5 hidden w-full max-w-2xl sm:mt-6 sm:block shadow-lg shadow-black/5"
-            >
-              <div className="flex w-full min-w-0 flex-col gap-2 overflow-hidden rounded-xl border border-white/20 bg-white/95 p-2 backdrop-blur-md sm:flex-row sm:gap-0 sm:rounded-md sm:border-border/60 sm:bg-background sm:p-0 sm:backdrop-blur-none">
-                <div className="flex shrink-0 items-center sm:border-r sm:border-border/60 sm:bg-muted/30">
-                  <CityCombobox
-                    value={cityId}
-                    onChange={setCityId}
-                    placeholder="Stadt"
-                    size="md"
-                    variant="form"
-                    className="h-11 w-full min-w-0 rounded-lg border border-border/50 bg-background px-3 sm:h-14 sm:min-w-[160px] sm:rounded-none sm:border-0 sm:bg-transparent sm:px-3"
-                  />
-                </div>
-                <div className="relative flex min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-border/50 bg-background sm:rounded-none sm:border-0">
-                  <Input
-                    id={HERO_SEARCH_INPUT_ID}
-                    type="search"
-                    value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    aria-label="Suchbegriff eingeben"
-                    className={cn(
-                      "h-11 pr-12 text-sm sm:h-14 sm:pr-14 sm:text-base border-0 rounded-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
-                      showPlaceholder && "text-transparent caret-foreground"
-                    )}
-                    autoComplete="off"
-                  />
-                  {showPlaceholder && (
-                    <div
-                      className="pointer-events-none absolute left-3 right-12 top-1/2 flex -translate-y-1/2 items-center text-sm text-muted-foreground sm:left-3 sm:right-14 sm:text-base"
-                      aria-hidden
-                    >
-                      <span>{TYPING_PREFIX}</span>
-                      <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">{displayWord}</span>
-                    </div>
-                  )}
-                  <Button
-                    type="submit"
-                    size="icon"
-                    className="h-11 w-11 shrink-0 rounded-none border-0 border-l border-border/60 bg-primary hover:bg-primary/90 text-primary-foreground sm:h-14 sm:w-14 [&_svg]:text-black"
-                    aria-label="Suchen"
-                  >
-                    <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
-                </div>
-              </div>
-            </form>
+            {desktopSearchForm}
           </div>
         </div>
       </div>

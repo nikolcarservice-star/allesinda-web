@@ -239,6 +239,7 @@ export function Header() {
   )
 
   const isMasterCabinetPage = pathname === "/profile" && user?.role === "master"
+  const isHomePage = pathname === "/"
 
   const masterProfileId = useMemo(() => {
     const match = pathname?.match(/^\/detailed\/master\/(\d+)/)
@@ -1846,19 +1847,21 @@ return (
           )}
         </div>
 
-        {/* Mobile: Benachrichtigungen + Suche */}
+        {/* Mobile: Benachrichtigungen + Suche (Suche nur außerhalb der Startseite — dort im Hero-Banner) */}
         <div className="flex shrink-0 justify-end items-center gap-0.5 sm:gap-1 ml-auto z-[1] lg:hidden">
           {user && <NotificationDropdown />}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
-            aria-label="Suchen"
-            onClick={() => setIsSearchPanelOpen(true)}
-          >
-            <Search className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
-          </Button>
+          {!isHomePage && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
+              aria-label="Suchen"
+              onClick={() => setIsSearchPanelOpen(true)}
+            >
+              <Search className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
+            </Button>
+          )}
 
           {user && (
             <Link
@@ -1873,7 +1876,7 @@ return (
 
         {/* Mobile Search Panel */}
         <Sheet
-          open={isSearchPanelOpen}
+          open={isSearchPanelOpen && !isHomePage}
           onOpenChange={(next: boolean) => {
             setIsSearchPanelOpen(next);
             if (next) {
