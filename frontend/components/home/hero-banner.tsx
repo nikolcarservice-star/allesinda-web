@@ -78,6 +78,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
   const scrollStripRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
 
   const updateScrollButtons = useCallback(() => {
     const el = scrollStripRef.current
@@ -87,6 +88,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
     const maxScroll = Math.max(0, scrollWidth - clientWidth)
     setCanScrollLeft(scrollLeft > threshold)
     setCanScrollRight(maxScroll > threshold && maxScroll - scrollLeft > threshold)
+    setScrollProgress(maxScroll <= threshold ? 100 : Math.min(100, (scrollLeft / maxScroll) * 100))
   }, [])
 
   useEffect(() => {
@@ -333,40 +335,39 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
         </div>
       </div>
 
-      {/* Categories: ровно под баннером, те же отступы что и контент для выравнивания на мобиле и десктопе */}
+      {/* Categories: image cards with overlay labels (mobile-first carousel) */}
       {(categoriesLoading || categories.length > 0) && (
-        <div className="w-full border-t border-border/40 bg-muted/40">
-          <div className="container mx-auto py-1.5 sm:py-4 w-full max-w-[1920px] px-3 sm:px-8 md:px-12 lg:px-16">
-            <div className="relative flex items-center gap-1 w-full">
+        <div className="w-full border-t border-neutral-100 bg-white">
+          <div className="container mx-auto w-full max-w-[1920px] px-sides py-3 sm:px-8 sm:py-4 md:px-12 lg:px-16">
+            <div className="relative w-full">
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
                 className={cn(
-                  "absolute left-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-md border border-border/60 bg-muted/80 hover:bg-muted",
-                  !canScrollLeft && "opacity-40 pointer-events-none"
+                  "absolute left-0 top-[calc(50%-0.5rem)] z-10 hidden h-9 w-9 -translate-y-1/2 shrink-0 rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 sm:flex",
+                  !canScrollLeft && "pointer-events-none opacity-40",
                 )}
                 onClick={() => scrollStrip("left")}
                 aria-label="Nach links scrollen"
               >
-                <ChevronLeft className="h-4 w-4 text-foreground" />
+                <ChevronLeft className="h-4 w-4 text-foreground" aria-hidden />
               </Button>
               <div
                 ref={scrollStripRef}
                 className={cn(
-                  "flex gap-2 overflow-x-auto overflow-y-hidden pb-1",
-                  "pl-11 pr-11",
-                  "scrollbar-hide lg:scrollbar-show-lg"
+                  "flex gap-2.5 overflow-x-auto overflow-y-hidden pb-0.5",
+                  "snap-x snap-mandatory scroll-px-3",
+                  "px-0 sm:scroll-px-11 sm:pl-11 sm:pr-11",
+                  "scrollbar-hide",
                 )}
-                style={{
-                  WebkitOverflowScrolling: "touch",
-                }}
+                style={{ WebkitOverflowScrolling: "touch" }}
                 role="region"
                 aria-label="Kategorien"
               >
                 {categoriesLoading ? (
-                  <div className="flex items-center gap-2 py-2">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <div className="flex items-center gap-2 py-6 pl-1">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden />
                     <span className="text-sm text-muted-foreground">Kategorien werden geladen...</span>
                   </div>
                 ) : (
@@ -389,32 +390,44 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                       const isActive = selectedCategory
                         ? selectedCategory.id === category.id
                         : matchesUrlCategory
+                      const categoryName = category.name || "Kategorie"
+
                       return (
                         <button
                           key={category.id}
                           type="button"
                           onClick={() => onCategoryClick?.(category)}
+                          aria-current={isActive ? "page" : undefined}
                           className={cn(
-                            "flex shrink-0 flex-col items-center gap-1 rounded-md bg-muted/70 hover:bg-muted px-2 py-2 min-w-[84px] sm:gap-2 sm:px-3 sm:py-3 sm:min-w-[120px]",
-                            "text-center text-xs sm:text-sm font-medium text-foreground",
-                            "hover:text-primary transition-colors",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
-                            "border-b-2 border-transparent",
-                            isActive && "border-primary text-primary"
+                            "group relative shrink-0 snap-center overflow-hidden rounded-2xl text-left",
+                            "h-[7.25rem] w-[9.25rem] sm:h-[8.25rem] sm:w-[10.75rem]",
+                            "shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition-all duration-200",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
+                            isActive
+                              ? "ring-2 ring-primary shadow-[0_4px_16px_rgba(60,220,213,0.35)]"
+                              : "ring-1 ring-black/8 hover:ring-primary/40",
                           )}
                         >
-                          <span className="relative flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 overflow-hidden rounded-md bg-muted border border-border/40">
-                            <Image
-                              src={imageSrc}
-                              alt=""
-                              width={48}
-                              height={48}
-                              className="h-full w-full object-cover"
-                              unoptimized={isLocal}
+                          <Image
+                            src={imageSrc}
+                            alt=""
+                            fill
+                            sizes="(max-width: 640px) 148px, 172px"
+                            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                            unoptimized={isLocal}
+                          />
+                          <div
+                            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5"
+                            aria-hidden
+                          />
+                          {isActive && (
+                            <div
+                              className="absolute inset-0 ring-1 ring-inset ring-primary/50"
+                              aria-hidden
                             />
-                          </span>
-                          <span className="line-clamp-2 leading-tight">
-                            {category.name || "Kategorie"}
+                          )}
+                          <span className="absolute bottom-0 left-0 right-0 px-2.5 pb-2 pt-5 text-[11px] font-semibold leading-snug text-white line-clamp-3 sm:text-xs">
+                            {categoryName}
                           </span>
                         </button>
                       )
@@ -426,15 +439,26 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                 variant="outline"
                 size="icon"
                 className={cn(
-                  "absolute right-0 top-1/2 z-10 h-9 w-9 -translate-y-1/2 shrink-0 rounded-md border border-border/60 bg-muted/80 hover:bg-muted",
-                  !canScrollRight && "opacity-40 pointer-events-none"
+                  "absolute right-0 top-[calc(50%-0.5rem)] z-10 hidden h-9 w-9 -translate-y-1/2 shrink-0 rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 sm:flex",
+                  !canScrollRight && "pointer-events-none opacity-40",
                 )}
                 onClick={() => scrollStrip("right")}
                 aria-label="Nach rechts scrollen"
               >
-                <ChevronRight className="h-4 w-4 text-foreground" />
+                <ChevronRight className="h-4 w-4 text-foreground" aria-hidden />
               </Button>
             </div>
+            {!categoriesLoading && categories.length > 1 && (
+              <div
+                className="mt-2.5 h-0.5 w-full overflow-hidden rounded-full bg-neutral-200 sm:mt-3"
+                aria-hidden
+              >
+                <div
+                  className="h-full rounded-full bg-primary/70 transition-[width] duration-150 ease-out"
+                  style={{ width: `${scrollProgress}%` }}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
