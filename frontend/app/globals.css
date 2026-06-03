@@ -262,6 +262,27 @@
 }
 
 @layer utilities {
+  /* Subtle black outline on brand-teal UI (logo, nav icons) — like the wordmark */
+  .brand-glyph-stroke {
+    filter:
+      drop-shadow(0.35px 0 0 rgb(10 10 10 / 0.72))
+      drop-shadow(-0.35px 0 0 rgb(10 10 10 / 0.72))
+      drop-shadow(0 0.35px 0 rgb(10 10 10 / 0.72))
+      drop-shadow(0 -0.35px 0 rgb(10 10 10 / 0.72));
+  }
+
+  .brand-label-stroke {
+    text-shadow:
+      0.3px 0 0 rgb(10 10 10 / 0.28),
+      -0.3px 0 0 rgb(10 10 10 / 0.28),
+      0 0.3px 0 rgb(10 10 10 / 0.28),
+      0 -0.3px 0 rgb(10 10 10 / 0.28);
+  }
+
+  .brand-surface-stroke {
+    box-shadow: inset 0 0 0 1px rgb(10 10 10 / 0.22);
+  }
+
   .base-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);

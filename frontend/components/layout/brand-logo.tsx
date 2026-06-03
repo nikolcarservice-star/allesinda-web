@@ -10,7 +10,7 @@ export function BrandLogo({ className }: BrandLogoProps) {
     <span
       aria-hidden
       className={cn(
-        "block bg-primary",
+        "block bg-primary brand-glyph-stroke",
         "[mask-image:url(/logo_dark.webp)] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:center]",
         "[-webkit-mask-image:url(/logo_dark.webp)] [-webkit-mask-size:contain] [-webkit-mask-repeat:no-repeat] [-webkit-mask-position:center]",
         className,

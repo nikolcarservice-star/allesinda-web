@@ -211,7 +211,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
           <Button
             type="submit"
             size="icon"
-            className="h-11 w-11 shrink-0 rounded-none border-0 border-l border-border/60 bg-primary hover:bg-primary/90 text-primary-foreground sm:h-14 sm:w-14 [&_svg]:text-black"
+            className="h-11 w-11 shrink-0 rounded-none border-0 border-l border-border/60 bg-primary brand-surface-stroke hover:bg-primary/90 text-primary-foreground sm:h-14 sm:w-14 [&_svg]:text-black [&_svg]:brand-glyph-stroke"
             aria-label="Suchen"
           >
             <Search className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -257,7 +257,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                 placeholder="Alle Städte"
                 size="md"
                 variant="form"
-                className="h-10 min-h-10 w-full min-w-0 border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 [&_svg]:text-primary"
+                className="h-10 min-h-10 w-full min-w-0 border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 [&_svg]:text-primary [&_svg]:brand-glyph-stroke"
               />
             </div>
             <div className="flex items-center gap-2 p-2.5">
@@ -289,7 +289,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
               <Button
                 type="submit"
                 size="icon"
-                className="h-11 w-11 shrink-0 rounded-xl bg-primary text-black shadow-md hover:bg-primary/90 active:scale-[0.98] [&_svg]:text-black"
+                className="h-11 w-11 shrink-0 rounded-xl bg-primary brand-surface-stroke text-black shadow-md hover:bg-primary/90 active:scale-[0.98] [&_svg]:text-black [&_svg]:brand-glyph-stroke"
                 aria-label="Suchen"
               >
                 <Search className="h-5 w-5" aria-hidden />

@@ -1637,7 +1637,7 @@ return (
               className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-primary hover:text-primary/90 hover:bg-primary/10 shrink-0"
               aria-label="Menü öffnen"
             >
-              <Menu className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <Menu className="h-4 w-4 sm:h-5 sm:w-5 text-primary brand-glyph-stroke" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[320px] sm:w-[360px] p-0">
@@ -1719,7 +1719,7 @@ return (
                 }}
                 className={cn(
                   "flex h-10 items-center rounded-sm px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 cursor-pointer",
-                  isActive ? "bg-primary !text-black font-bold hover:bg-primary/90 hover:!text-black" : "text-black/70 hover:bg-primary/10 hover:text-primary"
+                  isActive ? "bg-primary brand-surface-stroke !text-black font-bold hover:bg-primary/90 hover:!text-black" : "text-black/70 hover:bg-primary/10 hover:text-primary"
                 )}
                 role="tab"
                 aria-selected={isActive}
@@ -1736,7 +1736,7 @@ return (
             <>
               <Link
                 href="/signup"
-                className="inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold !text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:!text-black hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+                className="inline-flex items-center rounded-xl bg-primary brand-surface-stroke px-5 py-2.5 text-sm font-bold !text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:!text-black hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
               >
                 Jetzt als Profi anmelden
               </Link>
@@ -1842,7 +1842,7 @@ return (
               aria-label="Suchen"
               onClick={() => setIsSearchPanelOpen(true)}
             >
-              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-primary" aria-hidden />
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-primary brand-glyph-stroke" aria-hidden />
             </Button>
           )}
 
@@ -1852,7 +1852,7 @@ return (
               className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-primary transition-all duration-200 hover:text-primary/90 hover:bg-primary/10 shrink-0"
               aria-label="Favoriten"
             >
-              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-primary brand-glyph-stroke" />
             </Link>
           )}
         </div>

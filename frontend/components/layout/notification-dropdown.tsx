@@ -174,7 +174,7 @@ export function NotificationDropdown() {
           className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-primary transition-all duration-200 hover:text-primary/90 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:outline-none"
           aria-label="Benachrichtigungen"
         >
-          <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary brand-glyph-stroke" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"

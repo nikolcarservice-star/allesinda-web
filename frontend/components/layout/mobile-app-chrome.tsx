@@ -100,7 +100,10 @@ function MobileBottomNav() {
             aria-current={active ? "page" : undefined}
           >
             <span className="relative inline-flex shrink-0">
-              <Icon className={cn("h-5 w-5", active ? "text-primary" : "text-primary/55")} aria-hidden />
+              <Icon
+                className={cn("h-5 w-5 brand-glyph-stroke", active ? "text-primary" : "text-primary/55")}
+                aria-hidden
+              />
               {label === "Nachrichten" && unreadMessages > 0 && (
                 <Badge
                   variant="destructive"
@@ -110,7 +113,7 @@ function MobileBottomNav() {
                 </Badge>
               )}
             </span>
-            <span className="line-clamp-2 w-full text-center">{label}</span>
+            <span className="line-clamp-2 w-full text-center brand-label-stroke">{label}</span>
           </Link>
         )
       })}
