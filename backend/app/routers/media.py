@@ -227,14 +227,16 @@ async def upload_media(
     # Check if this is a category image upload (only main categories, not subcategories)
     is_category_upload = False
     category_slug = None
-    if category and not product_id and not rental_id and not final_profile_id:
-        # This is a category image upload - only allow for main categories
+    if not product_id and not rental_id and not final_profile_id:
         from ..models import Category
-        cat = db.query(Category).filter(Category.slug == category).first()
-        # Only allow category image uploads for main categories (not subcategories)
+        cat = None
+        if category_id:
+            cat = db.get(Category, category_id)
+        elif category:
+            cat = db.query(Category).filter(Category.slug == category).first()
         if cat and not cat.parent_id:
             is_category_upload = True
-            category_slug = category
+            category_slug = cat.slug
     
     # Determine storage entity type for structured folders
     if is_category_upload:

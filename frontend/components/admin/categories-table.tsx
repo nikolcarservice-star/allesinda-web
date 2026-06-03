@@ -45,12 +45,70 @@ import { uploadMedia } from "@/lib/api/media"
 import { toast } from "sonner"
 import type { Category, CategoryInput, CategoryUpdate, CategoryType } from "@/lib/api/types"
 import Image from "next/image"
-import { getOptimizedImageUrl, shouldUseUnoptimized, cn } from "@/lib/utils"
+import { getSameOriginOptimizedImageUrl, shouldUseUnoptimized, toMediaRelativePath, cn } from "@/lib/utils"
 import { logger } from "@/lib/logger"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 const PLACEHOLDER_IMAGE = "/placeholder.jpg"
-// Use the same image loading pattern as products
+
+function categoryImageUrlsEquivalent(a?: string | null, b?: string | null): boolean {
+  const rawA = a?.trim()
+  const rawB = b?.trim()
+  if (!rawA && !rawB) return true
+  if (!rawA || !rawB) return false
+  const pathA = toMediaRelativePath(rawA).split("?")[0]
+  const pathB = toMediaRelativePath(rawB).split("?")[0]
+  return pathA.length > 0 && pathA === pathB
+}
+
+function buildCategoryImageSrc(
+  imageUrl: string | undefined | null,
+  cacheBust?: string | number
+): { src: string; unoptimized: boolean } {
+  const raw = imageUrl?.trim()
+  if (!raw) {
+    return { src: PLACEHOLDER_IMAGE, unoptimized: false }
+  }
+  let src = getSameOriginOptimizedImageUrl(raw, "thumbnail") || PLACEHOLDER_IMAGE
+  const useSameOrigin = src.startsWith("/") && !src.startsWith("//")
+  if (cacheBust != null && cacheBust !== "" && !src.startsWith("data:")) {
+    const sep = src.includes("?") ? "&" : "?"
+    src = `${src}${sep}t=${cacheBust}`
+  }
+  return {
+    src,
+    unoptimized: useSameOrigin || shouldUseUnoptimized(src),
+  }
+}
+
+function buildFormCategoryImageSrc(
+  imageUrl: string | undefined | null,
+  options: { cacheBustTimestamp?: number; uploadCounter?: number }
+): { src: string; unoptimized: boolean } {
+  const raw = imageUrl?.trim()
+  if (!raw) {
+    return { src: PLACEHOLDER_IMAGE, unoptimized: false }
+  }
+  let src = getSameOriginOptimizedImageUrl(raw, "thumbnail") || PLACEHOLDER_IMAGE
+  const useSameOrigin = src.startsWith("/") && !src.startsWith("//")
+  if (!src.startsWith("data:")) {
+    const params: string[] = []
+    if (options.cacheBustTimestamp && options.cacheBustTimestamp > 0) {
+      params.push(`t=${options.cacheBustTimestamp}`)
+    }
+    if (options.uploadCounter && options.uploadCounter > 0) {
+      params.push(`c=${options.uploadCounter}`)
+    }
+    if (params.length > 0) {
+      const sep = src.includes("?") ? "&" : "?"
+      src = `${src}${sep}${params.join("&")}`
+    }
+  }
+  return {
+    src,
+    unoptimized: useSameOrigin || shouldUseUnoptimized(src),
+  }
+}
 
 export function CategoriesTable() {
   const isMobile = useIsMobile()
@@ -477,7 +535,8 @@ export function CategoriesTable() {
       const uploadedMedia = await uploadMedia(imageFile, {
         media_type: "photo",
         title: formData.name || editingCategory?.name || "Category Image",
-        category: formData.slug || editingCategory?.slug || "category",
+        category_id: editingCategory?.id,
+        category: editingCategory?.slug || formData.slug || "category",
       })
       
       // Get the final image URL
@@ -576,15 +635,18 @@ export function CategoriesTable() {
       setSubmitting(true)
 
       if (editingCategory) {
+        const imageDeleted = formData.image_url === ""
+        const imageChanged =
+          !!formData.image_url &&
+          !categoryImageUrlsEquivalent(formData.image_url, editingCategory.image_url)
         const updateData: CategoryUpdate = {
           name: formData.name,
           slug: formData.slug,
           description: formData.description || undefined,
-          // image_url: empty string if deleted, otherwise include the value (or omit if not set)
-          ...(formData.image_url === "" 
-            ? { image_url: "" } 
-            : formData.image_url 
-            ? { image_url: formData.image_url } 
+          ...(imageDeleted
+            ? { image_url: "" }
+            : imageChanged
+            ? { image_url: formData.image_url }
             : {}),
           sort_order: formData.sort_order,
           is_active: formData.is_active,
@@ -964,13 +1026,10 @@ export function CategoriesTable() {
                                   )
                                 }
                                 
-                                let imageSrc = getOptimizedImageUrl(category.image_url, 'thumbnail') || PLACEHOLDER_IMAGE
-                                const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                                
-                                if (category.updated_at && imageSrc && !imageSrc.includes('?') && !imageSrc.startsWith('data:')) {
-                                  const timestamp = new Date(category.updated_at).getTime()
-                                  imageSrc = `${imageSrc}?t=${timestamp}`
-                                }
+                                const { src: imageSrc, unoptimized } = buildCategoryImageSrc(
+                                  category.image_url,
+                                  category.updated_at ? new Date(category.updated_at).getTime() : undefined
+                                )
                                 
                                 return (
                                   <div className="relative w-14 h-14 rounded-full overflow-hidden border bg-muted">
@@ -981,7 +1040,7 @@ export function CategoriesTable() {
                                       fill
                                       className="object-cover"
                                       sizes="56px"
-                                      unoptimized={shouldUseUnoptimized(imageSrc)}
+                                      unoptimized={unoptimized}
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement
                                         target.style.display = 'none'
@@ -1098,14 +1157,10 @@ export function CategoriesTable() {
                                   )
                                 }
                                 
-                                let imageSrc = getOptimizedImageUrl(category.image_url, 'thumbnail') || PLACEHOLDER_IMAGE
-                                const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                                
-                                // Add cache-busting query parameter based on updated_at timestamp
-                                if (category.updated_at && imageSrc && !imageSrc.includes('?') && !imageSrc.startsWith('data:')) {
-                                  const timestamp = new Date(category.updated_at).getTime()
-                                  imageSrc = `${imageSrc}?t=${timestamp}`
-                                }
+                                const { src: imageSrc, unoptimized } = buildCategoryImageSrc(
+                                  category.image_url,
+                                  category.updated_at ? new Date(category.updated_at).getTime() : undefined
+                                )
                                 
                                 return (
                                   <div className="relative w-10 h-10 rounded overflow-hidden border bg-muted">
@@ -1116,13 +1171,12 @@ export function CategoriesTable() {
                                       fill
                                       className="object-cover"
                                       sizes="40px"
-                                      unoptimized={shouldUseUnoptimized(imageSrc)}
+                                      unoptimized={unoptimized}
                                       onError={(e) => {
                                         // Log error for debugging
                                         console.error(`Failed to load image for category "${category.name}":`, {
                                           imageSrc,
                                           originalUrl: category.image_url,
-                                          isLocalPath
                                         })
                                         // If image fails to load, show placeholder icon
                                         const target = e.target as HTMLImageElement
@@ -1727,23 +1781,14 @@ export function CategoriesTable() {
                       <>
                         <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded border overflow-hidden bg-muted">
                           {(() => {
-                            let imageSrc = getOptimizedImageUrl(formData.image_url, 'thumbnail') || PLACEHOLDER_IMAGE
-                            const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                            
-                            // Add cache-busting query parameter
-                            // Use imageUploadTimestamp if we just uploaded, otherwise use category's updated_at
                             let cacheBustTimestamp = imageUploadTimestamp
                             if (cacheBustTimestamp === 0 && editingCategory?.updated_at) {
                               cacheBustTimestamp = new Date(editingCategory.updated_at).getTime()
                             }
-                            
-                            // Always add cache-busting when we have a timestamp, and include upload counter for extra uniqueness
-                            if (cacheBustTimestamp > 0 && imageSrc && !imageSrc.includes('?') && !imageSrc.startsWith('data:')) {
-                              imageSrc = `${imageSrc}?t=${cacheBustTimestamp}&c=${imageUploadCounter}`
-                            } else if (imageUploadCounter > 0 && imageSrc && !imageSrc.includes('?') && !imageSrc.startsWith('data:')) {
-                              // Fallback: use counter even if timestamp is 0
-                              imageSrc = `${imageSrc}?c=${imageUploadCounter}`
-                            }
+                            const { src: imageSrc, unoptimized } = buildFormCategoryImageSrc(
+                              formData.image_url,
+                              { cacheBustTimestamp, uploadCounter: imageUploadCounter }
+                            )
                             
                             return (
                               <Image
@@ -1753,8 +1798,8 @@ export function CategoriesTable() {
                                 fill
                                 className="object-cover"
                                 sizes="128px"
-                                unoptimized={isLocalPath}
-                                onError={(e) => {
+                                unoptimized={unoptimized}
+                                onError={() => {
                                   console.error('Failed to load image:', imageSrc, formData.image_url)
                                 }}
                               />
@@ -2044,19 +2089,14 @@ export function CategoriesTable() {
                           <>
                             <div className="relative w-24 h-24 rounded border overflow-hidden bg-muted">
                               {(() => {
-                                let imageSrc = getOptimizedImageUrl(formData.image_url, 'thumbnail') || PLACEHOLDER_IMAGE
-                                const isLocalPath = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
-                                
                                 let cacheBustTimestamp = imageUploadTimestamp
                                 if (cacheBustTimestamp === 0 && editingCategory?.updated_at) {
                                   cacheBustTimestamp = new Date(editingCategory.updated_at).getTime()
                                 }
-                                
-                                if (cacheBustTimestamp > 0 && imageSrc && !imageSrc.includes('?') && !imageSrc.startsWith('data:')) {
-                                  imageSrc = `${imageSrc}?t=${cacheBustTimestamp}&c=${imageUploadCounter}`
-                                } else if (imageUploadCounter > 0 && imageSrc && !imageSrc.includes('?') && !imageSrc.startsWith('data:')) {
-                                  imageSrc = `${imageSrc}?c=${imageUploadCounter}`
-                                }
+                                const { src: imageSrc, unoptimized } = buildFormCategoryImageSrc(
+                                  formData.image_url,
+                                  { cacheBustTimestamp, uploadCounter: imageUploadCounter }
+                                )
                                 
                                 return (
                                   <Image
@@ -2066,8 +2106,8 @@ export function CategoriesTable() {
                                     fill
                                     className="object-cover"
                                     sizes="96px"
-                                    unoptimized={isLocalPath}
-                                    onError={(e) => {
+                                    unoptimized={unoptimized}
+                                    onError={() => {
                                       console.error('Failed to load image:', imageSrc, formData.image_url)
                                     }}
                                   />

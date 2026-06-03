@@ -174,6 +174,8 @@ export interface ImageOptimizationOptions {
   height?: number;
   quality?: number;
   preset?: ImageOptimizationPreset;
+  /** Keep /media/ on the app origin (rewrite) instead of absolute API URL — fixes mobile/LAN */
+  sameOrigin?: boolean;
 }
 
 /**
@@ -221,8 +223,8 @@ export function optimizeImageUrl(
     return normalized;
   }
 
-  // Always add API base URL for /media/files so images load from API on all devices
-  if (process.env.NEXT_PUBLIC_API_URL) {
+  // Use same-origin /media/ rewrite on mobile/LAN; absolute API URL on desktop when requested
+  if (!options.sameOrigin && process.env.NEXT_PUBLIC_API_URL) {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
       const path = normalized.startsWith('/') ? normalized : `/${normalized}`;
@@ -291,6 +293,22 @@ export function getOptimizedImageUrl(
   url: string | undefined | null,
   preset: ImageOptimizationPreset = 'card'
 ): string {
+  return optimizeImageUrl(url, { preset });
+}
+
+/**
+ * Optimized backend media URL served via same-origin /media/ rewrite.
+ * Avoids cross-origin/CORS issues on mobile and when opening the app by LAN IP.
+ */
+export function getSameOriginOptimizedImageUrl(
+  url: string | undefined | null,
+  preset: ImageOptimizationPreset = 'card'
+): string {
+  if (!url) return '';
+  const relative = toMediaRelativePath(url);
+  if (relative.startsWith('/media/')) {
+    return optimizeImageUrl(relative, { preset, sameOrigin: true });
+  }
   return optimizeImageUrl(url, { preset });
 }
 
