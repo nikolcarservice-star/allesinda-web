@@ -15,16 +15,25 @@ const HOP_BY_HOP = new Set([
   "host",
 ])
 
-function getBackendBaseUrl(): string {
-  const url = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
-  if (!url?.trim()) {
-    throw new Error("API_URL or NEXT_PUBLIC_API_URL is not configured")
+function getBackendBaseUrlCandidates(): string[] {
+  const seen = new Set<string>()
+  const candidates: string[] = []
+
+  const add = (value?: string | null) => {
+    const trimmed = value?.trim().replace(/\/$/, "")
+    if (!trimmed || seen.has(trimmed)) return
+    seen.add(trimmed)
+    candidates.push(trimmed)
   }
-  return url.trim().replace(/\/$/, "")
+
+  // Prefer public URL — survives wrong internal docker hostnames in Coolify.
+  add(process.env.NEXT_PUBLIC_API_URL)
+  add(process.env.API_URL)
+
+  return candidates
 }
 
-function buildTargetUrl(pathSegments: string[], search: string): string {
-  const base = getBackendBaseUrl()
+function buildTargetUrl(base: string, pathSegments: string[], search: string): string {
   const path = pathSegments.map(encodeURIComponent).join("/")
   return `${base}/${path}${search}`
 }
@@ -51,16 +60,11 @@ async function proxyRequest(
   request: NextRequest,
   pathSegments: string[]
 ): Promise<NextResponse> {
-  let targetUrl: string
-  try {
-    targetUrl = buildTargetUrl(pathSegments, request.nextUrl.search)
-  } catch (error) {
+  const candidates = getBackendBaseUrlCandidates()
+  if (candidates.length === 0) {
     return NextResponse.json(
       {
-        detail:
-          error instanceof Error
-            ? error.message
-            : "API proxy is not configured",
+        detail: "API_URL or NEXT_PUBLIC_API_URL is not configured",
       },
       { status: 503 }
     )
@@ -68,32 +72,38 @@ async function proxyRequest(
 
   const method = request.method.toUpperCase()
   const hasBody = !["GET", "HEAD"].includes(method)
-
-  try {
-    const upstream = await upstreamFetch(targetUrl, {
-      method,
-      headers: forwardRequestHeaders(request),
-      body: hasBody ? await request.arrayBuffer() : undefined,
-      redirect: "follow",
-      cache: "no-store",
-    })
-
-    return new NextResponse(upstream.body, {
-      status: upstream.status,
-      headers: forwardResponseHeaders(upstream),
-    })
-  } catch (error) {
-    console.error("[api-proxy] upstream failed:", targetUrl, error)
-    return NextResponse.json(
-      {
-        detail: "Unable to reach backend API from frontend proxy",
-        target: targetUrl.replace(/\/\/[^@]+@/, "//***@"),
-        hint:
-          "Set API_URL to Coolify Backend internal URL (eye icon on Backend page), or API_URL=https://api.allesinda.de with API_TLS_INSECURE=true until SSL is valid.",
-      },
-      { status: 502 }
-    )
+  const init: RequestInit = {
+    method,
+    headers: forwardRequestHeaders(request),
+    body: hasBody ? await request.arrayBuffer() : undefined,
+    redirect: "follow",
+    cache: "no-store",
   }
+
+  const search = request.nextUrl.search
+  let lastTarget = ""
+
+  for (const base of candidates) {
+    lastTarget = buildTargetUrl(base, pathSegments, search)
+    try {
+      const upstream = await upstreamFetch(lastTarget, init)
+      return new NextResponse(upstream.body, {
+        status: upstream.status,
+        headers: forwardResponseHeaders(upstream),
+      })
+    } catch (error) {
+      console.error("[api-proxy] upstream failed:", lastTarget, error)
+    }
+  }
+
+  return NextResponse.json(
+    {
+      detail: "Unable to reach backend API from frontend proxy",
+      target: lastTarget.replace(/\/\/[^@]+@/, "//***@"),
+      tried: candidates,
+    },
+    { status: 502 }
+  )
 }
 
 async function upstreamFetch(
@@ -107,9 +117,18 @@ async function upstreamFetch(
 }
 
 function shouldUseInsecureTls(targetUrl: string): boolean {
-  return (
-    process.env.API_TLS_INSECURE === "true" &&
-    new URL(targetUrl).protocol === "https:"
+  if (new URL(targetUrl).protocol !== "https:") {
+    return false
+  }
+  if (process.env.API_TLS_INSECURE === "true") {
+    return true
+  }
+  // Coolify may serve a self-signed cert on api.* until Let's Encrypt is ready.
+  const publicUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "")
+  return Boolean(
+    process.env.NODE_ENV === "production" &&
+      publicUrl &&
+      targetUrl.startsWith(publicUrl)
   )
 }
 
