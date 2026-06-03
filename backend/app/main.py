@@ -101,6 +101,33 @@ elif isinstance(cors_setting, str):
 else:
     cors_origins = []
 
+# In production, always allow the configured frontend origin (and www variant)
+if settings.IS_PRODUCTION and not allow_all_origins and settings.FRONTEND_URL:
+    from urllib.parse import urlparse
+
+    def _origin_variants(url: str) -> list[str]:
+        try:
+            parsed = urlparse(url.strip())
+            if not parsed.scheme or not parsed.hostname:
+                return []
+            host = parsed.hostname
+            port_suffix = f":{parsed.port}" if parsed.port else ""
+            origins = [
+                f"{parsed.scheme}://{host}{port_suffix}",
+            ]
+            if host.startswith("www."):
+                bare = host[4:]
+                origins.append(f"{parsed.scheme}://{bare}{port_suffix}")
+            elif "." in host and not host.startswith("www."):
+                origins.append(f"{parsed.scheme}://www.{host}{port_suffix}")
+            return origins
+        except Exception:
+            return []
+
+    for origin in _origin_variants(settings.FRONTEND_URL):
+        if origin not in cors_origins:
+            cors_origins.append(origin)
+
 # Ensure localhost:3000 is always included in development (unless allow_all_origins is True)
 if not settings.IS_PRODUCTION and not allow_all_origins:
     dev_origins = [

@@ -11,8 +11,8 @@ import { logger } from '@/lib/logger';
 export function getApiBaseUrl(): string {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  // Browser: same-origin proxy so phones only need port 3000 (not 8000).
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  // Browser: same-origin proxy (dev + production) — avoids CORS and cross-domain redirect issues.
+  if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || apiUrl)) {
     return '/api-proxy';
   }
 
