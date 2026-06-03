@@ -306,6 +306,13 @@
     color: #0a0a0a;
   }
 
+  /* Pinned to viewport (rendered via portal on body) */
+  .mobile-bottom-nav {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
   .base-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);

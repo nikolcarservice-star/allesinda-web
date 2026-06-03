@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Heart, Plus, MessageSquare, User } from "lucide-react"
@@ -77,7 +78,7 @@ function MobileBottomNav() {
   return (
     <nav
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 flex items-end justify-around border-t border-neutral-200 bg-white/95 px-1 backdrop-blur-md",
+        "mobile-bottom-nav fixed inset-x-0 bottom-0 z-[60] flex items-end justify-around border-t border-neutral-200 bg-white/95 px-1 backdrop-blur-md",
         "pb-[max(0.35rem,env(safe-area-inset-bottom,0px))] pt-2 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]",
         "lg:hidden",
       )}
@@ -155,6 +156,16 @@ function MobileBottomNav() {
 export function MobileAppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? ""
   const hideBottomChrome = pathname.startsWith("/messages")
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const bottomNav =
+    mounted && !hideBottomChrome
+      ? createPortal(<MobileBottomNav />, document.body)
+      : null
 
   return (
     <>
@@ -166,7 +177,7 @@ export function MobileAppChrome({ children }: { children: ReactNode }) {
         <MobileBackBar />
         {children}
       </div>
-      {!hideBottomChrome && <MobileBottomNav />}
+      {bottomNav}
     </>
   )
 }
