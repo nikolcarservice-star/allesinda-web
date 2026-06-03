@@ -8,8 +8,15 @@ import { logger } from '@/lib/logger';
 // Get API base URL from environment
 // In production, NEXT_PUBLIC_API_URL must be set
 // Export the API base URL getter for use in other files that need direct fetch calls
+function resolveConfiguredApiUrl(): string | undefined {
+  if (typeof window === 'undefined') {
+    return process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+  }
+  return process.env.NEXT_PUBLIC_API_URL;
+}
+
 export function getApiBaseUrl(): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = resolveConfiguredApiUrl();
 
   // Browser: same-origin proxy (dev + production) — avoids CORS and cross-domain redirect issues.
   if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || apiUrl)) {

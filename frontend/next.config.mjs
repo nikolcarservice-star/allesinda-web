@@ -128,9 +128,10 @@ const nextConfig = {
   },
   // Rewrite rules to proxy media requests to backend server
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    // API_URL: server-only target for /api-proxy (e.g. internal Docker URL or .com until .de DNS exists)
+    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
-      console.warn('NEXT_PUBLIC_API_URL is not set. Media rewrites will not work.');
+      console.warn('NEXT_PUBLIC_API_URL (or API_URL) is not set. Media rewrites will not work.');
       return [];
     }
     return [
