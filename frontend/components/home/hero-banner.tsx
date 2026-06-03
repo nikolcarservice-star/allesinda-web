@@ -166,34 +166,34 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
   // Убрано, чтобы страница всегда прокручивалась колёсиком даже над лентой.
 
   return (
-    <section id="hero-search" className="relative w-full overflow-x-hidden overflow-y-visible scroll-mt-16 sm:scroll-mt-[72px]">
-      {/* Banner: мобиле — только текст; с sm — фото и строка поиска */}
-      <div className="relative w-full sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] bg-gradient-to-b from-primary/[0.06] via-background to-background sm:bg-transparent">
-        <div className="absolute inset-0 z-0 overflow-hidden hidden sm:block">
+    <section id="hero-search" className="relative w-full overflow-y-visible scroll-mt-16 sm:scroll-mt-[72px]">
+      {/* Banner: мобиле — фото (contain) + текст; с sm — cover и строка поиска */}
+      <div className="relative min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] w-full">
+        <div className="absolute inset-0 z-0 overflow-hidden">
           <div className="absolute inset-0">
             <Image
               src="/hero-handwerker.png"
               alt=""
               fill
-              className="object-cover object-[72%_center] md:object-right brightness-[0.88]"
+              className="object-contain object-right sm:object-cover sm:object-[72%_center] md:object-right brightness-[0.88]"
               sizes="100vw"
               priority
             />
           </div>
           <div className="absolute inset-0 bg-black/15" aria-hidden />
           <div
-            className="absolute inset-0 bg-gradient-to-r from-white/90 from-25% via-white/40 via-45% to-transparent to-70%"
+            className="absolute inset-0 bg-gradient-to-r from-white/95 from-20% via-white/60 via-45% to-transparent to-72% sm:from-white/90 sm:via-white/40 sm:to-70%"
             aria-hidden
           />
         </div>
 
-        <div className="relative z-10 container mx-auto sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-7 sm:py-10 md:py-14 lg:py-20 px-sides sm:px-8 md:px-12 lg:px-16">
+        <div className="relative z-10 container mx-auto min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-3 sm:py-10 md:py-14 lg:py-20 px-sides sm:px-8 md:px-12 lg:px-16">
           <div className="max-w-2xl w-full min-w-0">
-            <div className="mx-auto max-w-[22rem] text-center sm:mx-0 sm:max-w-lg sm:text-left min-w-0">
-              <h1 className="text-lg font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl md:text-5xl">
+            <div className="w-full max-w-md sm:max-w-lg min-w-0 text-left">
+              <h1 className="text-base font-bold leading-snug tracking-tight text-neutral-900 text-balance sm:text-4xl md:text-5xl">
                 {HERO_HEADLINE}
               </h1>
-              <p className="mt-1.5 sm:mt-4 text-xs leading-relaxed text-neutral-700 sm:text-lg sm:max-w-md">
+              <p className="mt-1.5 sm:mt-4 text-xs leading-relaxed text-neutral-700 text-pretty sm:text-lg sm:max-w-md">
                 {HERO_SUBHEADLINE}
               </p>
             </div>

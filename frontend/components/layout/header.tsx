@@ -1640,98 +1640,11 @@ return (
           </SheetTrigger>
           <SheetContent side="left" className="w-[320px] sm:w-[360px] p-0">
             <div className="flex h-full flex-col bg-white">
-              <div className="flex items-center gap-3 border-b border-neutral-200 px-6 py-5">
-                <div className="relative h-9 w-[140px] -ml-1">
-                  <Image
-                    src="/logo_dark.webp"
-                    alt="Allesinda"
-                    fill
-                    sizes="140px"
-                    className="object-contain object-left"
-                  />
-                </div>
-              </div>
-
-              <div className="border-b border-neutral-200 px-6 py-4">
-                <SheetTitle className="text-lg font-bold text-neutral-900 tracking-tight">
-                  {mobileAriaTitle}
-                </SheetTitle>
-                <SheetDescription className="sr-only">{mobileAriaDescription}</SheetDescription>
-              </div>
+              <SheetTitle className="sr-only">{mobileAriaTitle}</SheetTitle>
+              <SheetDescription className="sr-only">{mobileAriaDescription}</SheetDescription>
 
               <div className="min-h-0 flex-1 overflow-hidden flex flex-col">
-                <div className="flex-1 overflow-y-auto px-6 py-3">
-                  {user && (
-                    <div className="mb-4 border-b border-neutral-200 pb-4">
-                      <div className="mb-3">
-                        <p className="text-sm font-semibold text-neutral-900 truncate">{user.name}</p>
-                        <p className="text-xs text-neutral-500 truncate">{user.email}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <SheetClose asChild>
-                          <Link href="/profile" className={mobileCategoryRowClass}>
-                            <span className="min-w-0 flex-1 truncate text-left">Profil</span>
-                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                          </Link>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Link href="/favorites" className={mobileCategoryRowClass}>
-                            <span className="min-w-0 flex-1 truncate text-left">Favoriten</span>
-                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                          </Link>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Link href="/notifications" className={mobileCategoryRowClass}>
-                            <span className="min-w-0 flex-1 truncate text-left">Benachrichtigungen</span>
-                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                          </Link>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Link href="/bookings" className={mobileCategoryRowClass}>
-                            <span className="min-w-0 flex-1 truncate text-left">Buchungen</span>
-                            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                          </Link>
-                        </SheetClose>
-
-                        {user.role === "master" && (
-                          <SheetClose asChild>
-                            <Link href="/dashboard/master" className={mobileCategoryRowClass}>
-                              <span className="min-w-0 flex-1 truncate text-left">Mein Dashboard</span>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                            </Link>
-                          </SheetClose>
-                        )}
-                        {user.role === "seller" && (
-                          <SheetClose asChild>
-                            <Link href="/dashboard/seller" className={mobileCategoryRowClass}>
-                              <span className="min-w-0 flex-1 truncate text-left">Mein Dashboard</span>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                            </Link>
-                          </SheetClose>
-                        )}
-                        {user.role === "admin" && (
-                          <SheetClose asChild>
-                            <Link href="/admin" className={mobileCategoryRowClass}>
-                              <span className="min-w-0 flex-1 truncate text-left">Admin-Panel</span>
-                              <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                            </Link>
-                          </SheetClose>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            logout()
-                            setIsMobileMenuOpen(false)
-                          }}
-                          className={cn(mobileCategoryRowClass, "w-full")}
-                        >
-                          <span className="min-w-0 flex-1 truncate text-left">Abmelden</span>
-                          <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                <div className="flex-1 overflow-y-auto px-6 py-4">
                   {categoriesLoading ? (
                     <div className="space-y-2" aria-busy="true" aria-label="Kategorien werden geladen">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -1931,8 +1844,8 @@ return (
           )}
         </div>
 
-        {/* Mobile: поиск и избранное */}
-        <div className="flex flex-1 justify-end items-center gap-1 sm:gap-2 lg:hidden">
+        {/* Mobile: поиск и избранное (shrink-0 — иконка поиска не выталкивается логотипом) */}
+        <div className="flex shrink-0 justify-end items-center gap-1 sm:gap-2 lg:hidden">
           <Button
             type="button"
             variant="ghost"
