@@ -4,8 +4,8 @@
   "description": "Handwerker und Reparaturdienste in ganz Deutschland finden",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#26ada6",
-  "theme_color": "#26ada6",
+  "background_color": "#3cdcd5",
+  "theme_color": "#3cdcd5",
   "orientation": "portrait-primary",
   "icons": [
     {"src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any"},

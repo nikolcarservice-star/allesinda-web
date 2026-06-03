@@ -98,7 +98,7 @@ function MobileBottomNav() {
             >
               <span
                 className={cn(
-                  "brand-icon-btn flex h-[52px] w-[52px] items-center justify-center rounded-full shadow-[0_4px_14px_rgba(38,173,166,0.45)]",
+                  "brand-icon-btn flex h-[52px] w-[52px] items-center justify-center rounded-full shadow-[0_4px_14px_rgba(60,220,213,0.45)]",
                   active && "ring-2 ring-primary/35 ring-offset-2 ring-offset-white",
                 )}
               >

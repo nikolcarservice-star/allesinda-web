@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" fill="#26ada6"/>
+  <rect width="512" height="512" fill="#3cdcd5"/>
   <rect x="28" y="28" width="456" height="456" fill="none" stroke="#0a0a0a" stroke-width="24"/>
   <path d="M112 268 Q256 148 400 268" stroke="#0a0a0a" stroke-width="28" stroke-linecap="round" fill="none"/>
   <text x="256" y="352" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="64" fill="#0a0a0a">Allesinda</text>
