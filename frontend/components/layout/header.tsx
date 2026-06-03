@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/sheet"
 import { useAuth } from "@/lib/context/auth-context"
 import { NotificationDropdown } from "@/components/layout/notification-dropdown"
+import { BrandLogo } from "@/components/layout/brand-logo"
 import { cn, formatPrice, getOptimizedImageUrl } from "@/lib/utils"
 import { ApiClientError, getCategoryTreeByType } from "@/lib/api"
 import { logger } from "@/lib/logger"
@@ -1633,10 +1634,10 @@ return (
               type="button"
               variant="ghost"
               size="icon"
-              className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
+              className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-primary hover:text-primary/90 hover:bg-primary/10 shrink-0"
               aria-label="Menü öffnen"
             >
-              <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Menu className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[320px] sm:w-[360px] p-0">
@@ -1686,17 +1687,8 @@ return (
           </SheetContent>
         </Sheet>
           {/* Desktop: лого с краю слева */}
-          <Link href="/" className="hidden lg:flex items-center shrink-0 -ml-1 min-w-0">
-            <div className="relative h-10 w-[140px]">
-              <Image
-                src="/logo_dark.webp"
-                alt="Allesinda Logo"
-                fill
-                className="object-contain object-left"
-                priority
-                sizes="140px"
-              />
-            </div>
+          <Link href="/" className="hidden lg:flex items-center shrink-0 -ml-1 min-w-0" aria-label="Allesinda Startseite">
+            <BrandLogo className="h-10 w-[140px] [mask-position:left] [-webkit-mask-position:left]" />
           </Link>
         </div>
 
@@ -1706,16 +1698,7 @@ return (
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center lg:hidden pointer-events-auto"
           aria-label="Allesinda Startseite"
         >
-          <div className="relative h-8 w-[100px] sm:h-9 sm:w-[120px]">
-            <Image
-              src="/logo_dark.webp"
-              alt="Allesinda Logo"
-              fill
-              className="object-contain object-center"
-              priority
-              sizes="(max-width: 640px) 120px"
-            />
-          </div>
+          <BrandLogo className="h-8 w-[100px] sm:h-9 sm:w-[120px]" />
         </Link>
 
         <div className="hidden lg:block flex-1 min-w-0" aria-hidden />

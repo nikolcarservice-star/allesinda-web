@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import Link from "next/link"
-import Image from "next/image"
+import { BrandLogo } from "@/components/layout/brand-logo"
 import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import { FavoriteButton } from "@/components/ui/favorite-button"
@@ -52,16 +52,7 @@ export function MasterDetailHeaderBar({ profileId, className }: MasterDetailHead
       </Button>
 
       <Link href="/" className="flex items-center justify-center" aria-label="Allesinda Startseite">
-        <div className="relative h-8 w-[100px] sm:h-9 sm:w-[120px]">
-          <Image
-            src="/logo_dark.webp"
-            alt="Allesinda Logo"
-            fill
-            className="object-contain object-center"
-            priority
-            sizes="120px"
-          />
-        </div>
+        <BrandLogo className="h-8 w-[100px] sm:h-9 sm:w-[120px]" />
       </Link>
 
       <div className="flex items-center justify-self-end gap-1">
