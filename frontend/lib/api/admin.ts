@@ -350,6 +350,23 @@ export async function moderateReviewReport(
   return apiPatch(`/admin/reviews/${reviewId}/report-status`, { status });
 }
 
+export async function getUserReports(params?: {
+  page?: number;
+  page_size?: number;
+  status?: string;
+}): Promise<PaginatedResponse<{
+  id: number;
+  reporter_name?: string | null;
+  reported_user_name?: string | null;
+  conversation_id?: number | null;
+  reason: string;
+  details?: string | null;
+  status: string;
+  created_at?: string | null;
+}>> {
+  return apiGet("/admin/user-reports", params);
+}
+
 /**
  * Get all services (admin only)
  */

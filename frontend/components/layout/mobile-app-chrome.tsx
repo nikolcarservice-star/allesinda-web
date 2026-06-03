@@ -5,6 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Heart, PlusCircle, MessageSquare, User } from "lucide-react"
 import { useAuth } from "@/lib/context/auth-context"
+import { useUnreadMessagesCount } from "@/hooks/use-unread-messages-count"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { MobileBackBar } from "@/components/layout/mobile-back-bar"
 
@@ -18,6 +20,7 @@ type NavItem = {
 function MobileBottomNav() {
   const pathname = usePathname() ?? ""
   const { user } = useAuth()
+  const { count: unreadMessages } = useUnreadMessagesCount(Boolean(user))
 
   const kontoHref = user ? "/profile" : "/login"
 
@@ -96,7 +99,17 @@ function MobileBottomNav() {
             )}
             aria-current={active ? "page" : undefined}
           >
-            <Icon className={cn("h-5 w-5 shrink-0", active ? "text-black" : "text-neutral-500")} aria-hidden />
+            <span className="relative inline-flex shrink-0">
+              <Icon className={cn("h-5 w-5", active ? "text-black" : "text-neutral-500")} aria-hidden />
+              {label === "Nachrichten" && unreadMessages > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1.5 -right-2 h-4 min-w-4 px-0.5 text-[9px] font-bold leading-none flex items-center justify-center"
+                >
+                  {unreadMessages > 9 ? "9+" : unreadMessages}
+                </Badge>
+              )}
+            </span>
             <span className="line-clamp-2 w-full text-center">{label}</span>
           </Link>
         )

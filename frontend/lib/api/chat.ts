@@ -157,3 +157,13 @@ export async function deleteConversation(conversationId: number): Promise<{ ok: 
   return apiDelete<{ ok: boolean }>(`/chat/conversations/${conversationId}`);
 }
 
+export async function reportConversation(
+  conversationId: number,
+  payload: { reason: string; details?: string }
+): Promise<{ ok: boolean; id: number }> {
+  return apiPost<{ ok: boolean; id: number }>(
+    `/chat/conversations/${conversationId}/report`,
+    payload
+  );
+}
+

@@ -439,6 +439,25 @@ class ReviewReportIn(BaseModel):
 class ReviewReportStatusIn(BaseModel):
     status: Literal["removed", "rejected"]
 
+class UserReportIn(BaseModel):
+    reason: Literal["Belästigung", "Betrug", "Spam", "Unangemessene Inhalte", "Sonstiges"]
+    details: Optional[str] = Field(None, max_length=2000)
+
+class UserReportOut(BaseModel):
+    id: int
+    reporter_id: int
+    reported_user_id: int
+    conversation_id: Optional[int] = None
+    reason: str
+    details: Optional[str] = None
+    status: str
+    created_at: datetime
+    reporter_name: Optional[str] = None
+    reported_user_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 class ReviewListOut(ReviewOut):
     buyer_name: Optional[str] = None
 

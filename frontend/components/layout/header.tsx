@@ -1846,8 +1846,9 @@ return (
           )}
         </div>
 
-        {/* Mobile: поиск и избранное */}
-        <div className="flex shrink-0 justify-end items-center gap-1 sm:gap-2 ml-auto z-[1] lg:hidden">
+        {/* Mobile: Benachrichtigungen + Suche */}
+        <div className="flex shrink-0 justify-end items-center gap-0.5 sm:gap-1 ml-auto z-[1] lg:hidden">
+          {user && <NotificationDropdown />}
           <Button
             type="button"
             variant="ghost"

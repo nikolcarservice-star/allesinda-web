@@ -21,7 +21,24 @@ import {
 import { Search, Send, Paperclip, MoreVertical, Phone, ArrowLeft, Loader2, MessageCircle, Check, CheckCheck } from "lucide-react"
 import { cn, getOptimizedImageUrl } from "@/lib/utils"
 import { toast } from "sonner"
-import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSocketUrl, createConversation, markConversationRead, uploadAttachment as uploadAttachmentAPI, blockConversation as blockConversationAPI, unblockConversation as unblockConversationAPI, deleteConversation as deleteConversationAPI } from "@/lib/api/chat"
+import { getConversations, getMessages, sendMessage as sendMessageAPI, getWebSocketUrl, createConversation, markConversationRead, uploadAttachment as uploadAttachmentAPI, blockConversation as blockConversationAPI, unblockConversation as unblockConversationAPI, deleteConversation as deleteConversationAPI, reportConversation } from "@/lib/api/chat"
+import { USER_REPORT_REASONS, type UserReportReason } from "@/lib/constants/user-report-reasons"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { getVapidPublicKey, registerPushSubscription } from "@/lib/api/push"
 import { getCurrentUser } from "@/lib/api/auth"
 import { ApiClientError } from "@/lib/api/client"
@@ -114,6 +131,10 @@ function MessagesPageContent() {
   const [initializingConversation, setInitializingConversation] = useState(false)
   const [attachmentUploading, setAttachmentUploading] = useState(false)
   const [videoCallLoading, setVideoCallLoading] = useState(false)
+  const [showReportDialog, setShowReportDialog] = useState(false)
+  const [reportReason, setReportReason] = useState<UserReportReason>(USER_REPORT_REASONS[0])
+  const [reportDetails, setReportDetails] = useState("")
+  const [reportSubmitting, setReportSubmitting] = useState(false)
   const [messagePagination, setMessagePagination] = useState<Record<string, { page: number; hasMore: boolean; total: number; totalPages: number }>>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -131,7 +152,22 @@ function MessagesPageContent() {
   useEffect(() => {
     showMobileChatRef.current = showMobileChat
     selectedConversationIdRef.current = selectedConversation?.id?.toString() ?? null
-  }, [showMobileChat, selectedConversation?.id])
+    if (typeof window !== "undefined") {
+      const viewingChat = Boolean(
+        selectedConversation &&
+          (showMobileChat || !isMobile)
+      )
+      ;(window as unknown as { __messagesChatOpen?: boolean }).__messagesChatOpen = viewingChat
+    }
+  }, [showMobileChat, selectedConversation, isMobile])
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined") {
+        ;(window as unknown as { __messagesChatOpen?: boolean }).__messagesChatOpen = false
+      }
+    }
+  }, [])
 
   const registerSeenMessages = useCallback((items: Message[]) => {
     items.forEach((msg) => {
@@ -1795,12 +1831,39 @@ function MessagesPageContent() {
     toast.info("Profilinformationen sind für diesen Benutzer noch nicht verfügbar")
   }
 
-  const handleMoreMenuAction = (action: "view-profile" | "block-user" | "delete-chat") => {
+  const handleSubmitReport = async () => {
+    if (!selectedConversation) return
+    setReportSubmitting(true)
+    try {
+      await reportConversation(Number(selectedConversation.id), {
+        reason: reportReason,
+        details: reportDetails.trim() || undefined,
+      })
+      toast.success("Meldung wurde an das Team gesendet")
+      setShowReportDialog(false)
+      setReportDetails("")
+    } catch (err: unknown) {
+      const msg =
+        err instanceof ApiClientError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Meldung konnte nicht gesendet werden"
+      toast.error(msg)
+    } finally {
+      setReportSubmitting(false)
+    }
+  }
+
+  const handleMoreMenuAction = (action: "view-profile" | "report-user" | "block-user" | "delete-chat") => {
     if (!selectedConversation) return
 
     switch (action) {
       case "view-profile":
         handleViewProfile()
+        break
+      case "report-user":
+        setShowReportDialog(true)
         break
       case "block-user":
         if (isBlockedByMe) {
@@ -2147,6 +2210,9 @@ function MessagesPageContent() {
                         <DropdownMenuItem onSelect={() => handleMoreMenuAction("view-profile")}>
                           Profil anzeigen
                         </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleMoreMenuAction("report-user")}>
+                          Benutzer melden
+                        </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handleMoreMenuAction("block-user")}>
                           {isBlockedByMe ? "Benutzer entsperren" : "Benutzer sperren"}
                         </DropdownMenuItem>
@@ -2406,6 +2472,53 @@ function MessagesPageContent() {
           </div>
         </div>
       </div>
+
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Benutzer melden</DialogTitle>
+            <DialogDescription>
+              Beschreiben Sie kurz das Problem. Unser Team prüft Ihre Meldung.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="report-reason">Grund</Label>
+              <Select value={reportReason} onValueChange={(v) => setReportReason(v as UserReportReason)}>
+                <SelectTrigger id="report-reason">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {USER_REPORT_REASONS.map((reason) => (
+                    <SelectItem key={reason} value={reason}>
+                      {reason}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="report-details">Details (optional)</Label>
+              <Textarea
+                id="report-details"
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+                placeholder="Weitere Informationen…"
+                rows={4}
+                maxLength={2000}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReportDialog(false)} disabled={reportSubmitting}>
+              Abbrechen
+            </Button>
+            <Button onClick={() => void handleSubmitReport()} disabled={reportSubmitting}>
+              {reportSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Meldung senden"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

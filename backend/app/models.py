@@ -349,6 +349,19 @@ class PushSubscription(Base):
     __table_args__ = (Index("ix_push_subscriptions_user_id", "user_id"),)
 
 
+class UserReport(Base):
+    """User complaint / report (e.g. from chat)."""
+    __tablename__ = "user_reports"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reporter_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    reported_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    conversation_id: Mapped[Optional[int]] = mapped_column(ForeignKey("conversations.id"), nullable=True, index=True)
+    reason: Mapped[str] = mapped_column(String(64), index=True)
+    details: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="in_review", index=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+
 class BlockedUser(Base):
     __tablename__ = "blocked_users"
     id: Mapped[int] = mapped_column(primary_key=True)

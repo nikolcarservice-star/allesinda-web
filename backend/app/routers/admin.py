@@ -19,6 +19,7 @@ from ..models import (
     Rental,
     Service,
     Category,
+    UserReport,
 )
 from ..security import require_role
 from ..helpers import paginate_query, create_paginated_response
@@ -1158,3 +1159,37 @@ def preview_rental(rental_id: int, db: Session = Depends(get_db)):
             for m in media
         ]
     }
+
+
+@router.get("/user-reports")
+def list_user_reports(
+    db: Session = Depends(get_db),
+    status: Optional[str] = Query(None, description="Filter: in_review, resolved, rejected"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+):
+    """List user complaints (chat reports) for moderation."""
+    query = db.query(UserReport).order_by(UserReport.created_at.desc())
+    if status:
+        query = query.filter(UserReport.status == status)
+    total = query.count()
+    items = query.offset((page - 1) * page_size).limit(page_size).all()
+    result = []
+    for report in items:
+        reporter = db.get(User, report.reporter_id)
+        reported = db.get(User, report.reported_user_id)
+        result.append(
+            {
+                "id": report.id,
+                "reporter_id": report.reporter_id,
+                "reporter_name": reporter.name if reporter else None,
+                "reported_user_id": report.reported_user_id,
+                "reported_user_name": reported.name if reported else None,
+                "conversation_id": report.conversation_id,
+                "reason": report.reason,
+                "details": report.details,
+                "status": report.status,
+                "created_at": report.created_at.isoformat() if report.created_at else None,
+            }
+        )
+    return create_paginated_response(result, total, page, page_size)

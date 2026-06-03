@@ -79,8 +79,8 @@ def create_message_notification(
         db=db,
         user_id=user_id,
         type="message",
-        title="New Message",
-        message=f"You have a new message from {sender_name}",
+        title="Neue Nachricht",
+        message=f"Neue Nachricht von {sender_name}",
         related_id=conversation_id
     )
     

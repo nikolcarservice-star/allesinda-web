@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, Package, Wrench, Shield, Image as ImageIcon, Calendar, Tag, Star, ShoppingCart, TrendingUp, MessageSquare, Briefcase, ChevronDown, CheckCircle2, XCircle, BarChart3 } from "lucide-react"
+import { Users, Package, Wrench, Shield, Image as ImageIcon, Calendar, Tag, Star, ShoppingCart, TrendingUp, MessageSquare, Briefcase, ChevronDown, CheckCircle2, XCircle, BarChart3, Flag } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Loader2 } from "lucide-react"
@@ -21,6 +21,7 @@ import { BookingsTable } from "@/components/admin/bookings-table"
 import { FeaturedManager } from "@/components/admin/featured-manager"
 import { UsersTable } from "@/components/admin/users-table"
 import { ReviewsTable } from "@/components/admin/reviews-table"
+import { UserReportsTable } from "@/components/admin/user-reports-table"
 
 export default function AdminPage() {
   const router = useRouter()
@@ -51,6 +52,12 @@ export default function AdminPage() {
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const tab = new URLSearchParams(window.location.search).get("tab")
+    if (tab === "reports") setActiveTab("reports")
+  }, [])
 
   const loadOverview = useCallback(async () => {
     try {
@@ -215,6 +222,7 @@ export default function AdminPage() {
                     {activeTab === "featured" && <Star className="h-4 w-4" />}
                     {activeTab === "users" && <Users className="h-4 w-4" />}
                     {activeTab === "reviews" && <MessageSquare className="h-4 w-4" />}
+                    {activeTab === "reports" && <Flag className="h-4 w-4" />}
                     <span className="font-medium">
                       {activeTab === "overview" && "Übersicht"}
                       {activeTab === "categories" && "Kategorien"}
@@ -226,6 +234,7 @@ export default function AdminPage() {
                       {activeTab === "featured" && "Empfohlen"}
                       {activeTab === "users" && "Benutzer"}
                       {activeTab === "reviews" && "Bewertungen"}
+                      {activeTab === "reports" && "Meldungen"}
                     </span>
                   </div>
                 </SelectValue>
@@ -293,13 +302,19 @@ export default function AdminPage() {
                     <span>Bewertungen</span>
                   </div>
                 </SelectItem>
+                <SelectItem value="reports">
+                  <div className="flex items-center gap-2">
+                    <Flag className="h-4 w-4" />
+                    <span>Meldungen</span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Desktop: Modern Tabs */}
           <div className="hidden md:block mb-3 sm:mb-4 md:mb-6">
-            <TabsList variant="modern" className="w-full grid grid-cols-9 gap-1 overflow-x-auto">
+            <TabsList variant="modern" className="w-full grid grid-cols-10 gap-1 overflow-x-auto">
               <TabsTrigger value="overview" variant="modern" className="flex items-center justify-center gap-1.5">
                 <BarChart3 />
                 <span className="hidden xl:inline">Übersicht</span>
@@ -341,6 +356,10 @@ export default function AdminPage() {
               <TabsTrigger value="reviews" variant="modern" className="flex items-center justify-center gap-1.5">
                 <MessageSquare />
                 <span className="hidden xl:inline">Bewertungen</span>
+              </TabsTrigger>
+              <TabsTrigger value="reports" variant="modern" className="flex items-center justify-center gap-1.5">
+                <Flag />
+                <span className="hidden xl:inline">Meldungen</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -490,6 +509,9 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="reviews" className="mt-0">
             <ReviewsTable />
+          </TabsContent>
+          <TabsContent value="reports" className="mt-0">
+            <UserReportsTable />
           </TabsContent>
         </Tabs>
       </div>

@@ -130,7 +130,14 @@ export function NotificationDropdown() {
           router.push(`/orders/${notification.related_id}`)
           break
         case "message":
-          router.push("/messages")
+          router.push(
+            notification.related_id
+              ? `/messages?conversation_id=${notification.related_id}`
+              : "/messages"
+          )
+          break
+        case "user_report":
+          router.push("/admin?tab=reports")
           break
         case "review":
           router.push(`/orders/${notification.related_id}`)
@@ -149,6 +156,8 @@ export function NotificationDropdown() {
         return <MessageSquare className="h-4 w-4" />
       case "review":
         return <Star className="h-4 w-4" />
+      case "user_report":
+        return <Bell className="h-4 w-4 text-amber-600" />
       case "system":
         return <Settings className="h-4 w-4" />
       default:

@@ -15,11 +15,11 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 from typing import Dict, List, Optional
 from ..database import get_db, SessionLocal
-from ..models import Conversation, Message, MessageAttachment, User, Profile, Service, Notification, BlockedUser
+from ..models import Conversation, Message, MessageAttachment, User, Profile, Service, Notification, BlockedUser, UserReport, Role
 from ..security import get_current_user
-from ..schemas import MessageIn, MessageOut, MessageDetailOut, ConversationOut, ConversationDetailOut, PaginationParams
+from ..schemas import MessageIn, MessageOut, MessageDetailOut, ConversationOut, ConversationDetailOut, PaginationParams, UserReportIn
 from ..helpers import paginate_query, create_paginated_response
-from ..utils.notifications import create_message_notification
+from ..utils.notifications import create_message_notification, create_notification
 from datetime import datetime, timezone, timedelta
 import logging
 import os
@@ -725,6 +725,57 @@ def unblock_conversation_user(
     db.commit()
 
     return {"ok": True, "blocked": False, "blocked_by_user_id": None}
+
+
+@router.post("/conversations/{conversation_id}/report", response_model=dict, status_code=201)
+def report_conversation_user(
+    conversation_id: int,
+    data: UserReportIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Report the other participant in a conversation (complaint)."""
+    conversation = db.get(Conversation, conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    if conversation.buyer_id != user.id and conversation.seller_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    reported_user_id = _get_other_user_id(conversation, user.id)
+    details = (data.details or "").strip() or None
+
+    report = UserReport(
+        reporter_id=user.id,
+        reported_user_id=reported_user_id,
+        conversation_id=conversation_id,
+        reason=data.reason,
+        details=details,
+        status="in_review",
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+
+    reporter_name = (user.name or user.email or "Nutzer").strip()
+    reported_user = db.get(User, reported_user_id)
+    reported_name = (reported_user.name if reported_user else None) or f"User #{reported_user_id}"
+
+    admins = db.query(User).filter(User.role == Role.admin, User.is_active == True).all()
+    for admin in admins:
+        try:
+            create_notification(
+                db=db,
+                user_id=admin.id,
+                type="user_report",
+                title="Neue Meldung",
+                message=f"{reporter_name} hat {reported_name} gemeldet: {data.reason}",
+                related_id=report.id,
+            )
+        except Exception as e:
+            logger.warning("Failed to notify admin %s about user report: %s", admin.id, e)
+
+    return {"ok": True, "id": report.id}
 
 
 @router.delete("/conversations/{conversation_id}", response_model=dict)
