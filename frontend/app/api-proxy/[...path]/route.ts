@@ -69,7 +69,7 @@ async function proxyRequest(
   const hasBody = !["GET", "HEAD"].includes(method)
 
   try {
-    const upstream = await fetch(targetUrl, {
+    const upstream = await upstreamFetch(targetUrl, {
       method,
       headers: forwardRequestHeaders(request),
       body: hasBody ? await request.arrayBuffer() : undefined,
@@ -87,10 +87,29 @@ async function proxyRequest(
       {
         detail: "Unable to reach backend API from frontend proxy",
         target: targetUrl.replace(/\/\/[^@]+@/, "//***@"),
+        hint:
+          "Set API_URL to Coolify Backend internal URL (eye icon on Backend page), or API_URL=https://api.allesinda.de with API_TLS_INSECURE=true until SSL is valid.",
       },
       { status: 502 }
     )
   }
+}
+
+async function upstreamFetch(
+  targetUrl: string,
+  init: RequestInit
+): Promise<Response> {
+  if (process.env.API_TLS_INSECURE === "true") {
+    const { Agent, fetch: undiciFetch } = await import("undici")
+    const dispatcher = new Agent({
+      connect: { rejectUnauthorized: false },
+    })
+    return undiciFetch(targetUrl, {
+      ...init,
+      dispatcher,
+    }) as unknown as Response
+  }
+  return fetch(targetUrl, init)
 }
 
 type RouteContext = { params: Promise<{ path: string[] }> }
