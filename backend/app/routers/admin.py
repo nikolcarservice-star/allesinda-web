@@ -29,7 +29,14 @@ from ..schemas import (
     FeaturedSelectionOut,
     UserUpdate,
     ReviewReportStatusIn,
+    UserReportResolveIn,
 )
+from ..utils.user_reports import (
+    apply_report_action,
+    count_prior_resolved_reports,
+    notify_report_resolution,
+)
+from datetime import datetime, timezone
 from ..routers.orders import load_order_relations
 from .featured import _build_featured_item_from_type
 
@@ -1168,7 +1175,7 @@ def list_user_reports(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ):
-    """List user complaints (chat reports) for moderation."""
+    """List user complaints for moderation."""
     query = db.query(UserReport).order_by(UserReport.created_at.desc())
     if status:
         query = query.filter(UserReport.status == status)
@@ -1178,6 +1185,7 @@ def list_user_reports(
     for report in items:
         reporter = db.get(User, report.reporter_id)
         reported = db.get(User, report.reported_user_id)
+        prior = count_prior_resolved_reports(db, report.reported_user_id, report.id)
         result.append(
             {
                 "id": report.id,
@@ -1189,7 +1197,64 @@ def list_user_reports(
                 "reason": report.reason,
                 "details": report.details,
                 "status": report.status,
+                "violation_type": report.violation_type,
+                "action_taken": report.action_taken,
+                "admin_note": report.admin_note,
+                "resolved_at": report.resolved_at.isoformat() if report.resolved_at else None,
+                "prior_reports_count": prior,
                 "created_at": report.created_at.isoformat() if report.created_at else None,
             }
         )
     return create_paginated_response(result, total, page, page_size)
+
+
+@router.patch("/user-reports/{report_id}/resolve")
+def resolve_user_report(
+    report_id: int,
+    data: UserReportResolveIn,
+    admin: User = Depends(require_role(Role.admin)),
+    db: Session = Depends(get_db),
+):
+    """Resolve a complaint: classify violation, apply measure, notify parties."""
+    report = db.get(UserReport, report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    if report.status != "in_review":
+        raise HTTPException(status_code=400, detail="Report is already closed")
+
+    reported_user = db.get(User, report.reported_user_id)
+    reporter = db.get(User, report.reporter_id)
+    if not reported_user or not reporter:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if data.action != "rejected" and reported_user.role == Role.admin:
+        raise HTTPException(status_code=400, detail="Cannot sanction an admin account")
+
+    apply_report_action(db, reported_user, data.action)
+
+    report.violation_type = data.violation_type
+    report.action_taken = data.action
+    report.admin_note = (data.admin_note or "").strip() or None
+    report.resolved_at = datetime.now(timezone.utc)
+    report.resolved_by_id = admin.id
+    report.status = "rejected" if data.action == "rejected" else "resolved"
+
+    db.commit()
+    db.refresh(report)
+
+    notify_report_resolution(
+        db,
+        report,
+        reporter,
+        reported_user,
+        action=data.action,
+        violation_type=data.violation_type,
+    )
+
+    return {
+        "ok": True,
+        "id": report.id,
+        "status": report.status,
+        "violation_type": report.violation_type,
+        "action_taken": report.action_taken,
+    }

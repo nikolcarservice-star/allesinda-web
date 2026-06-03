@@ -15,11 +15,12 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 from typing import Dict, List, Optional
 from ..database import get_db, SessionLocal
-from ..models import Conversation, Message, MessageAttachment, User, Profile, Service, Notification, BlockedUser, UserReport, Role
+from ..models import Conversation, Message, MessageAttachment, User, Profile, Service, Notification, BlockedUser, UserReport
 from ..security import get_current_user
 from ..schemas import MessageIn, MessageOut, MessageDetailOut, ConversationOut, ConversationDetailOut, PaginationParams, UserReportIn
 from ..helpers import paginate_query, create_paginated_response
-from ..utils.notifications import create_message_notification, create_notification
+from ..utils.notifications import create_message_notification
+from ..utils.user_reports import notify_user_report
 from datetime import datetime, timezone, timedelta
 import logging
 import os
@@ -757,23 +758,14 @@ def report_conversation_user(
     db.commit()
     db.refresh(report)
 
-    reporter_name = (user.name or user.email or "Nutzer").strip()
     reported_user = db.get(User, reported_user_id)
-    reported_name = (reported_user.name if reported_user else None) or f"User #{reported_user_id}"
-
-    admins = db.query(User).filter(User.role == Role.admin, User.is_active == True).all()
-    for admin in admins:
-        try:
-            create_notification(
-                db=db,
-                user_id=admin.id,
-                type="user_report",
-                title="Neue Meldung",
-                message=f"{reporter_name} hat {reported_name} gemeldet: {data.reason}",
-                related_id=report.id,
-            )
-        except Exception as e:
-            logger.warning("Failed to notify admin %s about user report: %s", admin.id, e)
+    notify_user_report(
+        db,
+        report,
+        user,
+        reported_user,
+        source_label=f"Chat (Unterhaltung #{conversation_id})",
+    )
 
     return {"ok": True, "id": report.id}
 

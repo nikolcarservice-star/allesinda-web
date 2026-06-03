@@ -7,6 +7,11 @@ CREATE TABLE IF NOT EXISTS user_reports (
     reason VARCHAR(64) NOT NULL,
     details TEXT,
     status VARCHAR(32) NOT NULL DEFAULT 'in_review',
+    violation_type VARCHAR(32),
+    action_taken VARCHAR(32),
+    admin_note TEXT,
+    resolved_at TIMESTAMPTZ,
+    resolved_by_id INTEGER REFERENCES users(id),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

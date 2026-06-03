@@ -11,6 +11,7 @@ import { ShareProfileButton } from "@/components/detailed/share-profile-button"
 import { MasterFeaturedReview } from "@/components/detailed/master-featured-review"
 import { ReviewsSection } from "@/components/detailed/reviews-section"
 import { VideoPlayer } from "@/components/shared/video-player"
+import { ProfileReportButton } from "@/components/detailed/profile-report-button"
 
 type TabId = "profile" | "photo" | "video" | "reviews"
 
@@ -52,6 +53,7 @@ function getItemImageUrl(item: GalleryMediaItem): string {
 }
 
 export function MasterProfileMobileView({
+  profileId,
   title,
   professionLabel,
   rating,
@@ -144,6 +146,16 @@ export function MasterProfileMobileView({
         </div>
 
         <p className="text-sm font-medium text-neutral-700">{availabilityLabel}</p>
+
+        <div className="flex justify-center">
+          <ProfileReportButton
+            profileId={profileId}
+            masterName={title}
+            variant="ghost"
+            size="sm"
+            className="text-xs text-neutral-500 hover:text-neutral-800"
+          />
+        </div>
       </div>
 
       <div className="relative mx-auto w-[min(100%,280px)] px-sides">

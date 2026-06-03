@@ -89,6 +89,11 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
     if not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    from ..utils.user_suspension import is_user_suspended, suspension_message
+
+    if is_user_suspended(user):
+        raise HTTPException(status_code=403, detail=suspension_message(user))
+
     if not user.is_active:
         if get_deletion_requested_at(user):
             if finalize_expired_deletion(db, user):

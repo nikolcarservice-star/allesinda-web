@@ -19,6 +19,7 @@ import { ActionButton } from "@/components/detailed/action-button"
 import { ViewReviewsButton } from "./view-reviews-button"
 import { RecentItemsSection } from "@/components/detailed/recent-items-section"
 import { MasterProfileMobileView } from "@/components/detailed/master-profile-mobile-view"
+import { ProfileReportButton } from "@/components/detailed/profile-report-button"
 
 interface DetailedPageProps {
   params: Promise<{ type: string; id: string }>
@@ -857,6 +858,12 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
                 />
               )}
             </div>
+
+            {type === "master" && (
+              <div className="flex justify-end">
+                <ProfileReportButton profileId={id} masterName={detail.title} />
+              </div>
+            )}
 
             {/* About Section */}
             <div className="space-y-2">

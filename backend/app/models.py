@@ -21,7 +21,10 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255))
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.client, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    
+    suspended_until: Mapped[Optional[DateTime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True, deferred=True
+    )
+
     # Email verification
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     verification_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
@@ -359,6 +362,11 @@ class UserReport(Base):
     reason: Mapped[str] = mapped_column(String(64), index=True)
     details: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="in_review", index=True)
+    violation_type: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, index=True)
+    action_taken: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, index=True)
+    admin_note: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    resolved_at: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
 
 

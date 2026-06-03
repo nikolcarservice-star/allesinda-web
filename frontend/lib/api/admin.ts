@@ -350,21 +350,47 @@ export async function moderateReviewReport(
   return apiPatch(`/admin/reviews/${reviewId}/report-status`, { status });
 }
 
-export async function getUserReports(params?: {
-  page?: number;
-  page_size?: number;
-  status?: string;
-}): Promise<PaginatedResponse<{
+export type UserReportAdminRow = {
   id: number;
+  reporter_id?: number;
   reporter_name?: string | null;
+  reported_user_id?: number;
   reported_user_name?: string | null;
   conversation_id?: number | null;
   reason: string;
   details?: string | null;
   status: string;
+  violation_type?: string | null;
+  action_taken?: string | null;
+  admin_note?: string | null;
+  resolved_at?: string | null;
+  prior_reports_count?: number;
   created_at?: string | null;
-}>> {
+};
+
+export async function getUserReports(params?: {
+  page?: number;
+  page_size?: number;
+  status?: string;
+}): Promise<PaginatedResponse<UserReportAdminRow>> {
   return apiGet("/admin/user-reports", params);
+}
+
+export async function resolveUserReport(
+  reportId: number,
+  payload: {
+    violation_type: string;
+    action: string;
+    admin_note?: string;
+  }
+): Promise<{
+  ok: boolean;
+  id: number;
+  status: string;
+  violation_type?: string;
+  action_taken?: string;
+}> {
+  return apiPatch(`/admin/user-reports/${reportId}/resolve`, payload);
 }
 
 /**

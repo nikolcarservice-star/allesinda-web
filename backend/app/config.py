@@ -133,6 +133,12 @@ class Settings(BaseModel):
     # Frontend URL for email verification and password reset links
     FRONTEND_URL: str = Field(default=os.getenv("FRONTEND_URL", "http://localhost:3000"), description="Frontend URL for email links")
 
+    # Complaints / trust team inbox
+    TRUST_EMAIL: str = Field(
+        default=os.getenv("TRUST_EMAIL", "trust@allesinda.de"),
+        description="Email address for user complaints and trust reports",
+    )
+
     # Web Push (optional, for PWA push when app is closed)
     VAPID_PUBLIC_KEY: Optional[str] = Field(default=os.getenv("VAPID_PUBLIC_KEY"), description="VAPID public key for Web Push")
     VAPID_PRIVATE_KEY: Optional[str] = Field(default=os.getenv("VAPID_PRIVATE_KEY"), description="VAPID private key for Web Push")

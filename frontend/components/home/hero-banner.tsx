@@ -169,21 +169,21 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
   return (
     <section id="hero-search" className="relative w-full overflow-hidden scroll-mt-16 sm:scroll-mt-[72px]">
       {/* Hero: команда на фото — мобиле текст поверх, десктоп текст слева + поиск */}
-      <div className="relative w-full min-h-[min(58vh,28rem)] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh]">
+      <div className="relative w-full min-h-[72vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh]">
         <div className="absolute inset-0">
           <Image
             src={HERO_IMAGE}
             alt="Team aus geprüften Handwerkern und Dienstleistern"
             fill
-            className="object-cover object-[center_42%] sm:object-[72%_center] md:object-[78%_center] brightness-[0.92] sm:brightness-[0.9]"
+            className="object-cover object-[50%_28%] sm:object-[72%_center] md:object-[78%_center] brightness-[0.92] sm:brightness-[0.9]"
             sizes="100vw"
             priority
           />
         </div>
 
-        {/* Мобиле: затемнение снизу для читаемого текста */}
+        {/* Мобиле: лёгкое затемнение только внизу под заголовок */}
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 via-35% to-black/15 sm:hidden"
+          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 via-28% to-transparent sm:hidden"
           aria-hidden
         />
         {/* Десктоп: светлая подложка слева под тёмный текст */}
@@ -193,7 +193,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
         />
         <div className="absolute inset-0 hidden sm:block bg-black/10" aria-hidden />
 
-        <div className="relative z-10 container mx-auto flex min-h-[inherit] flex-col justify-end sm:justify-center px-sides pb-8 pt-24 sm:px-8 sm:py-14 md:px-12 lg:px-16 lg:py-20">
+        <div className="relative z-10 container mx-auto flex min-h-[inherit] flex-col justify-end sm:justify-center px-sides pb-5 pt-20 sm:px-8 sm:py-14 md:px-12 lg:px-16 lg:py-20">
           <div className="w-full max-w-2xl min-w-0">
             <p className="mb-2 inline-flex rounded-full bg-primary/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-black shadow-sm sm:mb-3 sm:bg-primary sm:text-xs">
               Geprüfte Profis · Direkt buchen
@@ -201,13 +201,13 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
             <h1 className="text-[1.35rem] font-bold leading-[1.2] tracking-tight text-white text-balance drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)] sm:text-4xl sm:text-neutral-900 sm:drop-shadow-none md:text-5xl md:leading-tight">
               {HERO_HEADLINE}
             </h1>
-            <p className="mt-2.5 max-w-md text-sm leading-relaxed text-white/95 text-pretty drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-lg sm:text-neutral-700 sm:drop-shadow-none">
+            <p className="mt-2 max-w-md text-sm leading-snug text-white/95 text-pretty drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-lg sm:leading-relaxed sm:text-neutral-700 sm:drop-shadow-none">
               {HERO_SUBHEADLINE}
             </p>
 
             <form
               onSubmit={handleSubmit}
-              className="mt-5 w-full max-w-2xl sm:mt-6 shadow-[0_8px_32px_rgba(0,0,0,0.28)] sm:shadow-lg sm:shadow-black/5"
+              className="mt-5 hidden w-full max-w-2xl sm:mt-6 sm:block shadow-lg shadow-black/5"
             >
               <div className="flex w-full min-w-0 flex-col gap-2 overflow-hidden rounded-xl border border-white/20 bg-white/95 p-2 backdrop-blur-md sm:flex-row sm:gap-0 sm:rounded-md sm:border-border/60 sm:bg-background sm:p-0 sm:backdrop-blur-none">
                 <div className="flex shrink-0 items-center sm:border-r sm:border-border/60 sm:bg-muted/30">

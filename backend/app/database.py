@@ -280,6 +280,18 @@ def repair_profiles_schema(db: Session | None = None) -> None:
 
     if "users" in table_names:
         _try_ensure_column("users", "deletion_requested_at", "TIMESTAMPTZ")
+        _try_ensure_column("users", "suspended_until", "TIMESTAMPTZ")
+
+    if "user_reports" in table_names:
+        report_columns = {
+            "violation_type": "VARCHAR(32)",
+            "action_taken": "VARCHAR(32)",
+            "admin_note": "TEXT",
+            "resolved_at": "TIMESTAMPTZ",
+            "resolved_by_id": "INTEGER",
+        }
+        for column_name, column_type in report_columns.items():
+            _try_ensure_column("user_reports", column_name, column_type)
 
     profile_columns = {
         "keywords": "TEXT",

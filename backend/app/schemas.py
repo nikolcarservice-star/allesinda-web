@@ -451,12 +451,23 @@ class UserReportOut(BaseModel):
     reason: str
     details: Optional[str] = None
     status: str
+    violation_type: Optional[str] = None
+    action_taken: Optional[str] = None
+    admin_note: Optional[str] = None
+    resolved_at: Optional[datetime] = None
+    prior_reports_count: Optional[int] = None
     created_at: datetime
     reporter_name: Optional[str] = None
     reported_user_name: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class UserReportResolveIn(BaseModel):
+    violation_type: Literal["first_minor", "repeated", "fraud", "threats"]
+    action: Literal["warning", "block_7d", "block_permanent", "block_immediate", "rejected"]
+    admin_note: Optional[str] = Field(None, max_length=2000)
 
 class ReviewListOut(ReviewOut):
     buyer_name: Optional[str] = None

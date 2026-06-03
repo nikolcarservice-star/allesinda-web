@@ -9,6 +9,7 @@ from .config import settings
 from .models import User, Role
 from .database import get_db
 from .utils.user_deletion import get_deletion_requested_at
+from .utils.user_suspension import is_user_suspended, suspension_message
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -47,6 +48,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=403, detail="Account pending deletion")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is inactive")
+    if is_user_suspended(user):
+        raise HTTPException(status_code=403, detail=suspension_message(user))
     return user
 
 def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme_optional), db: Session = Depends(get_db)) -> Optional[User]:
@@ -62,7 +65,7 @@ def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme_optio
         return None
 
     user = db.get(User, int(user_id))
-    if not user or not user.is_active:
+    if not user or not user.is_active or is_user_suspended(user):
         return None
     return user
 
@@ -103,5 +106,7 @@ async def get_current_active_user_ws(token: str | None, db: Session) -> User:
         raise credentials_exception
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is inactive")
-    
+    if is_user_suspended(user):
+        raise HTTPException(status_code=403, detail=suspension_message(user))
+
     return user

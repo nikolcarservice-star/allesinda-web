@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Any
 import os
 import re
 from ..database import get_db
-from ..models import User, Role, Profile, Service, AvailabilitySlot, Promotion, City
+from ..models import User, Role, Profile, Service, AvailabilitySlot, Promotion, City, UserReport
 from ..schemas import (
     ProfileIn, ProfileOut, ProfileDetailedOut,
     ServiceIn, ServiceOut,
@@ -13,7 +13,9 @@ from ..schemas import (
     PromotionIn, PromotionOut,
     PaginationParams, PaginatedResponse, SearchParams,
     MasterCabinetIn, MasterCabinetOut, UserOut,
+    UserReportIn,
 )
+from ..utils.user_reports import notify_user_report
 from ..security import require_role, get_current_user
 from ..helpers import paginate_query, create_paginated_response, calculate_distance
 from ..config import settings
@@ -569,3 +571,55 @@ def delete_promotion(
     db.delete(promotion)
     db.commit()
     return {"ok": True}
+
+
+@router.post("/profiles/{profile_id}/report", response_model=dict, status_code=201)
+def report_master_profile(
+    profile_id: int,
+    data: UserReportIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Report a master from their public profile (complaint)."""
+    profile = db.get(Profile, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    reported_user_id = profile.user_id
+    if reported_user_id == user.id:
+        raise HTTPException(status_code=400, detail="You cannot report your own profile")
+
+    reported_user = db.get(User, reported_user_id)
+    if not reported_user or not reported_user.is_active:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    details_parts: list[str] = []
+    if data.details:
+        details_parts.append(data.details.strip())
+    profile_link = f"Profil: /detailed/master/{profile_id}"
+    if profile_link not in " ".join(details_parts):
+        details_parts.append(profile_link)
+    details = "\n".join(details_parts) if details_parts else profile_link
+
+    report = UserReport(
+        reporter_id=user.id,
+        reported_user_id=reported_user_id,
+        conversation_id=None,
+        reason=data.reason,
+        details=details,
+        status="in_review",
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+
+    notify_user_report(
+        db,
+        report,
+        user,
+        reported_user,
+        source_label=f"Meisterprofil #{profile_id}",
+        profile_id=profile_id,
+    )
+
+    return {"ok": True, "id": report.id}

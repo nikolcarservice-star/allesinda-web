@@ -176,3 +176,131 @@ Open messages: {messages_url}
 """
     return send_email(email, subject, html_body, text_body)
 
+
+def send_user_report_email(
+    to_email: str,
+    reporter_name: str,
+    reported_name: str,
+    reason: str,
+    details: str | None,
+    source_label: str,
+    profile_url: str | None,
+    admin_url: str,
+    report_id: int,
+) -> bool:
+    """Notify the trust team about a new user complaint."""
+    profile_block = (
+        f'<p><strong>Profil:</strong> <a href="{profile_url}">{profile_url}</a></p>'
+        if profile_url
+        else ""
+    )
+    details_block = f"<p><strong>Details:</strong><br>{details}</p>" if details else ""
+    subject = f"[Allesinda] Neue Meldung #{report_id}: {reason}"
+    html_body = f"""
+    <html>
+      <body>
+        <h2>Neue Meldung</h2>
+        <p><strong>Quelle:</strong> {source_label}</p>
+        <p><strong>Melder:</strong> {reporter_name}</p>
+        <p><strong>Gemeldeter Nutzer:</strong> {reported_name}</p>
+        <p><strong>Grund:</strong> {reason}</p>
+        {details_block}
+        {profile_block}
+        <p>
+          <a href="{admin_url}" style="background-color:#059669;color:white;padding:10px 16px;text-decoration:none;border-radius:6px;">
+            Im Admin-Panel öffnen
+          </a>
+        </p>
+        <p>Bitte innerhalb von 24 Stunden prüfen.</p>
+      </body>
+    </html>
+    """
+    text_body = f"""Neue Meldung #{report_id}
+
+Quelle: {source_label}
+Melder: {reporter_name}
+Gemeldeter Nutzer: {reported_name}
+Grund: {reason}
+"""
+    if details:
+        text_body += f"\nDetails:\n{details}\n"
+    if profile_url:
+        text_body += f"\nProfil: {profile_url}\n"
+    text_body += f"\nAdmin: {admin_url}\n"
+    return send_email(to_email, subject, html_body, text_body)
+
+
+def send_report_resolved_reporter_email(
+    to_email: str,
+    recipient_name: str,
+    reported_name: str,
+    report_id: int,
+) -> bool:
+    """Notify the client that their complaint was reviewed."""
+    subject = f"Ihre Meldung #{report_id} wurde bearbeitet"
+    html_body = f"""
+    <html>
+      <body>
+        <h2>Meldung bearbeitet</h2>
+        <p>Hallo {recipient_name},</p>
+        <p>
+          Vielen Dank für Ihre Meldung zu <strong>{reported_name}</strong>.
+          Unser Trust-Team hat den Fall geprüft und die Meldung als bearbeitet markiert.
+        </p>
+        <p>Bei weiteren Fragen erreichen Sie uns unter
+          <a href="mailto:{settings.TRUST_EMAIL}">{settings.TRUST_EMAIL}</a>.
+        </p>
+      </body>
+    </html>
+    """
+    text_body = f"""Meldung bearbeitet
+
+Hallo {recipient_name},
+
+Ihre Meldung zu {reported_name} wurde von unserem Trust-Team bearbeitet.
+
+Kontakt: {settings.TRUST_EMAIL}
+"""
+    return send_email(to_email, subject, html_body, text_body)
+
+
+def send_report_resolved_reported_email(
+    to_email: str,
+    recipient_name: str,
+    action_label: str,
+    violation_label: str,
+    admin_note: str | None,
+) -> bool:
+    """Notify the master about moderation outcome (Step 4) and appeal window (Step 5)."""
+    note_block = f"<p><strong>Hinweis vom Team:</strong> {admin_note}</p>" if admin_note else ""
+    subject = "Entscheidung zu Ihrer Meldung auf Allesinda"
+    html_body = f"""
+    <html>
+      <body>
+        <h2>Entscheidung zu Ihrer Meldung</h2>
+        <p>Hallo {recipient_name},</p>
+        <p>Es liegt eine Meldung zu Ihrem Profil vor. Nach Prüfung haben wir folgende Entscheidung getroffen:</p>
+        <ul>
+          <li><strong>Verstoß:</strong> {violation_label}</li>
+          <li><strong>Maßnahme:</strong> {action_label}</li>
+        </ul>
+        {note_block}
+        <p>
+          Sie können diese Entscheidung innerhalb von <strong>7 Tagen</strong> schriftlich an
+          <a href="mailto:{settings.TRUST_EMAIL}">{settings.TRUST_EMAIL}</a> anfechten (Einspruch).
+        </p>
+      </body>
+    </html>
+    """
+    text_body = f"""Entscheidung zu Ihrer Meldung
+
+Hallo {recipient_name},
+
+Verstoß: {violation_label}
+Maßnahme: {action_label}
+"""
+    if admin_note:
+        text_body += f"\nHinweis: {admin_note}\n"
+    text_body += f"\nEinspruch innerhalb von 7 Tagen an {settings.TRUST_EMAIL}\n"
+    return send_email(to_email, subject, html_body, text_body)
+

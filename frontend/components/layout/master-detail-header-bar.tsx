@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import { FavoriteButton } from "@/components/ui/favorite-button"
 import { Button } from "@/components/ui/button"
+import { ProfileReportButton } from "@/components/detailed/profile-report-button"
 import { cn } from "@/lib/utils"
 
 interface MasterDetailHeaderBarProps {
@@ -63,7 +64,14 @@ export function MasterDetailHeaderBar({ profileId, className }: MasterDetailHead
         </div>
       </Link>
 
-      <div className="flex justify-self-end">
+      <div className="flex items-center justify-self-end gap-1">
+        <ProfileReportButton
+          profileId={profileId}
+          variant="ghost"
+          size="sm"
+          showLabel={false}
+          className="h-9 w-9 px-0"
+        />
         <FavoriteButton
           favoriteType="profile"
           favoriteId={profileId}
