@@ -169,15 +169,18 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
     <section id="hero-search" className="relative w-full overflow-x-hidden overflow-y-visible scroll-mt-16 sm:scroll-mt-[72px]">
       {/* Banner: на мобиле компактно — меньше высота и текст, чтобы карточки были видны */}
       <div className="relative min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] w-full">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/hero-handwerker.png"
-            alt=""
-            fill
-            className="object-cover object-right brightness-[0.88]"
-            sizes="100vw"
-            priority
-          />
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {/* Панорама: на мобиле меньше crop/zoom (contain), на десктопе — cover */}
+          <div className="absolute inset-0 sm:inset-0">
+            <Image
+              src="/hero-handwerker.png"
+              alt=""
+              fill
+              className="object-contain object-right sm:object-cover sm:object-[72%_center] md:object-right brightness-[0.88]"
+              sizes="100vw"
+              priority
+            />
+          </div>
           <div className="absolute inset-0 bg-black/15" aria-hidden />
           <div
             className="absolute inset-0 bg-gradient-to-r from-white/95 from-25% via-white/55 via-45% to-transparent to-70% sm:from-white/90 sm:via-white/40"
@@ -188,10 +191,10 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
         <div className="relative z-10 container mx-auto h-full min-h-[28vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-3 sm:py-10 md:py-14 lg:py-20 px-sides sm:px-8 md:px-12 lg:px-16">
           <div className="max-w-2xl w-full min-w-0">
             <div className="max-w-md sm:max-w-lg min-w-0">
-              <h1 className="text-lg font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl md:text-5xl">
+              <h1 className="text-lg font-bold leading-tight tracking-tight text-neutral-900 sm:text-4xl md:text-5xl sm:text-white">
                 {HERO_HEADLINE}
               </h1>
-              <p className="mt-1.5 sm:mt-4 text-xs text-neutral-700 sm:text-lg max-w-md">
+              <p className="mt-1.5 sm:mt-4 text-xs text-neutral-700 sm:text-lg sm:text-white/90 max-w-md">
                 {HERO_SUBHEADLINE}
               </p>
             </div>

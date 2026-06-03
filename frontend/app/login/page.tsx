@@ -50,7 +50,7 @@ function LoginPageContent() {
       const user = await getCurrentUser()
       setUser(user)
       toast.success(`Willkommen, ${user.name}!`)
-      router.push(getPostLoginPath(user))
+      router.push(getPostLoginPath())
       router.refresh()
     } catch (err: unknown) {
       if (isPendingDeletionError(err)) {
@@ -80,7 +80,7 @@ function LoginPageContent() {
       setUser(user)
       setPendingDeletion(false)
       toast.success("Konto erfolgreich wiederhergestellt!")
-      router.push(getPostLoginPath(user))
+      router.push(getPostLoginPath())
       router.refresh()
     } catch (err: unknown) {
       const errorMessage =
