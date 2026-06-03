@@ -134,11 +134,8 @@ const nextConfig = {
       console.warn('NEXT_PUBLIC_API_URL (or API_URL) is not set. Media rewrites will not work.');
       return [];
     }
+    // /api-proxy is handled by app/api-proxy/[...path]/route.ts (runtime API_URL)
     return [
-      {
-        source: '/api-proxy/:path*',
-        destination: `${apiUrl}/:path*`,
-      },
       {
         source: '/media/:path*',
         destination: `${apiUrl}/media/:path*`,
