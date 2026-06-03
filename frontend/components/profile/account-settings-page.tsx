@@ -138,10 +138,10 @@ export function AccountSettingsPage() {
           <div className="mb-5 sm:mb-6 md:mb-8">
             <div className="space-y-1.5 sm:space-y-2">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-tight">
-                Profileinstellungen
+                Hallo, {user.name}
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground/90">
-                Verwalten Sie Ihre Kontoeinstellungen und Präferenzen
+                Profileinstellungen · angemeldet als {user.email}
               </p>
             </div>
           </div>

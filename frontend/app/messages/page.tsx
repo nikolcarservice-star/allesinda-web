@@ -123,7 +123,31 @@ function MessagesPageContent() {
   const markingReadMapRef = useRef<Record<string, boolean>>({})
   const messagesTopRef = useRef<HTMLDivElement>(null)
   const pendingReadReceiptsRef = useRef<Set<string>>(new Set())
+  const seenMessageIdsRef = useRef<Set<string>>(new Set())
+  const showMobileChatRef = useRef(showMobileChat)
+  const selectedConversationIdRef = useRef<string | null>(null)
   const isMobile = useIsMobile()
+
+  useEffect(() => {
+    showMobileChatRef.current = showMobileChat
+    selectedConversationIdRef.current = selectedConversation?.id?.toString() ?? null
+  }, [showMobileChat, selectedConversation?.id])
+
+  const registerSeenMessages = useCallback((items: Message[]) => {
+    items.forEach((msg) => {
+      const id = String(msg.id)
+      if (!id.startsWith("temp-")) {
+        seenMessageIdsRef.current.add(id)
+      }
+    })
+  }, [])
+
+  const isRecentIncomingMessage = useCallback((createdAt?: string, maxAgeMs = 20000) => {
+    if (!createdAt) return false
+    const ts = new Date(createdAt).getTime()
+    if (Number.isNaN(ts)) return false
+    return Date.now() - ts < maxAgeMs
+  }, [])
 
   const mapConversationResponse = useCallback((raw: any): Conversation => ({
     id: raw.id,
@@ -418,9 +442,11 @@ function MessagesPageContent() {
         }
       }
 
-      // Select first conversation if available and no seller_id param
+      // Desktop only: auto-select first chat. On mobile stay on the list until user picks a chat.
       const sellerIdParam = searchParams?.get("seller_id")
-      if (!sellerIdParam && mappedConversations.length > 0 && !selectedConversation) {
+      const isDesktop =
+        typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
+      if (!sellerIdParam && isDesktop && mappedConversations.length > 0 && !selectedConversation) {
         setSelectedConversation(mappedConversations[0])
       }
     } catch (error) {
@@ -578,6 +604,8 @@ function MessagesPageContent() {
         .slice()
         .reverse()
         .map((msg: any) => mapMessageResponse(msg))
+
+      registerSeenMessages(mappedMessages)
 
       setMessages((prev) => {
         const existingMessages = prev[conversationId] || []
@@ -773,18 +801,25 @@ function MessagesPageContent() {
             let updatedList: Message[] = messages[conversationId.toString()] || []
             // Only play sound for truly new messages from others (not when re-delivered or updating existing)
             let isNewMessageFromOtherUser = false
+            const incomingId = String(newMessage.id)
             setMessages((prev) => {
               const conversationKey = conversationId.toString()
               const conversationMessages = prev[conversationKey] || []
 
               const existingIndex = conversationMessages.findIndex(
-                (m) => String(m.id) === String(newMessage.id),
+                (m) => String(m.id) === incomingId,
               )
+              const alreadySeen = seenMessageIdsRef.current.has(incomingId)
 
-              if (existingIndex !== -1) {
+              if (existingIndex !== -1 || alreadySeen) {
+                seenMessageIdsRef.current.add(incomingId)
+                const idx = existingIndex !== -1 ? existingIndex : conversationMessages.findIndex((m) => String(m.id) === incomingId)
+                if (idx === -1) {
+                  return prev
+                }
                 const nextMessages = [...conversationMessages]
-                const existingMessage = nextMessages[existingIndex]
-                nextMessages.splice(existingIndex, 1, {
+                const existingMessage = nextMessages[idx]
+                nextMessages.splice(idx, 1, {
                   ...existingMessage,
                   ...newMessage,
                   attachments:
@@ -825,7 +860,9 @@ function MessagesPageContent() {
               }
 
               updatedList = [...conversationMessages, newMessage]
-              isNewMessageFromOtherUser = data.sender_id !== currentUserId
+              seenMessageIdsRef.current.add(incomingId)
+              isNewMessageFromOtherUser =
+                data.sender_id !== currentUserId && isRecentIncomingMessage(newMessage.created_at)
               return {
                 ...prev,
                 [conversationKey]: updatedList,
@@ -884,8 +921,10 @@ function MessagesPageContent() {
             if (data.sender_id !== currentUserId && typeof window !== "undefined") {
               window.dispatchEvent(new CustomEvent("notifications:refresh"))
               // Play notification sound only for truly new messages (not when re-fetching or re-delivered duplicates)
-              const isViewingThisChat = selectedConversation?.id?.toString() === conversationId.toString()
-              const shouldPlaySound = isNewMessageFromOtherUser && (document.hidden || !isViewingThisChat)
+              const isViewingThisChat =
+                showMobileChatRef.current &&
+                selectedConversationIdRef.current === conversationId.toString()
+              const shouldPlaySound = isNewMessageFromOtherUser && !isViewingThisChat
               if (shouldPlaySound) {
                 try {
                   const now = Date.now()
@@ -1820,7 +1859,11 @@ function MessagesPageContent() {
       try {
         const a = notificationSoundRef.current || new Audio("/sounds/delivered-message-sound.mp3")
         a.volume = 0
-        a.play().then(() => {
+        a.muted = true
+        void a.play().then(() => {
+          a.pause()
+          a.currentTime = 0
+          a.muted = false
           a.volume = 0.6
         }).catch(() => {})
       } catch {
@@ -1866,6 +1909,23 @@ function MessagesPageContent() {
             )}
           >
             <div className="p-3 sm:p-4 border-b border-border/50 bg-background/95 backdrop-blur-sm shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="lg:hidden -ml-1 mb-2 h-9 w-fit px-1 text-sm font-medium text-foreground hover:bg-transparent"
+                aria-label="Zurück"
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.history.length > 1) {
+                    router.back()
+                  } else {
+                    router.push("/")
+                  }
+                }}
+              >
+                <ArrowLeft className="h-5 w-5 shrink-0" aria-hidden />
+                <span>Zurück</span>
+              </Button>
               <h2 className="text-lg sm:text-xl font-bold mb-3">Nachrichten</h2>
               <div className="relative">
                 <Search className="h-4 w-4 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />

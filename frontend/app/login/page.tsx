@@ -21,6 +21,7 @@ import {
   getPendingDeletionRecoveryUntil,
 } from "@/lib/api/auth"
 import { useAuth } from "@/lib/context/auth-context"
+import { getPostLoginPath } from "@/lib/auth/post-login-redirect"
 import { toast } from "sonner"
 
 function LoginPageContent() {
@@ -48,8 +49,8 @@ function LoginPageContent() {
       await login({ email, password })
       const user = await getCurrentUser()
       setUser(user)
-      toast.success("Anmeldung erfolgreich!")
-      router.push("/")
+      toast.success(`Willkommen, ${user.name}!`)
+      router.push(getPostLoginPath(user))
       router.refresh()
     } catch (err: unknown) {
       if (isPendingDeletionError(err)) {
@@ -79,7 +80,7 @@ function LoginPageContent() {
       setUser(user)
       setPendingDeletion(false)
       toast.success("Konto erfolgreich wiederhergestellt!")
-      router.push("/profile")
+      router.push(getPostLoginPath(user))
       router.refresh()
     } catch (err: unknown) {
       const errorMessage =

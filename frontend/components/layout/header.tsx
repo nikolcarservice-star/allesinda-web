@@ -1945,13 +1945,22 @@ return (
           </Button>
 
           {user && (
-            <Link
-              href="/favorites"
-              className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
-              aria-label="Favoriten"
-            >
-              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Link>
+            <>
+              <Link
+                href="/profile"
+                className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+                aria-label="Mein Konto"
+              >
+                <User className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
+              </Link>
+              <Link
+                href="/favorites"
+                className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+                aria-label="Favoriten"
+              >
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Link>
+            </>
           )}
         </div>
 
