@@ -1623,9 +1623,9 @@ return (
       {isMasterDetailPage && masterProfileId != null ? (
         <MasterDetailHeaderBar profileId={masterProfileId} />
       ) : (
-      <div className="container mx-auto px-sides h-16 flex items-center gap-2 sm:gap-3">
-        {/* Mobile: menu + space; Desktop: logo слева */}
-        <div className="flex flex-1 items-center min-w-0 lg:flex-none lg:shrink-0">
+      <div className="container mx-auto px-sides h-16 relative flex items-center gap-2 sm:gap-3">
+        {/* Mobile: меню; Desktop: logo слева */}
+        <div className="flex items-center shrink-0 min-w-0 z-[1] lg:flex-1">
           <Sheet open={isMobileMenuOpen} onOpenChange={handleMobileMenuChange}>
           <SheetTrigger asChild>
             <Button
@@ -1699,21 +1699,23 @@ return (
           </Link>
         </div>
 
-        {/* Logo — по центру только на мобиле */}
-        <div className="flex-1 flex justify-center min-w-0 lg:hidden">
-          <Link href="/" className="flex items-center shrink-0 -ml-1 min-w-0">
-            <div className="relative h-8 w-[100px] sm:h-9 sm:w-[120px] md:h-10 md:w-[140px]">
-              <Image
-                src="/logo_dark.webp"
-                alt="Allesinda Logo"
-                fill
-                className="object-contain object-center"
-                priority
-                sizes="(max-width: 640px) 120px, 140px"
-              />
-            </div>
-          </Link>
-        </div>
+        {/* Logo — строго по центру на мобиле */}
+        <Link
+          href="/"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center lg:hidden pointer-events-auto"
+          aria-label="Allesinda Startseite"
+        >
+          <div className="relative h-8 w-[100px] sm:h-9 sm:w-[120px]">
+            <Image
+              src="/logo_dark.webp"
+              alt="Allesinda Logo"
+              fill
+              className="object-contain object-center"
+              priority
+              sizes="(max-width: 640px) 120px"
+            />
+          </div>
+        </Link>
 
         <div className="hidden lg:block flex-1 min-w-0" aria-hidden />
 
@@ -1844,8 +1846,8 @@ return (
           )}
         </div>
 
-        {/* Mobile: поиск и избранное (shrink-0 — иконка поиска не выталкивается логотипом) */}
-        <div className="flex shrink-0 justify-end items-center gap-1 sm:gap-2 lg:hidden">
+        {/* Mobile: поиск и избранное */}
+        <div className="flex shrink-0 justify-end items-center gap-1 sm:gap-2 ml-auto z-[1] lg:hidden">
           <Button
             type="button"
             variant="ghost"
