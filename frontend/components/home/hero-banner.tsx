@@ -211,7 +211,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
           <Button
             type="submit"
             size="icon"
-            className="h-11 w-11 shrink-0 rounded-none border-0 border-l border-border/60 bg-primary brand-surface-stroke hover:bg-primary/90 text-primary-foreground sm:h-14 sm:w-14 [&_svg]:text-black [&_svg]:brand-glyph-stroke"
+            className="brand-icon-btn h-11 w-11 shrink-0 rounded-none border-0 border-l border-border/60 sm:h-14 sm:w-14 [&_svg]:brand-glyph-stroke"
             aria-label="Suchen"
           >
             <Search className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -289,7 +289,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
               <Button
                 type="submit"
                 size="icon"
-                className="h-11 w-11 shrink-0 rounded-xl bg-primary brand-surface-stroke text-black shadow-md hover:bg-primary/90 active:scale-[0.98] [&_svg]:text-black [&_svg]:brand-glyph-stroke"
+                className="brand-icon-btn h-11 w-11 shrink-0 rounded-xl [&_svg]:brand-glyph-stroke"
                 aria-label="Suchen"
               >
                 <Search className="h-5 w-5" aria-hidden />

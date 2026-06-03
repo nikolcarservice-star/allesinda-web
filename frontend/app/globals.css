@@ -283,6 +283,27 @@
     box-shadow: inset 0 0 0 1px rgb(10 10 10 / 0.22);
   }
 
+  /* Icon action buttons — teal glyph on white (matches logo / center +) */
+  .brand-icon-btn {
+    border: 1px solid rgb(10 10 10 / 0.1);
+    background-color: #fff;
+    color: var(--primary);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.1);
+    transition: background-color 0.2s, transform 0.15s;
+  }
+
+  .brand-icon-btn:hover {
+    background-color: oklch(0.98 0 0);
+  }
+
+  .brand-icon-btn:active {
+    transform: scale(0.98);
+  }
+
+  .brand-icon-btn svg {
+    color: var(--primary);
+  }
+
   .base-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
