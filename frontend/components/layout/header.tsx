@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Star,
   X,
-  LogIn,
   Bell,
   CalendarCheck,
   Shield,
@@ -310,7 +309,6 @@ export function Header() {
   const [headerHeight, setHeaderHeight] = useState(0)
   const megaMenuContainerRef = useRef<HTMLDivElement | null>(null)
   const [megaMenuHeight, setMegaMenuHeight] = useState(0)
-  const [isDesktopSearchSuggestionsOpen, setIsDesktopSearchSuggestionsOpen] = useState(false)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const lastScrollYRef = useRef(0)
 
@@ -408,7 +406,6 @@ export function Header() {
           isMobileMenuOpen ||
           isSearchPanelOpen ||
           isDesktopMegaMenuOpen ||
-          isDesktopSearchSuggestionsOpen ||
           isMasterDetailPage
 
         if (lockOpen || media.matches) {
@@ -447,7 +444,6 @@ export function Header() {
     isMobileMenuOpen,
     isSearchPanelOpen,
     isDesktopMegaMenuOpen,
-    isDesktopSearchSuggestionsOpen,
   ])
 
   const selectedCategories = categoryTree[selectedNav.type] ?? []
@@ -1418,12 +1414,6 @@ const mapFeaturedItemToHighlight = (item: FeaturedItem): HighlightItem => {
     }
   }, [isDesktopMegaMenuOpen, hoveredCategory, activeHighlightCategory])
 
-  useEffect(() => {
-    if (isDesktopSearchSuggestionsOpen) {
-      closeDesktopMegaMenu()
-    }
-  }, [isDesktopSearchSuggestionsOpen, closeDesktopMegaMenu])
-
   const renderMegaMenu = () => {
     if (!hoveredCategory || hoveredNavType === null) return null
     if (!hoveredCategory.children || hoveredCategory.children.length === 0) return null
@@ -1614,14 +1604,6 @@ return (
         aria-hidden="true"
       />
     )}
-    {isDesktopSearchSuggestionsOpen && (
-      <div
-        className="fixed inset-0 hidden lg:block z-[55] bg-black/65"
-        role="presentation"
-        aria-hidden="true"
-        onClick={() => setIsDesktopSearchSuggestionsOpen(false)}
-      />
-    )}
     {isSearchPanelOpen && (
       <div
         className="fixed inset-0 z-[65] bg-black/70"
@@ -1643,7 +1625,7 @@ return (
       ) : (
       <div className="container mx-auto px-sides h-16 flex items-center gap-2 sm:gap-3">
         {/* Mobile: menu + space; Desktop: logo слева */}
-        <div className="flex-1 flex items-center min-w-0 lg:flex-initial">
+        <div className="flex flex-1 items-center min-w-0 lg:flex-none lg:shrink-0">
           <Sheet open={isMobileMenuOpen} onOpenChange={handleMobileMenuChange}>
           <SheetTrigger asChild>
             <Button
@@ -1820,30 +1802,7 @@ return (
           </Link>
         </div>
 
-        {/* Desktop: Suche */}
-        <div className="hidden lg:flex flex-1 min-w-0 max-w-3xl px-2">
-          <HeaderSearchBar
-            variant="desktop"
-            value={searchValue}
-            onValueChange={setSearchValue}
-            cityId={searchCityId}
-            onCityChange={setSearchCityId}
-            onSubmit={handleSearchSubmit}
-            placeholder="Handwerker, Dienstleistung oder Stadt suchen"
-            onOpenChange={setIsDesktopSearchSuggestionsOpen}
-            recentSearches={recentSearches}
-            onRecentSelect={handleSearchSubmit}
-            onClearRecent={handleClearRecent}
-            trendingItems={trendingForSelected.items}
-            trendingStatus={trendingForSelected.status}
-            onTrendingSelect={handleTrendingSelect}
-            recentlyViewed={recentlyViewedDisplayItems}
-            onRecentlyViewedSelect={handleRecentlyViewedSelect}
-            onRecentlyViewedRemove={handleRemoveRecentlyViewedItem}
-            onClearRecentlyViewed={handleClearRecentlyViewed}
-            onExploreTrending={handleExploreTrending}
-          />
-        </div>
+        <div className="hidden lg:block flex-1 min-w-0" aria-hidden />
 
         {/* Desktop Navigation — скрыто: кнопки Meister/Mieten не показываем на всех устройствах */}
         <nav className="hidden" role="tablist" aria-label="Navigation">
@@ -1872,68 +1831,38 @@ return (
           })}
         </nav>
 
-        {/* Desktop: призыв к регистрации (только для неавторизованных) */}
-        {!user && (
-          <div className="hidden lg:flex shrink-0 mr-2">
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold !text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:!text-black hover:font-bold hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
-            >
-              Jetzt als Profi anmelden
-            </Link>
-          </div>
-        )}
-
-        {/* Right Actions */}
-        <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2 lg:flex-initial lg:ml-auto">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
-            aria-label="Suchen"
-            onClick={() => setIsSearchPanelOpen(true)}
-          >
-            <Search className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
-          </Button>
-
-          {user && (
+        {/* Desktop: CTA + авторизация / аккаунт */}
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
+          {!user ? (
             <>
               <Link
-                href="/favorites"
-                className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 lg:hidden shrink-0"
-                aria-label="Favoriten"
+                href="/signup"
+                className="inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold !text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:!text-black hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
               >
-                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                Jetzt als Profi anmelden
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+              >
+                Anmelden
               </Link>
             </>
-          )}
-
-          {/* Desktop: кнопка "Anmelden" вместо иконки для неавторизованных */}
-          {!user && (
-            <Link
-              href="/login"
-              className="hidden lg:inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:bg-black/10 hover:!text-black hover:font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 shrink-0"
-            >
-              Anmelden
-            </Link>
-          )}
-
-          {/* User Account Dropdown (на десктопе при !user триггер скрыт — показывается кнопка "Anmelden") */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="hidden lg:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
-                aria-label="Kontomenü"
-              >
-                <User className="h-5 w-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <nav className="min-w-[220px] py-2">
-                {user ? (
-                  <>
+          ) : (
+            <>
+              <NotificationDropdown />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex h-10 w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+                    aria-label="Kontomenü"
+                  >
+                    <User className="h-5 w-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <nav className="min-w-[220px] py-2">
                     <div className="px-3 py-2 border-b border-border/60">
                       <p className="text-sm font-semibold truncate">{user.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
@@ -1995,24 +1924,34 @@ return (
                       <LogOut className="h-4 w-4" />
                       <span>Abmelden</span>
                     </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem asChild>
-                    <Link href="/login" className="flex items-center gap-3 text-sm">
-                      <LogIn className="h-4 w-4 text-neutral-500" />
-                      <span>Anmelden</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-              </nav>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  </nav>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+        </div>
 
-          {/* Desktop Only Actions */}
+        {/* Mobile: поиск и избранное */}
+        <div className="flex flex-1 justify-end items-center gap-1 sm:gap-2 lg:hidden">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
+            aria-label="Suchen"
+            onClick={() => setIsSearchPanelOpen(true)}
+          >
+            <Search className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
+          </Button>
+
           {user && (
-            <div className="hidden items-center gap-2 overflow-visible lg:flex">
-              <NotificationDropdown />
-            </div>
+            <Link
+              href="/favorites"
+              className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+              aria-label="Favoriten"
+            >
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Link>
           )}
         </div>
 
