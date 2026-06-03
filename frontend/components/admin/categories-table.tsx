@@ -45,21 +45,11 @@ import { uploadMedia } from "@/lib/api/media"
 import { toast } from "sonner"
 import type { Category, CategoryInput, CategoryUpdate, CategoryType } from "@/lib/api/types"
 import Image from "next/image"
-import { getSameOriginOptimizedImageUrl, shouldUseUnoptimized, toMediaRelativePath, cn } from "@/lib/utils"
+import { getSameOriginOptimizedImageUrl, shouldUseUnoptimized, cn } from "@/lib/utils"
 import { logger } from "@/lib/logger"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 const PLACEHOLDER_IMAGE = "/placeholder.jpg"
-
-function categoryImageUrlsEquivalent(a?: string | null, b?: string | null): boolean {
-  const rawA = a?.trim()
-  const rawB = b?.trim()
-  if (!rawA && !rawB) return true
-  if (!rawA || !rawB) return false
-  const pathA = toMediaRelativePath(rawA).split("?")[0]
-  const pathB = toMediaRelativePath(rawB).split("?")[0]
-  return pathA.length > 0 && pathA === pathB
-}
 
 function buildCategoryImageSrc(
   imageUrl: string | undefined | null,
@@ -518,73 +508,61 @@ export function CategoriesTable() {
     }
   }
 
+  const uploadCategoryImageFile = async (): Promise<string | null> => {
+    if (!imageFile) {
+      return formData.image_url?.trim() || null
+    }
+    if (!formData.name?.trim() || !formData.slug?.trim()) {
+      throw new Error("Bitte geben Sie zuerst einen Kategorienamen ein")
+    }
+
+    const uploadedMedia = await uploadMedia(imageFile, {
+      media_type: "photo",
+      title: formData.name || editingCategory?.name || "Category Image",
+      category_id: editingCategory?.id,
+      category: editingCategory?.slug || formData.slug,
+    })
+
+    let finalImageUrl: string | null = uploadedMedia.url || null
+    let updatedCategoryData: Category | null = null
+
+    if (editingCategory?.id) {
+      updatedCategoryData = await getCategory(editingCategory.id)
+      finalImageUrl = updatedCategoryData.image_url || finalImageUrl
+      setEditingCategory(updatedCategoryData)
+    }
+
+    setImagePreviewUrl(null)
+    setImageFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    const timestamp = updatedCategoryData?.updated_at
+      ? new Date(updatedCategoryData.updated_at).getTime()
+      : Date.now()
+    setImageUploadTimestamp(timestamp + Math.random())
+    setImageUploadCounter((prev) => prev + 1)
+
+    if (finalImageUrl) {
+      setFormData((prev) => ({ ...prev, image_url: finalImageUrl }))
+    }
+
+    return finalImageUrl
+  }
+
   const handleImageUpload = async () => {
     if (!imageFile) {
       toast.error("Bitte wählen Sie zuerst ein Bild aus")
       return
     }
 
-    if (!formData.name || !formData.slug) {
-      toast.error("Please enter category name first")
-      return
-    }
-
     try {
       setUploadingImage(true)
-      // Category image uploads use category slug (not category_id) - this is intentional for category image uploads
-      const uploadedMedia = await uploadMedia(imageFile, {
-        media_type: "photo",
-        title: formData.name || editingCategory?.name || "Category Image",
-        category_id: editingCategory?.id,
-        category: editingCategory?.slug || formData.slug || "category",
-      })
-      
-      // Get the final image URL
-      let finalImageUrl: string
-      let updatedCategoryData: Category | null = null
-      if (editingCategory) {
-        // If editing an existing category, the backend already updated the image_url during upload
-        // Reload the category to get the correct URL format that was saved
-        updatedCategoryData = await getCategory(editingCategory.id)
-        finalImageUrl = updatedCategoryData.image_url || uploadedMedia.url
-        
-        // Update editingCategory state with fresh data including new updated_at
-        setEditingCategory(updatedCategoryData)
-      } else {
-        // For new categories, use the uploaded URL
-        finalImageUrl = uploadedMedia.url
-      }
-      
-      // Temporarily clear image_url to force Image component to unmount
-      setFormData((prev) => ({
-        ...prev,
-        image_url: "",
-      }))
-      
-      // Clear the preview data URL and file
-      setImagePreviewUrl(null)
-      setImageFile(null)
-      
-      // Small delay to ensure component unmounts, then set the new URL
-      await new Promise(resolve => setTimeout(resolve, 50))
-      
-      // Set timestamp to force image reload (use a unique timestamp with random component)
-      // Use the updated category's updated_at if available, otherwise use current time
-      const timestamp = updatedCategoryData?.updated_at 
-        ? new Date(updatedCategoryData.updated_at).getTime() 
-        : Date.now()
-      // Add a random component to ensure uniqueness even if timestamp is the same
-      const uniqueTimestamp = timestamp + Math.random()
-      setImageUploadTimestamp(uniqueTimestamp)
-      // Increment upload counter to ensure Image component remounts even if URL is the same
-      setImageUploadCounter((prev) => prev + 1)
-      
-      // Now set the new image URL - this will force a complete remount
-      setFormData((prev) => ({
-        ...prev,
-        image_url: finalImageUrl,
-      }))
-      
+      setFormData((prev) => ({ ...prev, image_url: "" }))
+      await uploadCategoryImageFile()
       toast.success("Bild erfolgreich hochgeladen")
     } catch (error: any) {
       toast.error(error.message || "Bild konnte nicht hochgeladen werden")
@@ -634,19 +612,31 @@ export function CategoriesTable() {
     try {
       setSubmitting(true)
 
+      const pendingImageFile = imageFile
+      let imageUrlToSave = formData.image_url?.trim() || ""
+
+      // Existing category: upload before PATCH so image_url is stored on the API
+      if (pendingImageFile && editingCategory) {
+        setUploadingImage(true)
+        try {
+          const uploadedUrl = await uploadCategoryImageFile()
+          if (uploadedUrl) {
+            imageUrlToSave = uploadedUrl
+          }
+        } finally {
+          setUploadingImage(false)
+        }
+      }
+
       if (editingCategory) {
-        const imageDeleted = formData.image_url === ""
-        const imageChanged =
-          !!formData.image_url &&
-          !categoryImageUrlsEquivalent(formData.image_url, editingCategory.image_url)
         const updateData: CategoryUpdate = {
           name: formData.name,
           slug: formData.slug,
           description: formData.description || undefined,
-          ...(imageDeleted
+          ...(imageUrlToSave === ""
             ? { image_url: "" }
-            : imageChanged
-            ? { image_url: formData.image_url }
+            : imageUrlToSave
+            ? { image_url: imageUrlToSave }
             : {}),
           sort_order: formData.sort_order,
           is_active: formData.is_active,
@@ -674,10 +664,22 @@ export function CategoriesTable() {
           parent_id: formData.parent_id || undefined,
           sort_order: formData.sort_order,
           is_active: formData.is_active,
-          // image_url will be auto-generated by backend if not provided
-          image_url: formData.image_url || undefined,
+          image_url: pendingImageFile ? undefined : imageUrlToSave || undefined,
         }
-        await createCategory(createData)
+        const created = await createCategory(createData)
+        if (pendingImageFile) {
+          setUploadingImage(true)
+          try {
+            await uploadMedia(pendingImageFile, {
+              media_type: "photo",
+              title: formData.name || "Category Image",
+              category_id: created.id,
+              category: created.slug,
+            })
+          } finally {
+            setUploadingImage(false)
+          }
+        }
         toast.success("Kategorie erfolgreich erstellt")
       }
       handleCloseDialog()
@@ -1734,7 +1736,7 @@ export function CategoriesTable() {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground">Neues Bild ausgewählt</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Neues Bild — wird beim Speichern hochgeladen</p>
                         <div className="flex gap-1.5 sm:gap-2 flex-wrap justify-center">
                           <Button
                             type="button"
@@ -2042,7 +2044,7 @@ export function CategoriesTable() {
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                            <p className="text-[10px] text-muted-foreground">New image selected</p>
+                            <p className="text-[10px] text-muted-foreground">New image — uploads on save</p>
                             <div className="flex gap-1.5 flex-wrap justify-center">
                               <Button
                                 type="button"

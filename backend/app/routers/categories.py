@@ -12,7 +12,7 @@ from ..helpers import create_paginated_response, paginate_query
 from ..models import Category, CategoryType, Role, User, Media
 from ..schemas import CategoryIn, CategoryOut, CategoryTreeOut, CategoryUpdate
 from ..security import get_current_user, require_role
-from ..utils.storage import get_media_subfolder, build_media_url, get_upload_folder
+from ..utils.storage import get_media_subfolder, build_media_url, get_upload_folder, media_url_to_upload_relative_path
 from datetime import datetime
 import os
 from urllib.parse import unquote
@@ -150,49 +150,16 @@ def _ensure_category_image(slug: str, label: str, category_type: CategoryType, d
     return build_media_url(subfolder, filename)
 
 
-def _extract_media_storage_path(url: Optional[str]) -> Optional[str]:
-    """Comparable filesystem-relative path for category/media URLs (any host or prefix)."""
-    if not url:
-        return None
-
-    normalized = unquote(url.strip().replace("\\", "/"))
-    if not normalized:
-        return None
-
-    if "?" in normalized:
-        normalized = normalized.split("?", 1)[0]
-
-    lowered = normalized.lower()
-    if lowered.startswith("http://") or lowered.startswith("https://"):
-        parsed = urlparse(normalized)
-        normalized = parsed.path or ""
-
-    normalized = normalized.lstrip("/")
-    media_prefix = settings.MEDIA_URL_PREFIX.strip("/")
-    if media_prefix and normalized.startswith(media_prefix):
-        normalized = normalized[len(media_prefix) :].lstrip("/")
-
-    cdn_prefix = (settings.CDN_URL or "").strip()
-    if cdn_prefix and "your-cdn-url.com" not in cdn_prefix.lower():
-        cdn_segment = cdn_prefix
-        if "://" in cdn_segment:
-            cdn_segment = urlparse(cdn_segment).path.lstrip("/")
-        else:
-            cdn_segment = cdn_segment.lstrip("/")
-        if cdn_segment and normalized.startswith(cdn_segment):
-            normalized = normalized[len(cdn_segment) :].lstrip("/")
-
-    return normalized.lower() if normalized else None
-
-
 def _category_image_urls_equal(url_a: Optional[str], url_b: Optional[str]) -> bool:
     if not url_a and not url_b:
         return True
     if not url_a or not url_b:
         return False
-    path_a = _extract_media_storage_path(url_a)
-    path_b = _extract_media_storage_path(url_b)
-    return path_a is not None and path_a == path_b
+    path_a = media_url_to_upload_relative_path(url_a)
+    path_b = media_url_to_upload_relative_path(url_b)
+    if not path_a or not path_b:
+        return False
+    return path_a.lower() == path_b.lower()
 
 
 def _delete_category_image(image_url: Optional[str], db: Session) -> bool:
@@ -202,28 +169,12 @@ def _delete_category_image(image_url: Optional[str], db: Session) -> bool:
     
     try:
         # Extract file path from URL
-        # URL format: /media/files/{subfolder}/{filename} or full URL
-        media_prefix = settings.MEDIA_URL_PREFIX.rstrip("/")
         upload_folder = get_upload_folder()
         deleted_files = []
         
-        # Remove media prefix and any query parameters
-        if image_url.startswith(media_prefix):
-            file_path = image_url[len(media_prefix):].lstrip("/")
-        elif image_url.startswith("/"):
-            file_path = image_url.lstrip("/")
-        else:
-            # Might be a full URL or external URL - try to extract path
-            try:
-                from urllib.parse import urlparse
-                parsed = urlparse(image_url)
-                file_path = parsed.path.lstrip("/")
-                # Remove media prefix if present in path
-                if file_path.startswith(media_prefix.lstrip("/")):
-                    file_path = file_path[len(media_prefix.lstrip("/")):].lstrip("/")
-            except Exception:
-                logger.warning(f"Category image URL is not a local path, skipping file deletion: {image_url}")
-                file_path = None
+        file_path = media_url_to_upload_relative_path(image_url)
+        if not file_path:
+            logger.warning(f"Category image URL is not a local path, skipping file deletion: {image_url}")
         
         # Delete file from filesystem if it's a local path
         if file_path:
@@ -256,22 +207,7 @@ def _delete_category_image(image_url: Optional[str], db: Session) -> bool:
             # Also try to delete the media file if it exists
             if media.url and media.url not in deleted_files:
                 try:
-                    media_file_path = media.url
-                    if media_file_path.startswith(media_prefix):
-                        media_file_path = media_file_path[len(media_prefix):].lstrip("/")
-                    elif media_file_path.startswith("/"):
-                        media_file_path = media_file_path.lstrip("/")
-                    elif "://" in media_file_path:
-                        # Full URL - try to extract path
-                        try:
-                            from urllib.parse import urlparse
-                            parsed = urlparse(media_file_path)
-                            media_file_path = parsed.path.lstrip("/")
-                            if media_file_path.startswith(media_prefix.lstrip("/")):
-                                media_file_path = media_file_path[len(media_prefix.lstrip("/")):].lstrip("/")
-                        except Exception:
-                            media_file_path = None
-                    
+                    media_file_path = media_url_to_upload_relative_path(media.url)
                     if media_file_path:
                         full_media_path = os.path.join(upload_folder, media_file_path.replace("/", os.sep))
                         if os.path.exists(full_media_path) and full_media_path not in deleted_files:
@@ -558,16 +494,7 @@ def update_category(
                 if category.image_url:
                     _delete_category_image(category.image_url, db)
                 update_data['image_url'] = _normalize_media_url(new_image_url)
-    else:
-        # image_url not in update_data - preserve existing or auto-generate if missing (only for main categories)
-        if not category.image_url and not is_subcategory:
-            update_data['image_url'] = _ensure_category_image(
-                slug_to_use, 
-                name_to_use, 
-                category_type=category.type, 
-                db=db, 
-                sort_order=update_data.get('sort_order', category.sort_order)
-            )
+    # else: image_url not in update_data — keep existing value (do not auto-generate on update)
 
     for key, value in update_data.items():
         setattr(category, key, value)

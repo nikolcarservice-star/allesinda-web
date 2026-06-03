@@ -300,6 +300,25 @@ export function getOptimizedImageUrl(
  * Optimized backend media URL served via same-origin /media/ rewrite.
  * Avoids cross-origin/CORS issues on mobile and when opening the app by LAN IP.
  */
+/** Storage path under uploads/ (e.g. categories/foo.jpeg) for comparing media URLs. */
+export function getMediaStoragePath(url: string | undefined | null): string {
+  if (!url?.trim()) return '';
+  const rel = toMediaRelativePath(url.trim()).split('?')[0];
+  if (!rel) return '';
+  const mediaPrefix = '/media/files/';
+  if (rel.startsWith(mediaPrefix)) {
+    return rel.slice(mediaPrefix.length).toLowerCase();
+  }
+  return rel.replace(/^\/+/, '').toLowerCase();
+}
+
+export function categoryImageUrlsEquivalent(a?: string | null, b?: string | null): boolean {
+  const pathA = getMediaStoragePath(a);
+  const pathB = getMediaStoragePath(b);
+  if (!pathA && !pathB) return true;
+  return pathA.length > 0 && pathA === pathB;
+}
+
 export function getSameOriginOptimizedImageUrl(
   url: string | undefined | null,
   preset: ImageOptimizationPreset = 'card'

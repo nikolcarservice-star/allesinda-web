@@ -10,7 +10,7 @@ from ..models import Media, MediaStatus, User, Role, Profile
 from ..schemas import MediaIn, MediaOut
 from ..security import get_current_user, require_role
 from ..helpers import paginate_query, create_paginated_response
-from ..utils.storage import get_upload_folder, get_media_subfolder, build_media_url
+from ..utils.storage import get_upload_folder, get_media_subfolder, build_media_url, media_url_to_upload_relative_path
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -349,16 +349,8 @@ async def upload_media(
             # Delete old image file if it exists
             if cat.image_url:
                 old_image_url = cat.image_url
-                media_prefix = settings.MEDIA_URL_PREFIX.rstrip("/")
-                
-                # Extract file path from old image URL
-                if old_image_url.startswith(media_prefix):
-                    old_file_path = old_image_url[len(media_prefix):].lstrip("/")
-                elif old_image_url.startswith("/"):
-                    old_file_path = old_image_url.lstrip("/")
-                else:
-                    old_file_path = None
-                
+                old_file_path = media_url_to_upload_relative_path(old_image_url)
+
                 # Delete old file from filesystem
                 if old_file_path:
                     old_full_path = os.path.join(upload_folder, old_file_path.replace("/", os.sep))

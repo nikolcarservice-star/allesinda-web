@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from datetime import datetime
 from typing import Optional
+from urllib.parse import unquote, urlparse
 
 from ..config import settings
 
@@ -48,6 +49,41 @@ def _normalize_entity(entity_type: Optional[str]) -> Optional[str]:
         normalized = normalized.split("/")[-1]
 
     return _ENTITY_ALIASES.get(normalized, normalized)
+
+
+def media_url_to_upload_relative_path(url: Optional[str]) -> Optional[str]:
+    """Path under UPLOAD_FOLDER (e.g. categories/foo.jpeg) from any media URL form."""
+    if not url:
+        return None
+
+    normalized = unquote(url.strip().replace("\\", "/"))
+    if not normalized:
+        return None
+
+    if "?" in normalized:
+        normalized = normalized.split("?", 1)[0]
+
+    lowered = normalized.lower()
+    if lowered.startswith("http://") or lowered.startswith("https://"):
+        parsed = urlparse(normalized)
+        normalized = parsed.path or ""
+
+    normalized = normalized.lstrip("/")
+    media_prefix = settings.MEDIA_URL_PREFIX.strip("/")
+    if media_prefix and normalized.startswith(media_prefix):
+        normalized = normalized[len(media_prefix) :].lstrip("/")
+
+    cdn_prefix = (settings.CDN_URL or "").strip()
+    if cdn_prefix and "your-cdn-url.com" not in cdn_prefix.lower():
+        cdn_segment = cdn_prefix
+        if "://" in cdn_segment:
+            cdn_segment = urlparse(cdn_segment).path.lstrip("/")
+        else:
+            cdn_segment = cdn_segment.lstrip("/")
+        if cdn_segment and normalized.startswith(cdn_segment):
+            normalized = normalized[len(cdn_segment) :].lstrip("/")
+
+    return normalized if normalized else None
 
 
 def get_upload_folder() -> str:
