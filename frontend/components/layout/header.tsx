@@ -1583,7 +1583,7 @@ return (
       <div
         aria-hidden
         className={cn(
-          "shrink-0 overflow-hidden [overflow-anchor:none] lg:hidden",
+          "shrink-0 overflow-hidden [overflow-anchor:none]",
           isMasterCabinetPage && "hidden",
         )}
         style={{ height: headerSpacerHeight }}
@@ -1591,7 +1591,7 @@ return (
       <header
         ref={headerRef}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 lg:sticky lg:top-0",
+          "fixed top-0 left-0 right-0 z-50",
           isMasterCabinetPage && "hidden lg:block",
           !isHeaderVisible && "pointer-events-none lg:pointer-events-auto",
         )}
