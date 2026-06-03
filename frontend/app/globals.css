@@ -13,9 +13,9 @@
   --popover-foreground: oklch(0.15 0.01 264);
   
   /* Primary - Allesinda brand cyan (logo) */
-  --primary: #3cdcd5;
+  --primary: #26ada6;
   --primary-foreground: #0a0a0a;
-  --ring: #3cdcd5;
+  --ring: #26ada6;
   
   /* Secondary - Soft purple tint */
   --secondary: oklch(0.96 0.008 285);
@@ -26,7 +26,7 @@
   --muted-foreground: oklch(0.45 0.008 264);
   
   /* Accent - brand cyan */
-  --accent: #3cdcd5;
+  --accent: #26ada6;
   --accent-foreground: oklch(0.99 0 0);
   
   /* Destructive - Modern red */
@@ -59,13 +59,13 @@
   --gap-xl: 2rem;
   --sidebar: oklch(0.99 0 0);
   --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: #3cdcd5;
+  --sidebar-primary: #26ada6;
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.96 0.008 285);
   --sidebar-accent-foreground: oklch(0.25 0.01 264);
   --sidebar-border: oklch(0.90 0.006 264);
   --sidebar-ring: oklch(0.48 0.22 285);
-  --link-hover: #3cdcd5;
+  --link-hover: #26ada6;
 
 }
 
@@ -76,19 +76,19 @@
   --card-foreground: oklch(0.98 0.002 264);
   --popover: oklch(0.14 0.01 264);
   --popover-foreground: oklch(0.98 0.002 264);
-  --primary: oklch(0.65 0.24 285);
-  --primary-foreground: oklch(0.11 0.01 264);
+  --primary: #26ada6;
+  --primary-foreground: #0a0a0a;
   --secondary: oklch(0.20 0.01 264);
   --secondary-foreground: oklch(0.98 0.002 264);
   --muted: oklch(0.20 0.01 264);
   --muted-foreground: oklch(0.65 0.008 264);
-  --accent: oklch(0.70 0.26 285);
+  --accent: #26ada6;
   --accent-foreground: oklch(0.11 0.01 264);
   --destructive: oklch(0.65 0.22 25);
   --destructive-foreground: oklch(0.98 0.002 264);
   --border: oklch(0.24 0.01 264);
   --input: oklch(0.24 0.01 264);
-  --ring: oklch(0.65 0.24 285);
+  --ring: #26ada6;
   --chart-1: oklch(0.68 0.24 285);
   --chart-2: oklch(0.70 0.26 285);
   --chart-3: oklch(0.65 0.22 270);
@@ -96,7 +96,7 @@
   --chart-5: oklch(0.62 0.20 280);
   --sidebar: oklch(0.14 0.01 264);
   --sidebar-foreground: oklch(0.98 0.002 264);
-  --sidebar-primary: oklch(0.65 0.24 285);
+  --sidebar-primary: #26ada6;
   --sidebar-primary-foreground: oklch(0.11 0.01 264);
   --sidebar-accent: oklch(0.20 0.01 264);
   --sidebar-accent-foreground: oklch(0.98 0.002 264);

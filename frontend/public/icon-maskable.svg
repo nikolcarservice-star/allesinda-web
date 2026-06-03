@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" fill="#3cdcd5" rx="96"/>
+  <rect width="512" height="512" fill="#26ada6" rx="96"/>
   <!-- Arc -->
   <path d="M96 280 Q256 160 416 280" stroke="#0f172a" stroke-width="32" stroke-linecap="round" fill="none"/>
   <!-- Allesinda text -->
