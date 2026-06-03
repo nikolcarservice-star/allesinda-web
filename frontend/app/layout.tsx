@@ -9,6 +9,7 @@ import { isDevelopment } from "@/lib/constants"
 import { Header } from "../components/layout/header"
 import { MobileAppChrome } from "../components/layout/mobile-app-chrome"
 import { BodyScrollReset } from "../components/layout/body-scroll-reset"
+import { MobileViewportReset } from "../components/layout/mobile-viewport-reset"
 import { ConditionalFooter } from "../components/layout/conditional-footer"
 import { InstallPrompt } from "../components/layout/install-prompt"
 import { PushSubscriptionSetup } from "../components/layout/push-subscription-setup"
@@ -93,6 +94,7 @@ export default async function RootLayout({
             <CartProvider>
               <NuqsAdapter>
               <BodyScrollReset />
+              <MobileViewportReset />
               <main data-vaul-drawer-wrapper="true" className="min-h-screen overflow-x-hidden">
                 <Suspense fallback={
                   <div className="h-16 bg-background border-b" />

@@ -233,6 +233,15 @@
     text-size-adjust: 100%;
   }
 
+  /* iOS: не зумить страницу при фокусе в поля (нужно ≥16px) */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
   * {
     @apply border-border outline-ring/50;
     transition-property: background-color, border-color, color, fill, stroke;

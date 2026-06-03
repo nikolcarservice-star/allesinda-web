@@ -22,6 +22,7 @@ import {
 } from "@/lib/api/auth"
 import { useAuth } from "@/lib/context/auth-context"
 import { getPostLoginPath } from "@/lib/auth/post-login-redirect"
+import { resetMobileViewportZoom } from "@/lib/utils/reset-mobile-viewport"
 import { toast } from "sonner"
 
 function LoginPageContent() {
@@ -50,6 +51,7 @@ function LoginPageContent() {
       const user = await getCurrentUser()
       setUser(user)
       toast.success(`Willkommen, ${user.name}!`)
+      resetMobileViewportZoom()
       router.push(getPostLoginPath())
       router.refresh()
     } catch (err: unknown) {
@@ -80,6 +82,7 @@ function LoginPageContent() {
       setUser(user)
       setPendingDeletion(false)
       toast.success("Konto erfolgreich wiederhergestellt!")
+      resetMobileViewportZoom()
       router.push(getPostLoginPath())
       router.refresh()
     } catch (err: unknown) {
@@ -165,7 +168,7 @@ function LoginPageContent() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     size="default"
-                    className="pl-10 sm:pl-12 text-sm sm:text-base"
+                    className="pl-10 sm:pl-12 text-base"
                     required
                     disabled={loading}
                     autoComplete="email"
@@ -192,7 +195,7 @@ function LoginPageContent() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     size="default"
-                    className="pl-10 sm:pl-12 text-sm sm:text-base"
+                    className="pl-10 sm:pl-12 text-base"
                     required
                     disabled={loading}
                     autoComplete="current-password"

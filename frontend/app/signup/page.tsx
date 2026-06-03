@@ -21,6 +21,7 @@ import {
 import { Loader2, Mail, Lock, User, Phone, AlertCircle, UserPlus } from "lucide-react"
 import { register, login, getCurrentUser } from "@/lib/api/auth"
 import { useAuth } from "@/lib/context/auth-context"
+import { resetMobileViewportZoom } from "@/lib/utils/reset-mobile-viewport"
 import { toast } from "sonner"
 import type { Role, Category } from "@/lib/api/types"
 import { getCategoriesByType } from "@/lib/api/categories"
@@ -132,6 +133,7 @@ export default function SignupPage() {
       const user = await getCurrentUser()
       setUser(user)
       toast.success("Konto erfolgreich erstellt!")
+      resetMobileViewportZoom()
       router.push("/")
       router.refresh()
     } catch (err: any) {
