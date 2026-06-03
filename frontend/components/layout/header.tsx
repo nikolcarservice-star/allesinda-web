@@ -1838,21 +1838,21 @@ return (
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-primary hover:text-primary/90 hover:bg-primary/10 shrink-0"
               aria-label="Suchen"
               onClick={() => setIsSearchPanelOpen(true)}
             >
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-primary" aria-hidden />
             </Button>
           )}
 
           {user && (
             <Link
               href="/favorites"
-              className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 shrink-0"
+              className="hidden sm:flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-primary transition-all duration-200 hover:text-primary/90 hover:bg-primary/10 shrink-0"
               aria-label="Favoriten"
             >
-              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </Link>
           )}
         </div>

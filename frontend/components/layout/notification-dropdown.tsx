@@ -171,10 +171,10 @@ export function NotificationDropdown() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-black transition-all duration-200 hover:text-black hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:outline-none"
+          className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-sm text-primary transition-all duration-200 hover:text-primary/90 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:outline-none"
           aria-label="Benachrichtigungen"
         >
-          <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+          <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"

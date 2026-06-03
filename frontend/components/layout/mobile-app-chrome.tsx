@@ -95,12 +95,12 @@ function MobileBottomNav() {
             }}
             className={cn(
               "touch-target flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[10px] font-semibold leading-tight transition-colors sm:text-[11px]",
-              active ? "text-black" : "text-neutral-500 hover:text-neutral-800",
+              active ? "text-primary" : "text-primary/55 hover:text-primary",
             )}
             aria-current={active ? "page" : undefined}
           >
             <span className="relative inline-flex shrink-0">
-              <Icon className={cn("h-5 w-5", active ? "text-black" : "text-neutral-500")} aria-hidden />
+              <Icon className={cn("h-5 w-5", active ? "text-primary" : "text-primary/55")} aria-hidden />
               {label === "Nachrichten" && unreadMessages > 0 && (
                 <Badge
                   variant="destructive"
