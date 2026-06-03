@@ -62,6 +62,7 @@ else:
     print(f'WARNING: schema incomplete after repair: {err}')
     print('App will start; if login fails, run:')
     print('  ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;')
+    print('  Or run backend/scripts/create_user_reports_table.sql on PostgreSQL')
 " || echo "WARNING: schema ensure script failed, starting server anyway..."
 echo ""
 

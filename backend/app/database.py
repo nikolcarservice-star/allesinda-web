@@ -121,7 +121,7 @@ async def get_async_db():
 
 def safe_create_all() -> None:
     """Create missing tables; ignore duplicate index/table errors on legacy DBs."""
-    from .models import Base
+    from .models import Base  # noqa: F401 — registers all models on metadata
 
     try:
         Base.metadata.create_all(bind=engine, checkfirst=True)
@@ -133,6 +133,66 @@ def safe_create_all() -> None:
         )
     except Exception as exc:
         logger.warning("create_all failed: %s", exc)
+
+    _ensure_user_reports_table()
+
+
+def _ensure_user_reports_table() -> None:
+    """Create user_reports if missing (complaints from chat)."""
+    from .models import UserReport  # noqa: F401
+
+    insp = inspect(engine)
+    if "user_reports" in insp.get_table_names():
+        return
+
+    try:
+        UserReport.__table__.create(bind=engine, checkfirst=True)
+        logger.info("Created table user_reports")
+        return
+    except Exception as exc:
+        logger.warning("SQLAlchemy create user_reports failed: %s", exc)
+
+    if engine.dialect.name == "postgresql":
+        try:
+            with engine.begin() as conn:
+                conn.execute(
+                    text(
+                        """
+                        CREATE TABLE IF NOT EXISTS user_reports (
+                            id SERIAL PRIMARY KEY,
+                            reporter_id INTEGER NOT NULL REFERENCES users(id),
+                            reported_user_id INTEGER NOT NULL REFERENCES users(id),
+                            conversation_id INTEGER REFERENCES conversations(id),
+                            reason VARCHAR(64) NOT NULL,
+                            details TEXT,
+                            status VARCHAR(32) NOT NULL DEFAULT 'in_review',
+                            created_at TIMESTAMPTZ DEFAULT NOW()
+                        )
+                        """
+                    )
+                )
+                conn.execute(
+                    text(
+                        "CREATE INDEX IF NOT EXISTS ix_user_reports_reporter_id "
+                        "ON user_reports (reporter_id)"
+                    )
+                )
+                conn.execute(
+                    text(
+                        "CREATE INDEX IF NOT EXISTS ix_user_reports_reported_user_id "
+                        "ON user_reports (reported_user_id)"
+                    )
+                )
+                conn.execute(
+                    text(
+                        "CREATE INDEX IF NOT EXISTS ix_user_reports_status "
+                        "ON user_reports (status)"
+                    )
+                )
+            logger.info("Created table user_reports via SQL")
+        except Exception as sql_exc:
+            logger.error("Failed to create user_reports table: %s", sql_exc)
+            raise
 
 
 def init_db():
@@ -185,6 +245,15 @@ def users_schema_ready() -> tuple[bool, str | None]:
         return False, str(exc)
 
 
+def user_reports_table_ready() -> tuple[bool, str | None]:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1 FROM user_reports LIMIT 1"))
+        return True, None
+    except Exception as exc:
+        return False, str(exc)
+
+
 def database_schema_ready() -> tuple[bool, str | None]:
     """Return whether core tables match the current SQLAlchemy models."""
     profiles_ok, profiles_error = profiles_schema_ready()
@@ -193,6 +262,9 @@ def database_schema_ready() -> tuple[bool, str | None]:
     users_ok, users_error = users_schema_ready()
     if not users_ok:
         return False, users_error
+    reports_ok, reports_error = user_reports_table_ready()
+    if not reports_ok:
+        return False, reports_error
     return True, None
 
 
@@ -228,6 +300,7 @@ def repair_profiles_schema(db: Session | None = None) -> None:
         for column_name, column_type in review_columns.items():
             _try_ensure_column("reviews", column_name, column_type)
 
+    _ensure_user_reports_table()
     safe_create_all()
 
     ready, schema_error = database_schema_ready()
