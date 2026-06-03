@@ -24,6 +24,7 @@ const ERASING_PAUSE_MS = 400
 const PLACEHOLDER_IMAGE = "/placeholder.jpg"
 
 const HERO_SEARCH_INPUT_ID = "hero-search-input"
+const HERO_IMAGE = "/hero-team.png"
 
 export type HeroBannerProps = {
   categories?: CategoryTree[]
@@ -166,51 +167,60 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
   // Убрано, чтобы страница всегда прокручивалась колёсиком даже над лентой.
 
   return (
-    <section id="hero-search" className="relative w-full overflow-y-visible scroll-mt-16 sm:scroll-mt-[72px]">
-      {/* Banner: мобиле — только текст; с sm — фото и строка поиска */}
-      <div className="relative w-full bg-gradient-to-b from-primary/[0.06] via-background to-background sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] sm:bg-transparent">
-        <div className="absolute inset-0 z-0 overflow-hidden hidden sm:block">
-          <div className="absolute inset-0">
-            <Image
-              src="/hero-handwerker.png"
-              alt=""
-              fill
-              className="object-cover object-[72%_center] md:object-right brightness-[0.88]"
-              sizes="100vw"
-              priority
-            />
-          </div>
-          <div className="absolute inset-0 bg-black/15" aria-hidden />
-          <div
-            className="absolute inset-0 bg-gradient-to-r from-white/90 from-25% via-white/40 via-45% to-transparent to-70%"
-            aria-hidden
+    <section id="hero-search" className="relative w-full overflow-hidden scroll-mt-16 sm:scroll-mt-[72px]">
+      {/* Hero: команда на фото — мобиле текст поверх, десктоп текст слева + поиск */}
+      <div className="relative w-full min-h-[min(58vh,28rem)] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh]">
+        <div className="absolute inset-0">
+          <Image
+            src={HERO_IMAGE}
+            alt="Team aus geprüften Handwerkern und Dienstleistern"
+            fill
+            className="object-cover object-[center_42%] sm:object-[72%_center] md:object-[78%_center] brightness-[0.92] sm:brightness-[0.9]"
+            sizes="100vw"
+            priority
           />
         </div>
 
-        <div className="relative z-10 container mx-auto sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-7 sm:py-10 md:py-14 lg:py-20 px-sides sm:px-8 md:px-12 lg:px-16">
-          <div className="max-w-2xl w-full min-w-0">
-            <div className="mx-auto w-full max-w-md sm:mx-0 sm:max-w-lg min-w-0 text-center sm:text-left">
-              <h1 className="text-base font-bold leading-snug tracking-tight text-neutral-900 text-balance sm:text-4xl md:text-5xl">
-                {HERO_HEADLINE}
-              </h1>
-              <p className="mt-1.5 sm:mt-4 text-xs leading-relaxed text-neutral-700 text-pretty sm:text-lg sm:max-w-md">
-                {HERO_SUBHEADLINE}
-              </p>
-            </div>
+        {/* Мобиле: затемнение снизу для читаемого текста */}
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 via-35% to-black/15 sm:hidden"
+          aria-hidden
+        />
+        {/* Десктоп: светлая подложка слева под тёмный текст */}
+        <div
+          className="absolute inset-0 hidden sm:block bg-gradient-to-r from-white/96 from-15% via-white/70 via-38% to-transparent to-72%"
+          aria-hidden
+        />
+        <div className="absolute inset-0 hidden sm:block bg-black/10" aria-hidden />
 
-            <form onSubmit={handleSubmit} className="hidden sm:block mt-6 max-w-2xl w-full">
-              <div className="flex w-full min-w-0 rounded-md border border-border/60 bg-background overflow-hidden">
-                <div className="flex items-center border-r border-border/60 bg-muted/30 shrink-0">
+        <div className="relative z-10 container mx-auto flex min-h-[inherit] flex-col justify-end sm:justify-center px-sides pb-8 pt-24 sm:px-8 sm:py-14 md:px-12 lg:px-16 lg:py-20">
+          <div className="w-full max-w-2xl min-w-0">
+            <p className="mb-2 inline-flex rounded-full bg-primary/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-black shadow-sm sm:mb-3 sm:bg-primary sm:text-xs">
+              Geprüfte Profis · Direkt buchen
+            </p>
+            <h1 className="text-[1.35rem] font-bold leading-[1.2] tracking-tight text-white text-balance drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)] sm:text-4xl sm:text-neutral-900 sm:drop-shadow-none md:text-5xl md:leading-tight">
+              {HERO_HEADLINE}
+            </h1>
+            <p className="mt-2.5 max-w-md text-sm leading-relaxed text-white/95 text-pretty drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-lg sm:text-neutral-700 sm:drop-shadow-none">
+              {HERO_SUBHEADLINE}
+            </p>
+
+            <form
+              onSubmit={handleSubmit}
+              className="mt-5 w-full max-w-2xl sm:mt-6 shadow-[0_8px_32px_rgba(0,0,0,0.28)] sm:shadow-lg sm:shadow-black/5"
+            >
+              <div className="flex w-full min-w-0 flex-col gap-2 overflow-hidden rounded-xl border border-white/20 bg-white/95 p-2 backdrop-blur-md sm:flex-row sm:gap-0 sm:rounded-md sm:border-border/60 sm:bg-background sm:p-0 sm:backdrop-blur-none">
+                <div className="flex shrink-0 items-center sm:border-r sm:border-border/60 sm:bg-muted/30">
                   <CityCombobox
                     value={cityId}
                     onChange={setCityId}
                     placeholder="Stadt"
                     size="md"
                     variant="form"
-                    className="h-10 sm:h-14 min-w-[120px] sm:min-w-[160px] rounded-none border-0 bg-transparent px-2 sm:px-3"
+                    className="h-11 w-full min-w-0 rounded-lg border border-border/50 bg-background px-3 sm:h-14 sm:min-w-[160px] sm:rounded-none sm:border-0 sm:bg-transparent sm:px-3"
                   />
                 </div>
-                <div className="relative flex flex-1 items-center min-w-0">
+                <div className="relative flex min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-border/50 bg-background sm:rounded-none sm:border-0">
                   <Input
                     id={HERO_SEARCH_INPUT_ID}
                     type="search"
@@ -220,31 +230,29 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                     onBlur={() => setIsFocused(false)}
                     aria-label="Suchbegriff eingeben"
                     className={cn(
-                      "h-10 sm:h-14 pr-12 sm:pr-14 text-sm sm:text-base bg-background border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                      "h-11 pr-12 text-sm sm:h-14 sm:pr-14 sm:text-base border-0 rounded-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
                       showPlaceholder && "text-transparent caret-foreground"
                     )}
                     autoComplete="off"
                   />
                   {showPlaceholder && (
                     <div
-                      className="absolute left-2.5 sm:left-3 right-12 sm:right-14 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-muted-foreground text-sm sm:text-base"
+                      className="pointer-events-none absolute left-3 right-12 top-1/2 flex -translate-y-1/2 items-center text-sm text-muted-foreground sm:left-3 sm:right-14 sm:text-base"
                       aria-hidden
                     >
-                      <span className="text-muted-foreground">{TYPING_PREFIX}</span>
-                      <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">
-                        {displayWord}
-                      </span>
+                      <span>{TYPING_PREFIX}</span>
+                      <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">{displayWord}</span>
                     </div>
                   )}
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="h-11 w-11 shrink-0 rounded-none border-0 border-l border-border/60 bg-primary hover:bg-primary/90 text-primary-foreground sm:h-14 sm:w-14 [&_svg]:text-black"
+                    aria-label="Suchen"
+                  >
+                    <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </Button>
                 </div>
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="h-10 w-10 sm:h-14 sm:w-14 rounded-none shrink-0 border-0 border-l border-border/60 bg-primary hover:bg-primary/90 text-primary-foreground [&_svg]:text-black"
-                  aria-label="Suchen"
-                >
-                  <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
               </div>
             </form>
           </div>
