@@ -504,7 +504,7 @@ export interface CheckoutSession {
 export interface Notification {
   id: number;
   user_id: number;
-  type: 'order' | 'message' | 'review' | 'system';
+  type: 'order' | 'message' | 'review' | 'system' | 'user_report' | 'review_report' | 'review_report_resolved';
   title: string;
   message: string;
   is_read: boolean;
