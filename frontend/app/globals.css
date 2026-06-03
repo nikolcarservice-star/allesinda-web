@@ -12,10 +12,10 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0.01 264);
   
-  /* Primary - Vibrant purple-violet matching logo */
-  --primary: #3adcd5;
-  --primary-foreground: oklch(0.15 0.01 264);
-  --ring: #3adcd5;
+  /* Primary - Allesinda brand cyan (logo) */
+  --primary: #3cdcd5;
+  --primary-foreground: #0a0a0a;
+  --ring: #3cdcd5;
   
   /* Secondary - Soft purple tint */
   --secondary: oklch(0.96 0.008 285);
@@ -25,8 +25,8 @@
   --muted: oklch(0.97 0.006 285);
   --muted-foreground: oklch(0.45 0.008 264);
   
-  /* Accent - Bright purple/violet */
-  --accent: #3adcd5;
+  /* Accent - brand cyan */
+  --accent: #3cdcd5;
   --accent-foreground: oklch(0.99 0 0);
   
   /* Destructive - Modern red */
@@ -36,7 +36,6 @@
   /* Borders and inputs - Subtle but visible */
   --border: oklch(0.90 0.006 264);
   --input: oklch(0.94 0.004 264);
-  --ring: oklch(0.48 0.22 285);
   
   /* Chart colors - Purple-based palette */
   --chart-1: oklch(0.52 0.22 285);
@@ -60,13 +59,13 @@
   --gap-xl: 2rem;
   --sidebar: oklch(0.99 0 0);
   --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: #3adcd5;
+  --sidebar-primary: #3cdcd5;
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.96 0.008 285);
   --sidebar-accent-foreground: oklch(0.25 0.01 264);
   --sidebar-border: oklch(0.90 0.006 264);
   --sidebar-ring: oklch(0.48 0.22 285);
-  --link-hover: #3adcd5;
+  --link-hover: #3cdcd5;
 
 }
 

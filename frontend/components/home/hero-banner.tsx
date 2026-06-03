@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { Search, ChevronRight, ChevronLeft, Loader2, MapPin } from "lucide-react"
+import { Search, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CityCombobox } from "@/components/shared/city-combobox"
@@ -250,15 +250,14 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
           </div>
 
           <form onSubmit={handleSubmit} className="border-t border-neutral-100 bg-white">
-            <div className="flex items-center gap-2 border-b border-neutral-100 px-3 py-2.5">
-              <MapPin className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+            <div className="border-b border-neutral-100 px-2 py-1.5">
               <CityCombobox
                 value={cityId}
                 onChange={setCityId}
                 placeholder="Alle Städte"
                 size="md"
                 variant="form"
-                className="h-10 min-h-10 w-full min-w-0 flex-1 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
+                className="h-10 min-h-10 w-full min-w-0 border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 [&_svg]:text-primary"
               />
             </div>
             <div className="flex items-center gap-2 p-2.5">
@@ -272,7 +271,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                   onBlur={() => setIsFocused(false)}
                   aria-label="Suchbegriff eingeben"
                   className={cn(
-                    "h-11 rounded-xl border-neutral-200 bg-neutral-50 pl-3.5 pr-3 text-sm focus-visible:border-emerald-500/60 focus-visible:ring-emerald-500/20",
+                    "h-11 rounded-xl border-neutral-200 bg-neutral-50 pl-3.5 pr-3 text-sm focus-visible:border-primary/60 focus-visible:ring-primary/25",
                     showPlaceholder && "text-transparent caret-foreground",
                   )}
                   autoComplete="off"
@@ -283,14 +282,14 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                     aria-hidden
                   >
                     <span>{TYPING_PREFIX}</span>
-                    <span className="min-w-[2ch] border-r-2 border-emerald-500 animate-pulse">{displayWord}</span>
+                    <span className="min-w-[2ch] border-r-2 border-primary animate-pulse">{displayWord}</span>
                   </div>
                 )}
               </div>
               <Button
                 type="submit"
                 size="icon"
-                className="h-11 w-11 shrink-0 rounded-xl bg-emerald-600 text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] [&_svg]:text-white"
+                className="h-11 w-11 shrink-0 rounded-xl bg-primary text-black shadow-md hover:bg-primary/90 active:scale-[0.98] [&_svg]:text-black"
                 aria-label="Suchen"
               >
                 <Search className="h-5 w-5" aria-hidden />

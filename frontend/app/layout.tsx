@@ -48,7 +48,7 @@ const getMetadataBase = (): string => {
   return 'http://localhost:3000'
 }
 
-const THEME_COLOR = "#3adcd5"
+const THEME_COLOR = "#3cdcd5"
 
 export const metadata: Metadata = {
   metadataBase: new URL(getMetadataBase()),
