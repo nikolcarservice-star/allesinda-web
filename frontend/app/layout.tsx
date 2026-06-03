@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 import "./globals.css"
-import { Toaster } from "sonner"
+import { AppToaster } from "../components/layout/app-toaster"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { DebugGrid } from "@/components/debug-grid"
 import { isDevelopment } from "@/lib/constants"
@@ -50,8 +50,8 @@ const THEME_COLOR = "#3adcd5"
 
 export const metadata: Metadata = {
   metadataBase: new URL(getMetadataBase()),
-  title: "Allesinda - Find Masters, Products & Rentals",
-  description: "Your trusted marketplace for repair services, equipment rentals, and quality products.",
+  title: "Allesinda – Handwerker finden",
+  description: "Ihr Marktplatz für geprüfte Handwerker und Reparaturdienste in ganz Deutschland.",
   generator: "v0.app",
   manifest: "/manifest.json",
 }
@@ -70,7 +70,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="de">
       <body
         className={cn(inter.variable, spaceGrotesk.variable, "antialiased min-h-screen bg-white", { "is-v0": isV0 })}
         suppressHydrationWarning
@@ -82,19 +82,17 @@ export default async function RootLayout({
               <BodyScrollReset />
               <main data-vaul-drawer-wrapper="true" className="min-h-screen">
                 <Suspense fallback={
-                  <div className="h-14 sm:h-[72px] bg-background border-b" />
+                  <div className="h-16 bg-background border-b" />
                 }>
                   <Header />
                 </Suspense>
-                <div className="-mt-14 sm:-mt-[72px] pt-14 sm:pt-[72px] lg:mt-0 lg:pt-0">
-                  <MobileAppChrome>{children}</MobileAppChrome>
-                </div>
+                <MobileAppChrome>{children}</MobileAppChrome>
               </main>
               <ConditionalFooter />
               <InstallPrompt />
               <PushSubscriptionSetup />
               {isDevelopment && <DebugGrid />}
-              <Toaster closeButton position="bottom-right" />
+              <AppToaster />
               </NuqsAdapter>
               {isV0 && <V0Setup />}
             </CartProvider>

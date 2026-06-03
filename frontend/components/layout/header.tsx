@@ -7,6 +7,7 @@ import type { MouseEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Menu,
+  Search,
   User,
   Heart,
   LogOut,
@@ -277,12 +278,6 @@ export function Header() {
   const [searchValue, setSearchValue] = useState("")
   const [searchCityId, setSearchCityId] = useState<number | undefined>(undefined)
   
-  // Debug: Log when searchCityId changes
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Header] searchCityId changed:', searchCityId)
-    }
-  }, [searchCityId])
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<RecentlyViewedItem[]>([])
   const [categoryTree, setCategoryTree] = useState<Record<CategoryType, CategoryTree[]>>(createEmptyTree)
@@ -514,17 +509,6 @@ export function Header() {
     // and then when they click Search, the URL is updated with the city_id, which triggers this effect
     setSearchCityId((currentCityId: number | undefined) => {
       if (newCityId !== currentCityId) {
-        // Debug: Log cityId sync
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Header] Syncing cityId from URL:', {
-            urlCityId: cid,
-            parsedCityId: newCityId,
-            currentSearchCityId: currentCityId,
-            willUpdate: true,
-            routeNavHref: routeNav.href,
-            searchParamsString: searchParams?.toString(),
-          })
-        }
         return newCityId
       }
       return currentCityId
@@ -749,15 +733,6 @@ export function Header() {
   const buildCategoryUrl = (nav: NavItem, slug?: string | null, baseParams?: URLSearchParams | null) => {
     const params = baseParams ? new URLSearchParams(baseParams.toString()) : new URLSearchParams()
 
-    // Debug: Log what we're building
-    if (process.env.NODE_ENV === 'development' && baseParams?.has('city_id')) {
-      console.log('[Header] buildCategoryUrl - baseParams has city_id:', {
-        baseParamsString: baseParams.toString(),
-        cityIdValue: baseParams.get('city_id'),
-        navType: nav.type,
-      })
-    }
-
     params.set("types", nav.type)
 
     if (slug) {
@@ -784,19 +759,7 @@ export function Header() {
 
     const query = params.toString()
     
-    const finalUrl = query ? `${nav.href}?${query}` : nav.href
-    
-    // Debug: Log final URL if city_id was in baseParams
-    if (process.env.NODE_ENV === 'development' && baseParams?.has('city_id')) {
-      console.log('[Header] buildCategoryUrl - Final URL:', {
-        finalUrl,
-        hasCityIdInFinal: params.has('city_id'),
-        cityIdValue: params.get('city_id'),
-        allParams: params.toString(),
-      })
-    }
-    
-    return finalUrl
+    return query ? `${nav.href}?${query}` : nav.href
   }
 
   // Search function - ONLY called when Search button is clicked (via handleSearchSubmit)
@@ -828,16 +791,6 @@ export function Header() {
         params.delete("q")
       }
 
-      // Debug: Log search execution
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Header] executeSearch called:', {
-          searchValue: trimmed,
-          searchCityId,
-          navType: nav.type,
-          finalParams: params.toString(),
-        })
-      }
-
       const targetUrl = buildCategoryUrl(nav, undefined, params)
 
       if (options?.replace) {
@@ -865,17 +818,6 @@ export function Header() {
       // Use overrideCityId if provided, otherwise use current searchCityId state
       const cityIdToUse = overrideCityId !== undefined ? overrideCityId : searchCityId
       
-      // Debug: Log what we received
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Header] handleSearchSubmit called:', {
-          overrideValue,
-          overrideCityId,
-          searchCityId,
-          cityIdToUse,
-          selectedNavType: selectedNav.type,
-        })
-      }
-      
       // Create params with the correct cityId
       const params = new URLSearchParams()
       params.set("types", selectedNav.type)
@@ -888,23 +830,7 @@ export function Header() {
         params.set("q", trimmed)
       }
       
-      // Debug: Log params before buildCategoryUrl
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Header] handleSearchSubmit - params before buildCategoryUrl:', {
-          params: params.toString(),
-          hasCityId: params.has('city_id'),
-          cityIdValue: params.get('city_id'),
-          cityIdToUse,
-        })
-      }
-      
       const targetUrl = buildCategoryUrl(selectedNav, undefined, params)
-      
-      // Debug: Log final URL
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Header] handleSearchSubmit - Final URL:', targetUrl)
-      }
-      
       router.push(targetUrl)
       
       if (trimmed) {
@@ -1693,6 +1619,7 @@ return (
         className="fixed inset-0 hidden lg:block z-[55] bg-black/65"
         role="presentation"
         aria-hidden="true"
+        onClick={() => setIsDesktopSearchSuggestionsOpen(false)}
       />
     )}
     {isSearchPanelOpen && (
@@ -1880,7 +1807,7 @@ return (
         {/* Logo — по центру только на мобиле */}
         <div className="flex-1 flex justify-center min-w-0 lg:hidden">
           <Link href="/" className="flex items-center shrink-0 -ml-1 min-w-0">
-            <div className="relative h-8 w-[100px] xs:h-9 xs:w-[120px] sm:h-10 sm:w-[140px]">
+            <div className="relative h-8 w-[100px] sm:h-9 sm:w-[120px] md:h-10 md:w-[140px]">
               <Image
                 src="/logo_dark.webp"
                 alt="Allesinda Logo"
@@ -1893,8 +1820,30 @@ return (
           </Link>
         </div>
 
-        {/* Desktop: spacer между лого и действиями */}
-        <div className="hidden flex-1 lg:block" aria-hidden="true" />
+        {/* Desktop: Suche */}
+        <div className="hidden lg:flex flex-1 min-w-0 max-w-3xl px-2">
+          <HeaderSearchBar
+            variant="desktop"
+            value={searchValue}
+            onValueChange={setSearchValue}
+            cityId={searchCityId}
+            onCityChange={setSearchCityId}
+            onSubmit={handleSearchSubmit}
+            placeholder="Handwerker, Dienstleistung oder Stadt suchen"
+            onOpenChange={setIsDesktopSearchSuggestionsOpen}
+            recentSearches={recentSearches}
+            onRecentSelect={handleSearchSubmit}
+            onClearRecent={handleClearRecent}
+            trendingItems={trendingForSelected.items}
+            trendingStatus={trendingForSelected.status}
+            onTrendingSelect={handleTrendingSelect}
+            recentlyViewed={recentlyViewedDisplayItems}
+            onRecentlyViewedSelect={handleRecentlyViewedSelect}
+            onRecentlyViewedRemove={handleRemoveRecentlyViewedItem}
+            onClearRecentlyViewed={handleClearRecentlyViewed}
+            onExploreTrending={handleExploreTrending}
+          />
+        </div>
 
         {/* Desktop Navigation — скрыто: кнопки Meister/Mieten не показываем на всех устройствах */}
         <nav className="hidden" role="tablist" aria-label="Navigation">
@@ -1925,7 +1874,7 @@ return (
 
         {/* Desktop: призыв к регистрации (только для неавторизованных) */}
         {!user && (
-          <div className="hidden lg:flex flex-1 justify-end mr-2">
+          <div className="hidden lg:flex shrink-0 mr-2">
             <Link
               href="/signup"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold !text-black shadow-sm transition-all duration-200 hover:bg-primary/90 hover:!text-black hover:font-bold hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
@@ -1937,6 +1886,17 @@ return (
 
         {/* Right Actions */}
         <div className="flex-1 flex justify-end items-center gap-1 sm:gap-2 lg:flex-initial lg:ml-auto">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 rounded-sm text-black/70 hover:text-black hover:bg-black/5 shrink-0"
+            aria-label="Suchen"
+            onClick={() => setIsSearchPanelOpen(true)}
+          >
+            <Search className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
+          </Button>
+
           {user && (
             <>
               <Link
@@ -2114,14 +2074,14 @@ return (
                 </div>
 
                 <HeaderSearchBar
-                  variant="desktop"
+                  variant="mobile"
                   value={searchValue}
                   onValueChange={setSearchValue}
                   cityId={searchCityId}
                   onCityChange={setSearchCityId}
                   showInlineCity={false}
                   onSubmit={handleSearchSubmitAndClose}
-                  placeholder={`Suchen ${selectedNav.label.toLowerCase()}`}
+                  placeholder="Handwerker, Dienstleistung oder Stadt suchen"
                   onInputRef={(node) => { searchPanelInputRef.current = node; }}
                   recentSearches={recentSearches}
                   onRecentSelect={handleSearchSubmitAndClose}

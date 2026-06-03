@@ -1842,7 +1842,7 @@ function MessagesPageContent() {
 
   if (loading && conversations.length === 0) {
     return (
-      <div className="h-[calc(100dvh-3.5rem)] min-h-[200px] sm:h-[calc(100dvh-5.5rem)] md:h-[calc(100dvh-7rem)] bg-background flex items-center justify-center">
+      <div className="h-[calc(100dvh-4rem)] min-h-[200px] md:h-[calc(100dvh-4rem)] bg-background flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-sm text-muted-foreground">Unterhaltungen werden geladen...</p>
@@ -1855,9 +1855,7 @@ function MessagesPageContent() {
     <div
       className={cn(
         "bg-background flex flex-col overflow-hidden min-h-0",
-        "h-[calc(100dvh-3.5rem)] min-h-[200px] max-h-[calc(100dvh-3.5rem)]",
-        "sm:h-[calc(100dvh-5.5rem)] sm:min-h-[200px] sm:max-h-[calc(100dvh-5.5rem)]",
-        "md:h-[calc(100dvh-7rem)] md:min-h-[200px] md:max-h-[calc(100dvh-7rem)]",
+        "h-[calc(100dvh-4rem)] min-h-[200px] max-h-[calc(100dvh-4rem)]",
       )}
     >
       <div className="container mx-auto px-sides flex-1 min-h-0 flex flex-col">

@@ -208,15 +208,6 @@ export function HeaderSearchBar({
   // Pass current cityId to onSubmit to ensure we use the latest value
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    // Debug: Log what we're passing
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[HeaderSearchBar] handleSubmit - Passing to onSubmit:', {
-        value,
-        cityId,
-        hasCityId: cityId !== undefined,
-      })
-    }
-    // Pass the current cityId value to ensure we use the latest value, not a stale closure
     onSubmit(value, cityId)
     handleOpenChange(false)
   }

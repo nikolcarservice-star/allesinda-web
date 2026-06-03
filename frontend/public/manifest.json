@@ -1,7 +1,7 @@
 {
   "name": "Allesinda",
   "short_name": "Allesinda",
-  "description": "Find Masters, Products & Rentals",
+  "description": "Handwerker und Reparaturdienste in ganz Deutschland finden",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#3adcd5",

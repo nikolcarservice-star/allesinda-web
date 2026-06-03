@@ -91,7 +91,7 @@ function MobileBottomNav() {
               window.scrollTo({ top: 0, behavior: "smooth" })
             }}
             className={cn(
-              "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[10px] font-semibold leading-tight transition-colors sm:text-[11px]",
+              "touch-target flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[10px] font-semibold leading-tight transition-colors sm:text-[11px]",
               active ? "text-black" : "text-neutral-500 hover:text-neutral-800",
             )}
             aria-current={active ? "page" : undefined}

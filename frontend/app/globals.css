@@ -285,9 +285,9 @@
     line-height: 1.5;
   }
 
-  /* Better touch targets on mobile */
+  /* Optional minimum touch target — apply .touch-target on specific controls only */
   @media (width < 640px) {
-    button, a, [role="button"] {
+    .touch-target {
       min-height: 44px;
       min-width: 44px;
     }
