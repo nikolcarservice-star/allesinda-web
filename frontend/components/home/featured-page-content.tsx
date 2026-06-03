@@ -1500,7 +1500,7 @@ export function FeaturedPageContent() {
       {/* Breadcrumb Header */}
       <div className="relative bg-background overflow-hidden">
         <div className="border-b border-border/40 w-full"></div>
-        <div className="container mx-auto px-sides py-3 sm:py-3.5 md:py-4 relative z-10">
+        <div className="container mx-auto px-sides py-1.5 sm:py-3.5 md:py-4 relative z-10">
           <nav className="flex items-center gap-2 text-sm text-muted-foreground" aria-label="Brotkrümelnavigation">
             {breadcrumbItems.map((item, index) => {
               const isLast = item.isLast
@@ -2057,7 +2057,7 @@ export function FeaturedPageContent() {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-4 pb-6 lg:hidden">
+        <div className="flex items-center justify-end gap-4 pb-2 lg:hidden">
           {/* Filter button - hidden on large screens */}
           <Button
             variant="outline"

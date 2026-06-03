@@ -169,13 +169,13 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
   return (
     <section id="hero-search" className="relative w-full overflow-hidden scroll-mt-16 sm:scroll-mt-[72px]">
       {/* Hero: команда на фото — мобиле текст поверх, десктоп текст слева + поиск */}
-      <div className="relative w-full min-h-[72vh] sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh]">
+      <div className="relative w-full h-[min(34dvh,12.5rem)] sm:min-h-[50vh] sm:h-auto md:min-h-[58vh] lg:min-h-[65vh]">
         <div className="absolute inset-0">
           <Image
             src={HERO_IMAGE}
             alt="Team aus geprüften Handwerkern und Dienstleistern"
             fill
-            className="object-cover object-[50%_28%] sm:object-[72%_center] md:object-[78%_center] brightness-[0.92] sm:brightness-[0.9]"
+            className="object-cover object-[50%_22%] sm:object-[72%_center] md:object-[78%_center] brightness-[0.92] sm:brightness-[0.9]"
             sizes="100vw"
             priority
           />
@@ -193,15 +193,15 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
         />
         <div className="absolute inset-0 hidden sm:block bg-black/10" aria-hidden />
 
-        <div className="relative z-10 container mx-auto flex min-h-[inherit] flex-col justify-end sm:justify-center px-sides pb-5 pt-20 sm:px-8 sm:py-14 md:px-12 lg:px-16 lg:py-20">
+        <div className="relative z-10 container mx-auto flex min-h-[inherit] flex-col justify-end sm:justify-center px-sides pb-3 pt-14 sm:px-8 sm:pb-5 sm:pt-20 sm:py-14 md:px-12 lg:px-16 lg:py-20">
           <div className="w-full max-w-2xl min-w-0">
-            <p className="mb-2 inline-flex rounded-full bg-primary/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-black shadow-sm sm:mb-3 sm:bg-primary sm:text-xs">
+            <p className="mb-1 inline-flex rounded-full bg-primary/90 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-black shadow-sm sm:mb-3 sm:px-3 sm:py-1 sm:bg-primary sm:text-xs">
               Geprüfte Profis · Direkt buchen
             </p>
-            <h1 className="text-[1.35rem] font-bold leading-[1.2] tracking-tight text-white text-balance drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)] sm:text-4xl sm:text-neutral-900 sm:drop-shadow-none md:text-5xl md:leading-tight">
+            <h1 className="text-lg font-bold leading-tight tracking-tight text-white text-balance drop-shadow-[0_1px_12px_rgba(0,0,0,0.45)] sm:text-4xl sm:leading-[1.2] sm:text-neutral-900 sm:drop-shadow-none md:text-5xl md:leading-tight">
               {HERO_HEADLINE}
             </h1>
-            <p className="mt-2 max-w-md text-sm leading-snug text-white/95 text-pretty drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-lg sm:leading-relaxed sm:text-neutral-700 sm:drop-shadow-none">
+            <p className="mt-1 max-w-md text-xs leading-snug text-white/95 text-pretty line-clamp-2 drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)] sm:mt-4 sm:text-lg sm:leading-relaxed sm:line-clamp-none sm:text-neutral-700 sm:drop-shadow-none">
               {HERO_SUBHEADLINE}
             </p>
 
@@ -262,7 +262,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
       {/* Categories: ровно под баннером, те же отступы что и контент для выравнивания на мобиле и десктопе */}
       {(categoriesLoading || categories.length > 0) && (
         <div className="w-full border-t border-border/40 bg-muted/40">
-          <div className="container mx-auto py-2.5 sm:py-4 w-full max-w-[1920px] px-3 sm:px-8 md:px-12 lg:px-16">
+          <div className="container mx-auto py-1.5 sm:py-4 w-full max-w-[1920px] px-3 sm:px-8 md:px-12 lg:px-16">
             <div className="relative flex items-center gap-1 w-full">
               <Button
                 type="button"
@@ -321,7 +321,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                           type="button"
                           onClick={() => onCategoryClick?.(category)}
                           className={cn(
-                            "flex shrink-0 flex-col items-center gap-2 rounded-md bg-muted/70 hover:bg-muted px-3 py-3 min-w-[100px] sm:min-w-[120px]",
+                            "flex shrink-0 flex-col items-center gap-1 rounded-md bg-muted/70 hover:bg-muted px-2 py-2 min-w-[84px] sm:gap-2 sm:px-3 sm:py-3 sm:min-w-[120px]",
                             "text-center text-xs sm:text-sm font-medium text-foreground",
                             "hover:text-primary transition-colors",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
@@ -329,7 +329,7 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                             isActive && "border-primary text-primary"
                           )}
                         >
-                          <span className="relative flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 overflow-hidden rounded-md bg-muted border border-border/40">
+                          <span className="relative flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 overflow-hidden rounded-md bg-muted border border-border/40">
                             <Image
                               src={imageSrc}
                               alt=""
