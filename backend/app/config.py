@@ -38,7 +38,7 @@ class Settings(BaseModel):
     # File Storage
     UPLOAD_FOLDER: str = Field(default=os.getenv("UPLOAD_FOLDER", "uploads"), description="Local folder path for storing uploaded media files")
     MEDIA_URL_PREFIX: str = Field(default=os.getenv("MEDIA_URL_PREFIX", "/media/files"), description="URL prefix for serving uploaded media files")
-    BASE_URL: Optional[str] = Field(default=os.getenv("BASE_URL"), description="Base URL for the API (e.g., https://api.allesinda.com). If set, media URLs will be absolute.")
+    BASE_URL: Optional[str] = Field(default=os.getenv("BASE_URL"), description="Canonical API URL (e.g., https://api.allesinda.de). Used for media URLs and production host redirects.")
     S3_BUCKET_NAME: Optional[str] = Field(default=os.getenv("S3_BUCKET_NAME"), description="S3 bucket name for media storage")
     S3_REGION: Optional[str] = Field(default=os.getenv("S3_REGION", "us-east-1"), description="S3 region")
     CDN_URL: Optional[str] = Field(default=os.getenv("CDN_URL"), description="CDN URL for media delivery")

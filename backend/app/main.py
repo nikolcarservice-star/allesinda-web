@@ -11,6 +11,7 @@ from slowapi.errors import RateLimitExceeded
 from .database import Base, engine, safe_create_all, ensure_schema
 from .routers import auth, masters, sellers, products, rentals, media, orders, reviews, search, admin, payments, chat, gallery, favorites, featured, relationships, notifications, categories, users, trending, cities, push
 from .config import settings
+from .middleware import CanonicalHostMiddleware
 from .utils.image_optimizer import cleanup_image_cache
 import logging
 import sys
@@ -122,6 +123,9 @@ app.add_middleware(
     expose_headers=["X-Total-Count", "X-Page", "X-Page-Size"],
     max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+# Redirect api.allesinda.com / www → canonical api.allesinda.de in production
+app.add_middleware(CanonicalHostMiddleware)
 
 # Optional API prefix (e.g. API_PREFIX=/api → routes at /api/auth, /api/media, ...)
 # Set in backend env if your proxy serves the API under a path. Then set NEXT_PUBLIC_API_URL to https://api.allesinda.com/api
