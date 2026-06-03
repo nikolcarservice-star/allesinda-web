@@ -228,6 +228,24 @@
 }
 
 @layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* PWA / «Добавить на экран»: чуть меньший масштаб, без «раздутого» вида после входа */
+  @media (display-mode: standalone) {
+    html {
+      font-size: 14px;
+    }
+  }
+
+  @media (min-width: 640px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
   * {
     @apply border-border outline-ring/50;
     transition-property: background-color, border-color, color, fill, stroke;

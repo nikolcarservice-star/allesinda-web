@@ -19,8 +19,8 @@ self.addEventListener("push", function (event) {
   var options = {
     body: body,
     tag: tag,
-    icon: "/logo_dark.webp",
-    badge: "/logo_dark.webp",
+    icon: "/icon-maskable-192.png",
+    badge: "/icon-maskable-192.png",
     data: { url: url },
     requireInteraction: false,
     vibrate: [200, 100, 200],

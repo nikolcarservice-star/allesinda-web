@@ -167,8 +167,26 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
 
   return (
     <section id="hero-search" className="relative w-full overflow-x-hidden overflow-y-visible scroll-mt-16 sm:scroll-mt-[72px]">
-      {/* Banner: мобиле — только текст (поиск в шапке); с sm — фото и строка поиска */}
-      <div className="relative w-full sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] bg-gradient-to-b from-primary/[0.06] via-background to-background sm:bg-transparent">
+      {/* Banner: мобиле — компактное фото (contain) + текст; с sm — полноэкранный cover */}
+      <div className="relative w-full sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] bg-background sm:bg-transparent">
+        {/* Mobile: узкая полоса с фото — мастер виден целиком, без сильного zoom */}
+        <div className="relative z-0 h-[7.25rem] w-full overflow-hidden sm:hidden bg-neutral-100">
+          <div className="absolute inset-y-0 right-0 w-[78%] max-w-[20rem]">
+            <Image
+              src="/hero-handwerker.png"
+              alt=""
+              fill
+              className="object-contain object-right brightness-[0.92]"
+              sizes="(max-width: 640px) 78vw"
+              priority
+            />
+          </div>
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-background from-35% via-background/75 via-55% to-transparent"
+            aria-hidden
+          />
+        </div>
+
         <div className="absolute inset-0 z-0 overflow-hidden hidden sm:block">
           <div className="absolute inset-0">
             <Image
@@ -187,13 +205,13 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
           />
         </div>
 
-        <div className="relative z-10 container mx-auto sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-7 sm:py-10 md:py-14 lg:py-20 px-sides sm:px-8 md:px-12 lg:px-16">
+        <div className="relative z-10 container mx-auto sm:min-h-[50vh] md:min-h-[58vh] lg:min-h-[65vh] flex flex-col justify-center py-4 sm:py-10 md:py-14 lg:py-20 px-sides sm:px-8 md:px-12 lg:px-16">
           <div className="max-w-2xl w-full min-w-0">
-            <div className="mx-auto max-w-[22rem] text-center sm:mx-0 sm:max-w-lg sm:text-left min-w-0">
-              <h1 className="text-[1.375rem] font-bold leading-[1.25] tracking-tight text-neutral-900 sm:text-4xl md:text-5xl sm:text-white">
+            <div className="min-w-0 text-left sm:max-w-lg">
+              <h1 className="text-base font-bold leading-snug tracking-tight text-neutral-900 sm:text-4xl md:text-5xl sm:text-white">
                 {HERO_HEADLINE}
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-600 sm:mt-4 sm:text-lg sm:text-white/90 sm:max-w-md">
+              <p className="mt-2 text-xs leading-relaxed text-neutral-600 sm:mt-4 sm:text-lg sm:text-white/90 sm:max-w-md">
                 {HERO_SUBHEADLINE}
               </p>
             </div>

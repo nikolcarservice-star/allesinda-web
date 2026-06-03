@@ -54,11 +54,24 @@ export const metadata: Metadata = {
   description: "Ihr Marktplatz für geprüfte Handwerker und Reparaturdienste in ganz Deutschland.",
   generator: "v0.app",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon-maskable.svg", type: "image/svg+xml" },
+      { url: "/icon-maskable-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Allesinda",
+    statusBarStyle: "default",
+  },
 }
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  minimumScale: 1,
   maximumScale: 5,
   viewportFit: "cover" as const,
   themeColor: THEME_COLOR,
