@@ -127,9 +127,9 @@ export function MasterProfileMobileView({
           <ActionButton
             href={contactHref}
             actionLabel="kontaktieren"
-            variant="outline"
+            variant="default"
             size="lg"
-            className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
+            className="h-11 flex-1 rounded-lg text-xs font-bold uppercase tracking-wide shadow-none hover:[&_svg]:text-black"
           >
             <Phone className="mr-2 h-4 w-4" />
             Kontakt
@@ -139,9 +139,9 @@ export function MasterProfileMobileView({
             description={shareDescription}
             label="Profil teilen"
             copiedLabel="Kopiert!"
-            variant="outline"
+            variant="default"
             size="lg"
-            className="h-11 flex-1 rounded-lg border-neutral-300 bg-white text-xs font-bold uppercase tracking-wide text-foreground shadow-none hover:bg-neutral-50"
+            className="h-11 flex-1 rounded-lg text-xs font-bold uppercase tracking-wide shadow-none hover:[&_svg]:text-black"
           />
         </div>
 
