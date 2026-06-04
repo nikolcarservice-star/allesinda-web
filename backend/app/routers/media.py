@@ -27,6 +27,10 @@ router = APIRouter(prefix="/media", tags=["media"])
 
 VALID_VIDEO_EXTENSIONS = frozenset({"mp4", "mov", "avi", "webm", "mkv", "m4v", "3gp"})
 
+
+def _max_video_bytes() -> int:
+    return settings.MAX_VIDEO_UPLOAD_SIZE_MB * 1024 * 1024
+
 CONTENT_TYPE_TO_VIDEO_EXT = {
     "video/mp4": "mp4",
     "video/webm": "webm",
@@ -277,7 +281,8 @@ async def upload_media(
             )
         file_ext = _resolve_video_extension(content_type, file_ext)
         
-        # Check file size (max 50MB for videos, recommended for vertical/stories format)
+        # Check file size (supports ~1 min clips at typical phone bitrates)
+        max_video_bytes = _max_video_bytes()
         file_size = 0
         try:
             content = await file.read()
@@ -286,8 +291,11 @@ async def upload_media(
         except Exception as read_err:
             logger.warning("Could not read video for size check: %s", read_err)
         
-        if file_size > 50 * 1024 * 1024:  # 50MB
-            raise HTTPException(400, "Video file too large. Maximum size is 50MB")
+        if file_size > max_video_bytes:
+            raise HTTPException(
+                400,
+                f"Video file too large. Maximum size is {settings.MAX_VIDEO_UPLOAD_SIZE_MB}MB",
+            )
         if file_size == 0:
             raise HTTPException(400, "Video file is empty")
         
@@ -502,9 +510,15 @@ async def upload_media_batch(
             # Add index to ensure uniqueness even if timestamps are identical
             unique_filename = f"{user.id}_{timestamp}_{microseconds}_{idx}.{file_ext}" if file_ext else f"{user.id}_{timestamp}_{microseconds}_{idx}"
             
+            content = await file.read()
+            if media_type == "video" and len(content) > _max_video_bytes():
+                logger.warning("Skipping oversized video in batch: %s", file.filename)
+                continue
+            if len(content) == 0:
+                continue
+
             # Save file to disk
             file_path = os.path.join(full_dir_path, unique_filename)
-            content = await file.read()
             with open(file_path, "wb") as f:
                 f.write(content)
             

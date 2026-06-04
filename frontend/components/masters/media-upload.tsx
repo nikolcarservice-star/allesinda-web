@@ -27,6 +27,11 @@ import { Upload, Image as ImageIcon, Video, Loader2 } from "lucide-react"
 import { uploadMedia } from "@/lib/api/media"
 import { getCategoriesByType } from "@/lib/api/categories"
 import { toast } from "sonner"
+import {
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_VIDEO_UPLOAD_BYTES,
+  maxUploadSizeLabel,
+} from "@/lib/upload-limits"
 import Image from "next/image"
 import type { Category } from "@/lib/api/types"
 
@@ -84,11 +89,9 @@ export function MediaUpload({ onUploadComplete }: MediaUploadProps) {
     }
 
     // Validate file size
-    const maxSize = mediaType === "video" ? 50 * 1024 * 1024 : 10 * 1024 * 1024 // 50MB for video, 10MB for image
+    const maxSize = mediaType === "video" ? MAX_VIDEO_UPLOAD_BYTES : MAX_IMAGE_UPLOAD_BYTES
     if (selectedFile.size > maxSize) {
-      toast.error(
-        `File too large. Maximum size: ${mediaType === "video" ? "50MB" : "10MB"}`
-      )
+      toast.error(`File too large. Maximum size: ${maxUploadSizeLabel(mediaType === "video")}`)
       return
     }
 
@@ -235,7 +238,7 @@ export function MediaUpload({ onUploadComplete }: MediaUploadProps) {
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Supported formats: Images (JPG, PNG, WebP) or Videos (MP4, MOV, AVI, WebM, MKV). Max size: 10MB for images, 50MB for videos.
+              Supported formats: Images (JPG, PNG, WebP) or Videos (MP4, MOV, AVI, WebM, MKV). Max size: {maxUploadSizeLabel(false)} for images, {maxUploadSizeLabel(true)} for videos.
             </p>
           </div>
 

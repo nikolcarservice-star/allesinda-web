@@ -24,6 +24,7 @@ import { AccountSessionSection } from "@/components/profile/account-session-sect
 import { MasterCabinetDesktop } from "@/components/master/master-cabinet-desktop"
 import { formatDistanceToNow } from "date-fns"
 import { de } from "date-fns/locale/de"
+import { MAX_VIDEO_UPLOAD_BYTES, MAX_VIDEO_UPLOAD_MB } from "@/lib/upload-limits"
 
 const ABOUT_LIMIT = 500
 const MASTER_PHOTO_LIMIT = 20
@@ -509,7 +510,7 @@ export function MasterCabinet() {
       const uploadedVideos: Media[] = []
       let skippedLarge = 0
       for (const file of filesToUpload) {
-        if (file.size > 50 * 1024 * 1024) {
+        if (file.size > MAX_VIDEO_UPLOAD_BYTES) {
           skippedLarge += 1
           continue
         }
@@ -525,10 +526,10 @@ export function MasterCabinet() {
         setMasterVideos((prev) => [...prev, ...uploadedVideos].slice(0, MASTER_VIDEO_LIMIT))
         toast.success(`${uploadedVideos.length} Video${uploadedVideos.length === 1 ? "" : "s"} hochgeladen`)
       } else if (skippedLarge > 0) {
-        toast.error("Video ist größer als 50 MB")
+        toast.error(`Video ist größer als ${MAX_VIDEO_UPLOAD_MB} MB`)
       }
       if (skippedLarge > 0 && uploadedVideos.length > 0) {
-        toast.error("Einige Videos sind größer als 50 MB und wurden übersprungen")
+        toast.error(`Einige Videos sind größer als ${MAX_VIDEO_UPLOAD_MB} MB und wurden übersprungen`)
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Video konnte nicht hochgeladen werden"

@@ -36,6 +36,14 @@ class Settings(BaseModel):
     STRIPE_COMMISSION_RATE: float = Field(default=float(os.getenv("STRIPE_COMMISSION_RATE", "0.10")), description="Platform commission rate (0.10 = 10%)")
     
     # File Storage
+    MAX_VIDEO_UPLOAD_SIZE_MB: int = Field(
+        default=int(os.getenv("MAX_VIDEO_UPLOAD_SIZE_MB", "100")),
+        description="Maximum video upload size in megabytes",
+    )
+    MAX_IMAGE_UPLOAD_SIZE_MB: int = Field(
+        default=int(os.getenv("MAX_IMAGE_UPLOAD_SIZE_MB", "10")),
+        description="Maximum image upload size in megabytes",
+    )
     UPLOAD_FOLDER: str = Field(default=os.getenv("UPLOAD_FOLDER", "uploads"), description="Local folder path for storing uploaded media files")
     MEDIA_URL_PREFIX: str = Field(default=os.getenv("MEDIA_URL_PREFIX", "/media/files"), description="URL prefix for serving uploaded media files")
     BASE_URL: Optional[str] = Field(default=os.getenv("BASE_URL"), description="Canonical API URL (e.g., https://api.allesinda.de). Used for media URLs and production host redirects.")

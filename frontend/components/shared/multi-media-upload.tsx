@@ -10,6 +10,12 @@ import { uploadMediaBatch, uploadMedia } from "@/lib/api/media"
 import { toast } from "sonner"
 import Image from "next/image"
 import type { Media } from "@/lib/api/types"
+import {
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_VIDEO_UPLOAD_BYTES,
+  MAX_VIDEO_UPLOAD_MB,
+  maxUploadSizeLabel,
+} from "@/lib/upload-limits"
 
 interface MultiMediaUploadProps {
   productId?: number
@@ -64,9 +70,9 @@ export function MultiMediaUpload({
       }
 
       // Validate file size
-      const maxSize = mediaType === "video" ? 50 * 1024 * 1024 : 10 * 1024 * 1024
+      const maxSize = mediaType === "video" ? MAX_VIDEO_UPLOAD_BYTES : MAX_IMAGE_UPLOAD_BYTES
       if (file.size > maxSize) {
-        toast.error(`${file.name}: File too large. Maximum size: ${mediaType === "video" ? "50MB" : "10MB"}`)
+        toast.error(`${file.name}: File too large. Maximum size: ${maxUploadSizeLabel(mediaType === "video")}`)
         return null
       }
 
@@ -242,7 +248,7 @@ export function MultiMediaUpload({
         />
         <p className="text-xs sm:text-sm text-muted-foreground">
           {mediaType === "video" 
-            ? "Supported: MP4, MOV, AVI, WebM, MKV (max 50MB each)"
+            ? `Supported: MP4, MOV, AVI, WebM, MKV (max ${MAX_VIDEO_UPLOAD_MB}MB each)`
             : "Supported: JPG, PNG, GIF, WebP (max 10MB each)"
           }
         </p>

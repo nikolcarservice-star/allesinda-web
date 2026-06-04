@@ -12,6 +12,13 @@ import { toast } from "sonner"
 import Image from "next/image"
 import type { Media } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
+import {
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_VIDEO_UPLOAD_BYTES,
+  MAX_IMAGE_UPLOAD_MB,
+  MAX_VIDEO_UPLOAD_MB,
+  maxUploadSizeLabel,
+} from "@/lib/upload-limits"
 
 interface ProductRentalMediaUploadProps {
   productId?: number
@@ -82,11 +89,9 @@ export function ProductRentalMediaUpload({
       }
 
       // Validate file size
-      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024 // 50MB for video, 10MB for image
+      const maxSize = isVideo ? MAX_VIDEO_UPLOAD_BYTES : MAX_IMAGE_UPLOAD_BYTES
       if (file.size > maxSize) {
-        toast.error(
-          `${file.name} is too large. Maximum size: ${isVideo ? "50MB" : "10MB"}`
-        )
+        toast.error(`${file.name} is too large. Maximum size: ${maxUploadSizeLabel(isVideo)}`)
         continue
       }
 
@@ -343,7 +348,7 @@ export function ProductRentalMediaUpload({
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground max-w-md">
             Supported: Images (JPG, PNG, WebP) or Videos (MP4, MOV, AVI, WebM, MKV).
-            Max size: 10MB for images, 50MB for videos.
+            Max size: {MAX_IMAGE_UPLOAD_MB}MB for images, {MAX_VIDEO_UPLOAD_MB}MB for videos.
           </p>
         </div>
       </div>

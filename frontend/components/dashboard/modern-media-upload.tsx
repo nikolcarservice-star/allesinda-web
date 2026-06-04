@@ -12,6 +12,13 @@ import { uploadMedia, uploadMediaBatch } from "@/lib/api/media"
 import { toast } from "sonner"
 import Image from "next/image"
 import type { Media } from "@/lib/api/types"
+import {
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_VIDEO_UPLOAD_BYTES,
+  MAX_IMAGE_UPLOAD_MB,
+  MAX_VIDEO_UPLOAD_MB,
+  maxUploadSizeLabel,
+} from "@/lib/upload-limits"
 
 interface ModernMediaUploadProps {
   profileId?: number
@@ -93,11 +100,9 @@ export function ModernMediaUpload({
       }
 
       // Validate file size
-      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024 // 50MB for video, 10MB for image
+      const maxSize = isVideo ? MAX_VIDEO_UPLOAD_BYTES : MAX_IMAGE_UPLOAD_BYTES
       if (file.size > maxSize) {
-        toast.error(
-          `${file.name} is too large. Maximum size: ${isVideo ? "50MB" : "10MB"}`
-        )
+        toast.error(`${file.name} is too large. Maximum size: ${maxUploadSizeLabel(isVideo)}`)
         continue
       }
 
@@ -314,7 +319,7 @@ export function ModernMediaUpload({
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground max-w-md">
             Unterstützt: Bilder (JPG, PNG, WebP) oder Videos (MP4, MOV, AVI, WebM, MKV).
-            Max. Größe: 10MB für Bilder, 50MB für Videos.
+            Max. Größe: {MAX_IMAGE_UPLOAD_MB}MB für Bilder, {MAX_VIDEO_UPLOAD_MB}MB für Videos.
             {maxFiles && ` Max. ${maxFiles} Datei${maxFiles > 1 ? "en" : ""}.`}
           </p>
         </div>
