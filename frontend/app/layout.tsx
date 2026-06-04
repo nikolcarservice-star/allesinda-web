@@ -50,12 +50,38 @@ const getMetadataBase = (): string => {
 
 const THEME_COLOR = "#3cdcd5"
 
+const SITE_TITLE = "Allesinda – Handwerker finden"
+const SITE_DESCRIPTION =
+  "Ihr Marktplatz für geprüfte Handwerker und Reparaturdienste in ganz Deutschland."
+const OG_IMAGE_PATH = "/og-image.png"
+
 export const metadata: Metadata = {
   metadataBase: new URL(getMetadataBase()),
-  title: "Allesinda – Handwerker finden",
-  description: "Ihr Marktplatz für geprüfte Handwerker und Reparaturdienste in ganz Deutschland.",
-  generator: "v0.app",
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
   manifest: "/manifest.json",
+  openGraph: {
+    type: "website",
+    locale: "de_DE",
+    url: "/",
+    siteName: "Allesinda",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: OG_IMAGE_PATH,
+        width: 1200,
+        height: 1200,
+        alt: "Allesinda – Marktplatz für geprüfte Handwerker",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE_PATH],
+  },
   icons: {
     icon: [
       { url: "/icon-maskable-512.png", sizes: "512x512", type: "image/png" },
