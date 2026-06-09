@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import Image from "next/image"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Search, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CityCombobox } from "@/components/shared/city-combobox"
 import { cn, getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
-import type { CategoryTree } from "@/lib/api"
+import type { CategoryTree, CategoryType } from "@/lib/api"
+import { SubcategorySection } from "@/components/home/subcategory-section"
 
 const HERO_HEADLINE = "Finde geprüfte Handwerker in ganz Deutschland"
 const HERO_SUBHEADLINE =
@@ -31,9 +32,22 @@ export type HeroBannerProps = {
   selectedCategory?: CategoryTree | null
   onCategoryClick?: (category: CategoryTree) => void
   categoriesLoading?: boolean
+  selectedNavType?: CategoryType
+  isSubcategoryTransitioning?: boolean
+  onCloseSubcategory?: () => void
+  subcategorySectionRef?: RefObject<HTMLDivElement | null>
 }
 
-export function HeroBanner({ categories = [], selectedCategory = null, onCategoryClick, categoriesLoading = false }: HeroBannerProps) {
+export function HeroBanner({
+  categories = [],
+  selectedCategory = null,
+  onCategoryClick,
+  categoriesLoading = false,
+  selectedNavType = "master",
+  isSubcategoryTransitioning = false,
+  onCloseSubcategory,
+  subcategorySectionRef,
+}: HeroBannerProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -459,6 +473,19 @@ export function HeroBanner({ categories = [], selectedCategory = null, onCategor
                 />
               </div>
             )}
+
+            {selectedCategory &&
+              selectedCategory.id !== -1 &&
+              (selectedCategory.children?.length ?? 0) > 0 && (
+                <div ref={subcategorySectionRef} className="mt-3 sm:mt-4">
+                  <SubcategorySection
+                    selectedCategory={selectedCategory}
+                    selectedNavType={selectedNavType}
+                    isTransitioning={isSubcategoryTransitioning}
+                    onClose={onCloseSubcategory}
+                  />
+                </div>
+              )}
           </div>
         </div>
       )}

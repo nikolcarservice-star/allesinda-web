@@ -131,7 +131,10 @@ export function SubcategorySection({
     if (subcategory.slug) {
       params.set("category", subcategory.slug)
     }
-    router.push(`/?${params.toString()}`)
+    router.push(`/?${params.toString()}`, { scroll: false })
+    window.setTimeout(() => {
+      document.getElementById("search-results")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 120)
   }
 
   // Calculate total count (if available from subcategories)

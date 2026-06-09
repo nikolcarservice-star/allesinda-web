@@ -405,6 +405,9 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
           router.push(`/?${params.toString()}`, { scroll: false })
           setTimeout(() => {
             setIsSubcategoryTransitioning(false)
+            if (isMobile) {
+              subcategorySectionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+            }
           }, 50)
         }, 200)
       }
@@ -604,6 +607,10 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
         selectedCategory={selectedCategory}
         onCategoryClick={handleCategoryClick}
         categoriesLoading={categoriesLoading}
+        selectedNavType={selectedNavType}
+        isSubcategoryTransitioning={isSubcategoryTransitioning}
+        onCloseSubcategory={handleCloseSubcategory}
+        subcategorySectionRef={subcategorySectionRef}
       />
 
       <section id="search-results" key={searchParams?.toString() ?? ""}>
