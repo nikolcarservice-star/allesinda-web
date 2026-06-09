@@ -1,0 +1,269 @@
+[
+  {
+    "category_id": 1,
+    "category_name": "Elektriker & Strom",
+    "slug": "elektriker-strom",
+    "meta_description": "Finden Sie geprüfte Elektriker und Elektrotechniker für Installation, Reparatur und moderne Energielösungen in Ihrer Region.",
+    "subcategories": [
+      { "sub_id": 101, "name": "Elektriker", "slug": "elektriker", "meta_description": "Zertifizierte Elektriker für Installation, Reparatur und Wartung elektrischer Anlagen." },
+      { "sub_id": 102, "name": "Smart-Home Installation", "slug": "smart-home-installation", "meta_description": "Professionelle Smart-Home Systeme für Hausautomatisierung und intelligente Steuerung." },
+      { "sub_id": 103, "name": "Netzwerk- & WLAN-Installateur", "slug": "netzwerk-wlan-installateur", "meta_description": "Optimierung von Internet, WLAN und Netzwerkinfrastruktur für Zuhause und Unternehmen." },
+      { "sub_id": 104, "name": "Antennen- & Satellitentechnik", "slug": "satellitentechnik", "meta_description": "Installation und Ausrichtung von Satelliten- und Antennenanlagen." },
+      { "sub_id": 105, "name": "Lichtplanung & Beleuchtung", "slug": "lichtplanung-beleuchtung", "meta_description": "Moderne Lichtplanung für Innen- und Außenbereiche." },
+      { "sub_id": 106, "name": "E-Ladesäulen Installation", "slug": "wallbox-e-ladesaeule-installation", "meta_description": "Installation von Wallboxen und Ladesäulen für Elektrofahrzeuge." },
+      { "sub_id": 107, "name": "Photovoltaik & Solaranlagen", "slug": "photovoltaik-solar", "meta_description": "Planung und Installation von Solaranlagen für nachhaltige Energie." },
+      { "sub_id": 108, "name": "Industrieelektrik", "slug": "industrieelektrik", "meta_description": "Elektrische Anlagen und Wartung für Industrie und Produktion." },
+      { "sub_id": 109, "name": "Elektroplanung", "slug": "elektroplanung", "meta_description": "Professionelle Elektroplanung für Neubau und Sanierung." },
+      { "sub_id": 110, "name": "Notstrom & USV Systeme", "slug": "notstrom-usv-systeme", "meta_description": "USV- und Notstromlösungen für Unternehmen und kritische Infrastruktur." }
+    ]
+  },
+  {
+    "category_id": 2,
+    "category_name": "Sanitär & Wasser",
+    "slug": "sanitaer-wasser",
+    "meta_description": "Finden Sie Sanitär- und Wasserinstallateure für Reparaturen, Installation und Wartung von Wasser- und Heizsystemen.",
+    "subcategories": [
+      { "sub_id": 201, "name": "Sanitärinstallateur", "slug": "sanitaerinstallateur", "meta_description": "Installation und Reparatur von Sanitäranlagen im Bad und Küche." },
+      { "sub_id": 202, "name": "Klempner Notdienst", "slug": "klempner-notdienst", "meta_description": "24/7 Notdienst für Rohrbrüche und Sanitärprobleme." },
+      { "sub_id": 203, "name": "Rohr- & Kanalreinigung", "slug": "rohr-kanalreinigung", "meta_description": "Beseitigung von Verstopfungen in Rohren und Abwassersystemen." },
+      { "sub_id": 204, "name": "Rohrsanierung", "slug": "rohrsanierung", "meta_description": "Moderne grabenlose Rohrsanierungstechniken." },
+      { "sub_id": 205, "name": "Leckortung", "slug": "leckortung", "meta_description": "Präzise Lecksuche mit moderner Messtechnik." },
+      { "sub_id": 206, "name": "Wasseraufbereitung", "slug": "wasseraufbereitung", "meta_description": "Systeme zur Wasserfilterung und Enthärtung." },
+      { "sub_id": 207, "name": "Pumpen- & Brunnenservice", "slug": "pumpen-brunnenservice", "meta_description": "Wartung und Installation von Pumpen und Brunnenanlagen." },
+      { "sub_id": 208, "name": "Brunnenbau", "slug": "brunnenbau", "meta_description": "Professioneller Bau von Brunnenanlagen für Garten und Gewerbe." },
+      { "sub_id": 209, "name": "Kanalinspektion Kamera", "slug": "kanalinspektion-kamera", "meta_description": "TV-Inspektion von Kanälen zur Schadensanalyse." },
+      { "sub_id": 210, "name": "Heizungs- & Wasserinstallation", "slug": "heizung-wasser-installation", "meta_description": "Kombinierte Installationsarbeiten für Wasser- und Heizsysteme." }
+    ]
+  },
+  {
+    "category_id": 3,
+    "category_name": "Sicherheit & Schlüsseldienst",
+    "slug": "sicherheit-schluesseldienst",
+    "meta_description": "Sicherheits- und Schlüsseldienste für Notöffnung, Alarmanlagen und moderne Sicherheitssysteme.",
+    "subcategories": [
+      { "sub_id": 301, "name": "Schlüsseldienst Notöffnung", "slug": "schluesseldienst-notoeffnung", "meta_description": "Schnelle Türöffnung im Notfall ohne Schäden." },
+      { "sub_id": 302, "name": "Schlüsselnachfertigung", "slug": "schluesselnachfertigung", "meta_description": "Duplikation und Anfertigung von Schlüsseln aller Art." },
+      { "sub_id": 303, "name": "Alarmanlagen Installation", "slug": "alarmanlagen-installation", "meta_description": "Installation moderner Einbruch- und Alarmsysteme." },
+      { "sub_id": 304, "name": "Videoüberwachung", "slug": "videoueberwachung", "meta_description": "CCTV- und Sicherheitskameras für Haus und Gewerbe." },
+      { "sub_id": 305, "name": "Brandschutz Systeme", "slug": "brandschutz-systeme", "meta_description": "Rauchmelder und Brandschutzlösungen." },
+      { "sub_id": 306, "name": "Zutrittskontrolle", "slug": "zutrittskontrolle", "meta_description": "Elektronische Zugangssysteme für Gebäude." },
+      { "sub_id": 307, "name": "Aufzugservice", "slug": "aufzugservice", "meta_description": "Wartung und Reparatur von Aufzugsanlagen." },
+      { "sub_id": 308, "name": "Tresor Service", "slug": "tresor-service", "meta_description": "Installation und Öffnung von Tresoren." },
+      { "sub_id": 309, "name": "Biometrische Systeme", "slug": "biometrische-systeme", "meta_description": "Fingerprint- und Gesichtserkennungssysteme." }
+    ]
+  },
+  {
+    "category_id": 4,
+    "category_name": "Maler & Renovierung",
+    "slug": "maler-renovierung",
+    "meta_description": "Renovierungs- und Malerarbeiten für Innen- und Außenbereiche von Wohn- und Gewerbeobjekten.",
+    "subcategories": [
+      { "sub_id": 401, "name": "Maler & Lackierer", "slug": "maler-lackierer", "meta_description": "Innen- und Außenanstrich durch professionelle Maler." },
+      { "sub_id": 402, "name": "Trockenbau", "slug": "trockenbau", "meta_description": "Trockenbau für Wände, Decken und Raumstruktur." },
+      { "sub_id": 403, "name": "Fliesenleger", "slug": "fliesenleger", "meta_description": "Verlegung von Fliesen, Mosaik und Naturstein." },
+      { "sub_id": 404, "name": "Bodenleger", "slug": "bodenleger", "meta_description": "Verlegung von Laminat, Parkett und Vinyl." },
+      { "sub_id": 405, "name": "Estrichleger", "slug": "estrichleger", "meta_description": "Professionelle Estricharbeiten für Böden." },
+      { "sub_id": 406, "name": "Innenarchitektur", "slug": "innenarchitektur", "meta_description": "Planung und Gestaltung von Innenräumen." },
+      { "sub_id": 407, "name": "Sanierung", "slug": "sanierung", "meta_description": "Gebäude- und Wohnungssanierung." },
+      { "sub_id": 408, "name": "Akustikbau", "slug": "akustikbau", "meta_description": "Schallschutz und Raumakustik Lösungen." }
+    ]
+  },
+  {
+    "category_id": 5,
+    "category_name": "Heizung & Klima",
+    "slug": "heizung-klima",
+    "meta_description": "Heizungs-, Klima- und Lüftungssysteme für Wohn- und Gewerbegebäude.",
+    "subcategories": [
+      { "sub_id": 501, "name": "Heizungsinstallateur", "slug": "heizungsinstallateur", "meta_description": "Installation und Wartung von Heizsystemen." },
+      { "sub_id": 502, "name": "Wärmepumpen Installation", "slug": "waermepumpe-installation", "meta_description": "Installation moderner Wärmepumpensysteme." },
+      { "sub_id": 503, "name": "Klimatechnik", "slug": "klimatechnik", "meta_description": "Klimaanlagen für private und gewerbliche Nutzung." },
+      { "sub_id": 504, "name": "Kältetechnik", "slug": "kaeltetechnik", "meta_description": "Kühl- und Kältesysteme für Industrie und Gewerbe." },
+      { "sub_id": 505, "name": "Gasinstallation", "slug": "gasinstallation", "meta_description": "Installation und Wartung von Gasanlagen." },
+      { "sub_id": 506, "name": "Heizungswartung", "slug": "heizungswartung", "meta_description": "Regelmäßige Wartung von Heizsystemen." }
+    ]
+  },
+  {
+    "category_id": 6,
+    "category_name": "Bauen & Umbau",
+    "slug": "bauen-umbau",
+    "meta_description": "Bauunternehmen und Handwerker für Neubau, Umbau und große Bauprojekte.",
+    "subcategories": [
+      { "sub_id": 601, "name": "Bauunternehmen", "slug": "bauunternehmen", "meta_description": "Generalbauunternehmen für komplette Bauprojekte." },
+      { "sub_id": 602, "name": "Maurer & Betonbauer", "slug": "maurer-betonbauer", "meta_description": "Maurerarbeiten und Betonbau für Gebäude." },
+      { "sub_id": 603, "name": "Abbruch & Demontage", "slug": "abbruch-demontage", "meta_description": "Rückbau und Demontage von Gebäuden." },
+      { "sub_id": 604, "name": "Gerüstbau", "slug": "geruestbau", "meta_description": "Aufbau von Baugerüsten für Bauprojekte." },
+      { "sub_id": 605, "name": "Stahlbau", "slug": "stahlbau", "meta_description": "Konstruktion von Stahlbauten und Hallen." },
+      { "sub_id": 606, "name": "Holzbau", "slug": "holzbau", "meta_description": "Zimmerei und Holzbauarbeiten." },
+      { "sub_id": 607, "name": "Erdbau", "slug": "erdbau", "meta_description": "Erdarbeiten und Fundamentbau." },
+      { "sub_id": 608, "name": "Pflasterarbeiten", "slug": "pflasterarbeiten", "meta_description": "Wege- und Straßenpflasterung." }
+    ]
+  },
+  {
+    "category_id": 7,
+    "category_name": "Dach, Fassade & Fenster",
+    "slug": "dach-fassade-fenster",
+    "meta_description": "Dachdecker, Fassadenbauer und Fensterprofis für Reparatur, Sanierung und Neubau von Gebäuden.",
+    "subcategories": [
+      { "sub_id": 701, "name": "Dachdecker", "slug": "dachdecker", "meta_description": "Dacharbeiten, Neueindeckung und Dachsanierung durch Fachbetriebe." },
+      { "sub_id": 702, "name": "Dachreparatur", "slug": "dachreparatur", "meta_description": "Schnelle Reparatur von undichten und beschädigten Dächern." },
+      { "sub_id": 703, "name": "Dachinspektion", "slug": "dachinspektion", "meta_description": "Professionelle Dachprüfung und Schadensanalyse." },
+      { "sub_id": 704, "name": "Fassadenbau", "slug": "fassadenbau", "meta_description": "Neubau und Sanierung von Fassaden für Gebäude." },
+      { "sub_id": 705, "name": "Fassadenreinigung", "slug": "fassadenreinigung", "meta_description": "Reinigung und Pflege von Gebäudefassaden." },
+      { "sub_id": 706, "name": "Fenster- & Türenbau", "slug": "fenster-tuerenbau", "meta_description": "Einbau und Austausch von Fenstern und Türen." },
+      { "sub_id": 707, "name": "Glaser", "slug": "glaser", "meta_description": "Glasreparatur und Verglasungsarbeiten aller Art." },
+      { "sub_id": 708, "name": "Rollläden & Jalousien", "slug": "rolllaeden-jalousien", "meta_description": "Montage und Reparatur von Sonnenschutzsystemen." },
+      { "sub_id": 709, "name": "Wintergartenbau", "slug": "wintergartenbau", "meta_description": "Planung und Bau von Wintergärten und Glasräumen." },
+      { "sub_id": 710, "name": "Photovoltaik Dachsysteme", "slug": "photovoltaik-dachsysteme", "meta_description": "Solaranlagen-Integration auf Dachflächen." }
+    ]
+  },
+  {
+    "category_id": 8,
+    "category_name": "Garten & Außenbereich",
+    "slug": "garten-aussenbereich",
+    "meta_description": "Gartenbau, Landschaftsgestaltung und Außenarbeiten für private und gewerbliche Flächen.",
+    "subcategories": [
+      { "sub_id": 801, "name": "Garten- & Landschaftsbau", "slug": "garten-landschaftsbau", "meta_description": "Gestaltung und Pflege von Gärten und Außenanlagen." },
+      { "sub_id": 802, "name": "Baumpflege", "slug": "baumpflege", "meta_description": "Professionelle Pflege und Schnitt von Bäumen." },
+      { "sub_id": 803, "name": "Baumfällung", "slug": "baumfaellung", "meta_description": "Sichere Fällung von Bäumen jeder Größe." },
+      { "sub_id": 804, "name": "Zaunbau", "slug": "zaunbau", "meta_description": "Montage von Zäunen und Grundstücksbegrenzungen." },
+      { "sub_id": 805, "name": "Poolbau", "slug": "poolbau", "meta_description": "Planung und Bau von privaten und gewerblichen Pools." },
+      { "sub_id": 806, "name": "Bewässerungssysteme", "slug": "bewaesserungssysteme", "meta_description": "Automatische Bewässerung für Gartenanlagen." },
+      { "sub_id": 807, "name": "Gartenbeleuchtung", "slug": "gartenbeleuchtung", "meta_description": "Installation von Außen- und Gartenbeleuchtung." },
+      { "sub_id": 808, "name": "Kunstrasenverlegung", "slug": "kunstrasenverlegung", "meta_description": "Verlegung von Kunstrasen für Gärten und Sportflächen." },
+      { "sub_id": 809, "name": "Terrassenbau", "slug": "terrassenbau", "meta_description": "Bau von Holz- und Steinterrassen." }
+    ]
+  },
+  {
+    "category_id": 9,
+    "category_name": "Reinigung & Hausservice",
+    "slug": "reinigung-hausservice",
+    "meta_description": "Reinigungs- und Hausservices für private und gewerbliche Immobilien.",
+    "subcategories": [
+      { "sub_id": 901, "name": "Gebäudereinigung", "slug": "gebaeudereinigung", "meta_description": "Professionelle Reinigung von Gebäuden und Büros." },
+      { "sub_id": 902, "name": "Industriereinigung", "slug": "industriereinigung", "meta_description": "Reinigung von Maschinen und Industrieanlagen." },
+      { "sub_id": 903, "name": "Fensterreinigung", "slug": "fensterreinigung", "meta_description": "Streifenfreie Fensterreinigung für Gebäude." },
+      { "sub_id": 904, "name": "Teppich- & Polsterreinigung", "slug": "teppich-polsterreinigung", "meta_description": "Tiefenreinigung von Teppichen und Polstermöbeln." },
+      { "sub_id": 905, "name": "Hausmeisterservice", "slug": "hausmeisterservice", "meta_description": "Wartung und Betreuung von Immobilien." },
+      { "sub_id": 906, "name": "Entrümpelung", "slug": "entruempelung", "meta_description": "Schnelle Wohnungs- und Haushaltsauflösung." },
+      { "sub_id": 907, "name": "Schädlingsbekämpfung", "slug": "schaedlingsbekaempfung", "meta_description": "Bekämpfung von Schädlingen und Ungeziefer." },
+      { "sub_id": 908, "name": "Tatortreinigung", "slug": "tatortreinigung", "meta_description": "Spezialreinigung nach besonderen Ereignissen." }
+    ]
+  },
+  {
+    "category_id": 10,
+    "category_name": "Umzug & Transport",
+    "slug": "umzug-transport",
+    "meta_description": "Umzugsunternehmen und Transportdienstleister für lokale und internationale Transporte.",
+    "subcategories": [
+      { "sub_id": 1001, "name": "Umzugsunternehmen", "slug": "umzugsunternehmen", "meta_description": "Private und gewerbliche Umzüge." },
+      { "sub_id": 1002, "name": "Möbeltransport", "slug": "moebeltransport", "meta_description": "Transport und Montage von Möbeln." },
+      { "sub_id": 1003, "name": "Containerdienst", "slug": "containerdienst", "meta_description": "Container für Bau- und Abfallentsorgung." },
+      { "sub_id": 1004, "name": "Kranservice", "slug": "kranservice", "meta_description": "Hebetechnik für schwere Lasten." },
+      { "sub_id": 1005, "name": "Schwertransport", "slug": "schwertransport", "meta_description": "Spezialtransporte für große Güter." },
+      { "sub_id": 1006, "name": "Lagerung", "slug": "lagerung", "meta_description": "Einlagerung von Möbeln und Waren." },
+      { "sub_id": 1007, "name": "Internationale Transporte", "slug": "internationale-transporte", "meta_description": "Transportdienstleistungen weltweit." }
+    ]
+  },
+  {
+    "category_id": 11,
+    "category_name": "Auto & Fahrzeuge",
+    "slug": "auto-fahrzeuge",
+    "meta_description": "Werkstätten und Fahrzeugdienstleistungen für Autos, Motorräder und Spezialfahrzeuge.",
+    "subcategories": [
+      { "sub_id": 1101, "name": "KFZ-Werkstatt", "slug": "kfz-werkstatt", "meta_description": "Reparatur und Wartung von Fahrzeugen." },
+      { "sub_id": 1102, "name": "Motorreparatur", "slug": "motorreparatur", "meta_description": "Motorinstandsetzung und Diagnose." },
+      { "sub_id": 1103, "name": "Getriebereparatur", "slug": "getriebereparatur", "meta_description": "Reparatur von Automatik- und Schaltgetrieben." },
+      { "sub_id": 1104, "name": "Autolackierung", "slug": "autolackierung", "meta_description": "Lackierung und Unfallinstandsetzung." },
+      { "sub_id": 1105, "name": "Autoglas Reparatur", "slug": "autoglas-reparatur", "meta_description": "Reparatur und Austausch von Autoscheiben." },
+      { "sub_id": 1106, "name": "Reifenservice", "slug": "reifenservice", "meta_description": "Reifenwechsel und Einlagerung." },
+      { "sub_id": 1107, "name": "Fahrzeugaufbereitung", "slug": "fahrzeugaufbereitung", "meta_description": "Innen- und Außenreinigung von Fahrzeugen." },
+      { "sub_id": 1108, "name": "Chiptuning", "slug": "chiptuning", "meta_description": "Leistungssteigerung von Fahrzeugen." },
+      { "sub_id": 1109, "name": "Elektrofahrzeug Service", "slug": "elektrofahrzeug-service", "meta_description": "Wartung von E-Autos und Hybridfahrzeugen." }
+    ]
+  },
+  {
+    "category_id": 12,
+    "category_name": "Handy, PC & Geräte",
+    "slug": "handy-pc-geraete",
+    "meta_description": "Reparatur und IT-Services für Smartphones, Computer und elektronische Geräte.",
+    "subcategories": [
+      { "sub_id": 1201, "name": "Computer Reparatur", "slug": "computer-reparatur", "meta_description": "Reparatur von PCs und Laptops." },
+      { "sub_id": 1202, "name": "Smartphone Reparatur", "slug": "smartphone-reparatur", "meta_description": "Reparatur von Smartphones und Tablets." },
+      { "sub_id": 1203, "name": "Datenrettung", "slug": "datenrettung", "meta_description": "Wiederherstellung verlorener Daten." },
+      { "sub_id": 1204, "name": "IT-Service vor Ort", "slug": "it-service-vor-ort", "meta_description": "IT-Support direkt beim Kunden." },
+      { "sub_id": 1205, "name": "Server & Netzwerk Service", "slug": "server-netzwerk-service", "meta_description": "Installation und Wartung von IT-Systemen." }
+    ]
+  },
+  {
+    "category_id": 13,
+    "category_name": "Möbel, Holz & Maßanfertigung",
+    "slug": "moebel-holz-massanfertigung",
+    "meta_description": "Möbelbau und Schreinerarbeiten nach Maß.",
+    "subcategories": [
+      { "sub_id": 1301, "name": "Tischler & Schreiner", "slug": "tischler-schreiner", "meta_description": "Individuelle Holzarbeiten und Möbelbau." },
+      { "sub_id": 1302, "name": "Küchenbau", "slug": "kuechenbau", "meta_description": "Planung und Montage von Küchen." },
+      { "sub_id": 1303, "name": "Möbelbau", "slug": "moebelbau", "meta_description": "Maßgefertigte Möbel für Innenräume." },
+      { "sub_id": 1304, "name": "Treppenbau", "slug": "treppenbau", "meta_description": "Holz- und Stahltreppenbau." }
+    ]
+  },
+  {
+    "category_id": 14,
+    "category_name": "Planen & Gutachten",
+    "slug": "planen-gutachten",
+    "meta_description": "Architekten, Ingenieure und Gutachter für Bauprojekte und Planung.",
+    "subcategories": [
+      { "sub_id": 1401, "name": "Architekturbüro", "slug": "architekturbuero", "meta_description": "Architekturplanung für Bauprojekte." },
+      { "sub_id": 1402, "name": "Energieberater", "slug": "energieberater", "meta_description": "Energieeffizienz- und Sanierungsberatung." },
+      { "sub_id": 1403, "name": "Statiker", "slug": "statiker", "meta_description": "Tragwerksplanung und Statik." },
+      { "sub_id": 1404, "name": "Gutachter", "slug": "gutachter", "meta_description": "Bau- und Immobiliengutachten." }
+    ]
+  },
+  {
+    "category_id": 15,
+    "category_name": "Restaurierung & Reparatur",
+    "slug": "restaurierung-reparatur",
+    "meta_description": "Reparatur und Restaurierung von Kleidung, Möbeln, Kunst und Objekten.",
+    "subcategories": [
+      { "sub_id": 1501, "name": "Schneider", "slug": "schneider", "meta_description": "Änderung und Anpassung von Kleidung." },
+      { "sub_id": 1502, "name": "Schuhreparatur", "slug": "schuhreparatur", "meta_description": "Reparatur von Schuhen und Lederwaren." },
+      { "sub_id": 1503, "name": "Lederreparatur", "slug": "lederreparatur", "meta_description": "Reparatur von Lederprodukten." },
+      { "sub_id": 1504, "name": "Uhrenreparatur", "slug": "uhrenreparatur", "meta_description": "Reparatur von mechanischen und digitalen Uhren." },
+      { "sub_id": 1505, "name": "Schmuckreparatur", "slug": "schmuckreparatur", "meta_description": "Reparatur von Schmuck und Edelmetallen." },
+      { "sub_id": 1506, "name": "Kunstrestaurierung", "slug": "kunstrestaurierung", "meta_description": "Restaurierung von Kunstwerken." }
+    ]
+  },
+  {
+    "category_id": 16,
+    "category_name": "Events & Medien",
+    "slug": "events-medien",
+    "meta_description": "Eventplanung, Medienproduktion und Veranstaltungstechnik.",
+    "subcategories": [
+      { "sub_id": 1601, "name": "Fotograf & Videograf", "slug": "fotograf-videograf", "meta_description": "Foto- und Videoproduktion für Events." },
+      { "sub_id": 1602, "name": "Eventtechnik", "slug": "eventtechnik", "meta_description": "Licht- und Tontechnik für Veranstaltungen." },
+      { "sub_id": 1603, "name": "Messebau", "slug": "messebau", "meta_description": "Bau von Messeständen." },
+      { "sub_id": 1604, "name": "Werbetechnik", "slug": "werbetechnik", "meta_description": "Werbung und Beschilderung." }
+    ]
+  },
+  {
+    "category_id": 17,
+    "category_name": "Tiere & Lifestyle",
+    "slug": "tiere-lifestyle",
+    "meta_description": "Services für Haustiere, Lifestyle und persönliche Dienstleistungen.",
+    "subcategories": [
+      { "sub_id": 1701, "name": "Hundefriseur", "slug": "hundefriseur", "meta_description": "Pflege und Styling für Hunde." },
+      { "sub_id": 1702, "name": "Tierpension", "slug": "tierpension", "meta_description": "Betreuung von Haustieren." },
+      { "sub_id": 1703, "name": "Hundetrainer", "slug": "hundetrainer", "meta_description": "Training für Hunde und Haustiere." },
+      { "sub_id": 1704, "name": "Tiertransport", "slug": "tiertransport", "meta_description": "Sicherer Transport von Tieren." },
+      { "sub_id": 1705, "name": "Tattoo Entfernung", "slug": "tattoo-entfernung", "meta_description": "Laser Tattoo-Entfernung." }
+    ]
+  },
+  {
+    "category_id": 18,
+    "category_name": "Sonstiges",
+    "slug": "sonstiges",
+    "meta_description": "Sonstige Dienstleistungen und nicht klassifizierte Handwerksbereiche.",
+    "subcategories": [
+      { "sub_id": 1801, "name": "Allgemeine Dienstleistungen", "slug": "allgemeine-dienstleistungen", "meta_description": "Nicht klassifizierte Dienstleistungen aller Art." }
+    ]
+  }
+]
