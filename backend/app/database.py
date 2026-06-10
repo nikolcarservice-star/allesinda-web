@@ -326,6 +326,9 @@ def repair_profiles_schema(db: Session | None = None) -> None:
 
     if ready:
         ensure_master_category_updates()
+        from .category_catalog import sync_master_categories_catalog
+
+        sync_master_categories_catalog(deactivate_legacy=True)
 
 
 def ensure_schema():
