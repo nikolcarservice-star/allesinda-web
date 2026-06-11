@@ -625,6 +625,45 @@ async def my_media(
     return create_paginated_response(media_out_items, total, page, page_size)
 
 
+def _delete_media_files(*urls: Optional[str]) -> None:
+    upload_folder = get_upload_folder()
+    seen: set[str] = set()
+    for url in urls:
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        relative_path = media_url_to_upload_relative_path(url)
+        if not relative_path:
+            continue
+        full_path = os.path.join(upload_folder, relative_path.replace("/", os.sep))
+        if os.path.isfile(full_path):
+            try:
+                os.remove(full_path)
+                logger.info("Deleted media file: %s", full_path)
+            except OSError as exc:
+                logger.warning("Failed to delete media file %s: %s", full_path, exc)
+
+
+def _user_can_delete_media(db: Session, media: Media, user: User) -> bool:
+    if media.owner_id == user.id:
+        return True
+    if media.profile_id:
+        profile = db.get(Profile, media.profile_id)
+        if profile and profile.user_id == user.id:
+            return True
+    if media.product_id:
+        from ..models import Product
+        product = db.get(Product, media.product_id)
+        if product and product.seller_id == user.id:
+            return True
+    if media.rental_id:
+        from ..models import Rental
+        rental = db.get(Rental, media.rental_id)
+        if rental and rental.seller_id == user.id:
+            return True
+    return False
+
+
 @router.delete("/me/{media_id}", status_code=204)
 def delete_my_media(
     media_id: int,
@@ -635,8 +674,9 @@ def delete_my_media(
     media = db.get(Media, media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    if media.owner_id != user.id:
+    if not _user_can_delete_media(db, media, user):
         raise HTTPException(status_code=403, detail="Not allowed to delete this media")
+    _delete_media_files(media.url, media.thumbnail_url, media.before_url, media.after_url)
     db.delete(media)
     db.commit()
     return None

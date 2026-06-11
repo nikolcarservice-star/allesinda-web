@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.category_catalog import import_catalog, load_catalog
+from app.category_catalog import import_catalog, load_catalog, remap_master_entity_categories
 from app.database import SessionLocal
 
 
@@ -30,7 +30,10 @@ def main() -> None:
     db = SessionLocal()
     try:
         parents, children = import_catalog(db, catalog, deactivate_legacy=args.deactivate_legacy)
+        remapped = remap_master_entity_categories(db)
+        db.commit()
         print(f"Imported {parents} parent categories and {children} subcategories from {path.name}")
+        print(f"Remapped {remapped} entity category references")
     finally:
         db.close()
 

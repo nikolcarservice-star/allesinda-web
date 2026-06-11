@@ -946,35 +946,7 @@ export function FeaturedPageContent() {
     // which previously sent the old category to the API and returned 0 results.
     const urlCategoryParam = searchParams?.get("category") ?? null
     const categoryParamValueForUrl = urlCategoryParam
-    // Convert category slug to ID for API call (backend accepts numeric string in category param)
     const categoryQueryParamForRequest = categoryParamValueForUrl
-      ? (() => {
-          // Determine if this is a subcategory click or parent category click
-          const isSubcategoryClick = selectedSubcategory !== "all" && selectedSubcategory === categoryParamValueForUrl
-          
-          if (isSubcategoryClick) {
-            // Subcategory was clicked: send subcategory ID (backend will filter by exact subcategory)
-            const foundSubcategory = allSubcategories.find(cat => cat.slug === categoryParamValueForUrl)
-            if (foundSubcategory) {
-              return foundSubcategory.id.toString()
-            }
-          } else {
-            // Parent category was clicked: send parent ID (backend will find all subcategories)
-            const foundParentCategory = parentCategories.find(cat => cat.slug === categoryParamValueForUrl)
-            if (foundParentCategory) {
-              return foundParentCategory.id.toString()
-            }
-            // Fallback: check if it's a subcategory slug (from URL param)
-            const foundSubcategory = allSubcategories.find(cat => cat.slug === categoryParamValueForUrl)
-            if (foundSubcategory) {
-              // If it's a subcategory from URL, send subcategory ID
-              return foundSubcategory.id.toString()
-            }
-          }
-          // If not found, return the slug as-is (backend can handle it)
-          return categoryParamValueForUrl
-        })()
-      : null
     const normalizedMinPrice =
       activeType === "master" || minPrice === undefined || Number.isNaN(minPrice) ? undefined : minPrice
     const normalizedMaxPrice =

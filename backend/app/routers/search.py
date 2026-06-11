@@ -7,6 +7,7 @@ from sqlalchemy.sql import exists
 from sqlalchemy.orm import Session, aliased
 
 from ..config import settings
+from ..category_filter import resolve_category_ids
 from ..database import get_db
 from ..helpers import calculate_distance, create_paginated_response, paginate_query
 from ..profile_queries import profile_query_with_user
@@ -365,47 +366,9 @@ def _perform_search(
     # Also handle parent categories by including all subcategories
     resolved_category_ids = None
     if category_id:
-        # Direct category_id provided
-        category_obj = db.query(Category).filter(
-            Category.id == category_id,
-            Category.is_active == True
-        ).first()
-        if category_obj:
-            if category_obj.parent_id is None:
-                # Parent category: get all active subcategory IDs
-                subcategory_ids = [
-                    subcat.id for subcat in db.query(Category)
-                    .filter(
-                        Category.parent_id == category_obj.id,
-                        Category.is_active == True
-                    )
-                    .all()
-                ]
-                resolved_category_ids = subcategory_ids if subcategory_ids else [category_obj.id]
-            else:
-                # Subcategory: use exact category_id
-                resolved_category_ids = [category_obj.id]
+        resolved_category_ids = resolve_category_ids(db, str(category_id))
     elif category:
-        # Look up category by slug
-        category_obj = db.query(Category).filter(
-            Category.slug == category,
-            Category.is_active == True
-        ).first()
-        if category_obj:
-            if category_obj.parent_id is None:
-                # Parent category: get all active subcategory IDs
-                subcategory_ids = [
-                    subcat.id for subcat in db.query(Category)
-                    .filter(
-                        Category.parent_id == category_obj.id,
-                        Category.is_active == True
-                    )
-                    .all()
-                ]
-                resolved_category_ids = subcategory_ids if subcategory_ids else [category_obj.id]
-            else:
-                # Subcategory: use exact category_id
-                resolved_category_ids = [category_obj.id]
+        resolved_category_ids = resolve_category_ids(db, category)
     
     if scope in ["masters", "all"]:
         query = profile_query_with_user(db).filter(User.role == Role.master)

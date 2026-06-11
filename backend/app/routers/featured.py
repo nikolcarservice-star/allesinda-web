@@ -11,6 +11,7 @@ from sqlalchemy.sql import exists
 logger = logging.getLogger(__name__)
 
 from ..config import settings
+from ..category_filter import resolve_category_ids
 from ..database import get_db
 from ..helpers import create_paginated_response
 from ..profile_queries import profile_query_with_user
@@ -558,41 +559,9 @@ def list_featured_items(
             User.is_active.is_(True),
         )
         if category:
-            # Try to resolve as category_id first (if it's numeric)
-            try:
-                category_id = int(category)
-                category_obj = db.query(Category).filter(
-                    Category.id == category_id,
-                    Category.is_active == True
-                ).first()
-            except ValueError:
-                # Fallback to slug for backward compatibility
-                # Resolve category slug to category_id
-                category_obj = db.query(Category).filter(
-                    Category.slug == category,
-                    Category.is_active == True
-                ).first()
-            
-            if category_obj:
-                # If it's a parent category (has children), include all subcategories
-                if category_obj.parent_id is None:
-                    # Parent category: get all active subcategory IDs
-                    subcategory_ids = [
-                        subcat.id for subcat in db.query(Category)
-                        .filter(
-                            Category.parent_id == category_obj.id,
-                            Category.is_active == True
-                        )
-                        .all()
-                    ]
-                    if subcategory_ids:
-                        master_query = master_query.filter(Profile.category_id.in_(subcategory_ids))
-                    else:
-                        # No subcategories, filter by parent itself (in case items are assigned to parent)
-                        master_query = master_query.filter(Profile.category_id == category_obj.id)
-                else:
-                    # Subcategory: filter by exact category_id
-                    master_query = master_query.filter(Profile.category_id == category_obj.id)
+            category_ids = resolve_category_ids(db, category)
+            if category_ids:
+                master_query = master_query.filter(Profile.category_id.in_(category_ids))
         if city:
             # Filter by city name via normalized city reference
             master_query = (
@@ -676,41 +645,9 @@ def list_featured_items(
     if CategoryType.product in requested_types:
         product_query = db.query(Product).options(selectinload(Product.media))
         if category:
-            # Try to resolve as category_id first (if it's numeric)
-            try:
-                category_id = int(category)
-                category_obj = db.query(Category).filter(
-                    Category.id == category_id,
-                    Category.is_active == True
-                ).first()
-            except ValueError:
-                # Fallback to slug for backward compatibility
-                # Resolve category slug to category_id
-                category_obj = db.query(Category).filter(
-                    Category.slug == category,
-                    Category.is_active == True
-                ).first()
-            
-            if category_obj:
-                # If it's a parent category (has children), include all subcategories
-                if category_obj.parent_id is None:
-                    # Parent category: get all active subcategory IDs
-                    subcategory_ids = [
-                        subcat.id for subcat in db.query(Category)
-                        .filter(
-                            Category.parent_id == category_obj.id,
-                            Category.is_active == True
-                        )
-                        .all()
-                    ]
-                    if subcategory_ids:
-                        product_query = product_query.filter(Product.category_id.in_(subcategory_ids))
-                    else:
-                        # No subcategories, filter by parent itself (in case items are assigned to parent)
-                        product_query = product_query.filter(Product.category_id == category_obj.id)
-                else:
-                    # Subcategory: filter by exact category_id
-                    product_query = product_query.filter(Product.category_id == category_obj.id)
+            category_ids = resolve_category_ids(db, category)
+            if category_ids:
+                product_query = product_query.filter(Product.category_id.in_(category_ids))
         if city:
             # Filter by city name via normalized city reference
             product_query = (
@@ -770,41 +707,9 @@ def list_featured_items(
     if CategoryType.rental in requested_types:
         rental_query = db.query(Rental).options(selectinload(Rental.media))
         if category:
-            # Try to resolve as category_id first (if it's numeric)
-            try:
-                category_id = int(category)
-                category_obj = db.query(Category).filter(
-                    Category.id == category_id,
-                    Category.is_active == True
-                ).first()
-            except ValueError:
-                # Fallback to slug for backward compatibility
-                # Resolve category slug to category_id
-                category_obj = db.query(Category).filter(
-                    Category.slug == category,
-                    Category.is_active == True
-                ).first()
-            
-            if category_obj:
-                # If it's a parent category (has children), include all subcategories
-                if category_obj.parent_id is None:
-                    # Parent category: get all active subcategory IDs
-                    subcategory_ids = [
-                        subcat.id for subcat in db.query(Category)
-                        .filter(
-                            Category.parent_id == category_obj.id,
-                            Category.is_active == True
-                        )
-                        .all()
-                    ]
-                    if subcategory_ids:
-                        rental_query = rental_query.filter(Rental.category_id.in_(subcategory_ids))
-                    else:
-                        # No subcategories, filter by parent itself (in case items are assigned to parent)
-                        rental_query = rental_query.filter(Rental.category_id == category_obj.id)
-                else:
-                    # Subcategory: filter by exact category_id
-                    rental_query = rental_query.filter(Rental.category_id == category_obj.id)
+            category_ids = resolve_category_ids(db, category)
+            if category_ids:
+                rental_query = rental_query.filter(Rental.category_id.in_(category_ids))
         if city:
             # Filter by city name via normalized city reference
             rental_query = (

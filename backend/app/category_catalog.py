@@ -9,8 +9,10 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from collections import defaultdict
+
 from .database import SessionLocal
-from .models import Category, CategoryType
+from .models import Category, CategoryType, Product, Profile, Rental
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +128,56 @@ def import_catalog(
     return parents, children
 
 
+def _normalize_category_name(value: Optional[str]) -> str:
+    return (value or "").strip().lower()
+
+
+def remap_entity_categories(db: Session, model, category_type: CategoryType) -> int:
+    """Move profiles/products/rentals from deactivated categories to active name matches."""
+    inactive = (
+        db.query(Category)
+        .filter(Category.type == category_type, Category.is_active.is_(False))
+        .all()
+    )
+    if not inactive:
+        return 0
+
+    active_by_name: dict[str, list[Category]] = defaultdict(list)
+    for active in (
+        db.query(Category)
+        .filter(Category.type == category_type, Category.is_active.is_(True))
+        .all()
+    ):
+        active_by_name[_normalize_category_name(active.name)].append(active)
+
+    updated = 0
+    for old in inactive:
+        targets = active_by_name.get(_normalize_category_name(old.name), [])
+        new_id: Optional[int] = None
+        if len(targets) == 1:
+            new_id = targets[0].id
+        elif targets:
+            subcategories = [item for item in targets if item.parent_id]
+            new_id = subcategories[0].id if subcategories else targets[0].id
+        if not new_id:
+            continue
+        count = (
+            db.query(model)
+            .filter(model.category_id == old.id)
+            .update({model.category_id: new_id}, synchronize_session=False)
+        )
+        updated += count
+    return updated
+
+
+def remap_master_entity_categories(db: Session) -> int:
+    return (
+        remap_entity_categories(db, Profile, CategoryType.master)
+        + remap_entity_categories(db, Product, CategoryType.product)
+        + remap_entity_categories(db, Rental, CategoryType.rental)
+    )
+
+
 def load_catalog(path: Path | None = None) -> list[dict]:
     catalog_path = path or CATALOG_PATH
     with catalog_path.open(encoding="utf-8") as handle:
@@ -147,11 +199,14 @@ def sync_master_categories_catalog(
     try:
         catalog = load_catalog(path)
         parents, children = import_catalog(session, catalog, deactivate_legacy=deactivate_legacy)
+        remapped = remap_master_entity_categories(session)
+        session.commit()
         logger.info(
-            "Master category catalog synced: %s parents, %s children (legacy deactivated=%s)",
+            "Master category catalog synced: %s parents, %s children (legacy deactivated=%s, remapped=%s)",
             parents,
             children,
             deactivate_legacy,
+            remapped,
         )
         return parents, children
     except Exception:
