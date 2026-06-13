@@ -328,7 +328,8 @@ def repair_profiles_schema(db: Session | None = None) -> None:
         ensure_master_category_updates()
         from .category_catalog import sync_master_categories_catalog
 
-        sync_master_categories_catalog(deactivate_legacy=True)
+        # Do not deactivate legacy categories on redeploy — admin active/inactive state must persist.
+        sync_master_categories_catalog(deactivate_legacy=False)
         _ensure_category_media_on_startup()
 
 
@@ -402,19 +403,25 @@ def ensure_master_category_updates():
                     Category.type == CategoryType.master,
                 ).all()
             }
+            migrated_profiles = 0
             for sub in hlk_subcategories:
                 target_id = sanitär_subs.get(sub.name.lower()) or sanitär.id
-                session.query(Profile).filter(Profile.category_id == sub.id).update(
-                    {Profile.category_id: target_id},
-                    synchronize_session=False,
+                migrated_profiles += (
+                    session.query(Profile)
+                    .filter(Profile.category_id == sub.id)
+                    .update({Profile.category_id: target_id}, synchronize_session=False)
+                    or 0
                 )
-            session.query(Profile).filter(Profile.category_id == hlk.id).update(
-                {Profile.category_id: sanitär.id},
-                synchronize_session=False,
+            migrated_profiles += (
+                session.query(Profile)
+                .filter(Profile.category_id == hlk.id)
+                .update({Profile.category_id: sanitär.id}, synchronize_session=False)
+                or 0
             )
-            hlk.is_active = False
-            for sub in hlk_subcategories:
-                sub.is_active = False
+            if migrated_profiles > 0:
+                hlk.is_active = False
+                for sub in hlk_subcategories:
+                    sub.is_active = False
 
         schneider = session.query(Category).filter(
             Category.slug == "master-schneider-naeherei",

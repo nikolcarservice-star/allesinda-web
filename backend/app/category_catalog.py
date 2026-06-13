@@ -48,9 +48,8 @@ def upsert_category(
         existing.description = description
         existing.sort_order = sort_order
         existing.parent_id = parent_id
-        existing.is_active = is_active
         existing.type = CategoryType.master
-        # Preserve image_url — admin uploads must survive catalog sync / redeploy.
+        # Preserve admin choices across redeploys (image_url, active/inactive state).
         return existing
 
     category = Category(
@@ -243,10 +242,13 @@ def load_catalog(path: Path | None = None) -> list[dict]:
 
 def sync_master_categories_catalog(
     *,
-    deactivate_legacy: bool = True,
+    deactivate_legacy: bool = False,
     catalog_path: Path | None = None,
 ) -> tuple[int, int] | None:
-    """Upsert bundled master categories; safe to run on every backend startup."""
+    """Upsert bundled master categories; safe to run on every backend startup.
+
+    Preserves admin is_active toggles. Legacy deactivation is opt-in (CLI import script).
+    """
     path = catalog_path or CATALOG_PATH
     if not path.is_file():
         logger.warning("Master category catalog not found at %s", path)
