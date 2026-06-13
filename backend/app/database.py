@@ -329,6 +329,28 @@ def repair_profiles_schema(db: Session | None = None) -> None:
         from .category_catalog import sync_master_categories_catalog
 
         sync_master_categories_catalog(deactivate_legacy=True)
+        _ensure_category_media_on_startup()
+
+
+def _ensure_category_media_on_startup() -> None:
+    """Restore missing category image files after redeploy (uploads volume may be empty)."""
+    from .category_media import ensure_category_media_files
+
+    session = SessionLocal()
+    try:
+        files_restored, urls_assigned = ensure_category_media_files(session)
+        if files_restored or urls_assigned:
+            session.commit()
+            logger.info(
+                "Category media ensure: restored %s file(s), assigned %s image_url(s)",
+                files_restored,
+                urls_assigned,
+            )
+    except Exception:
+        session.rollback()
+        logger.exception("Failed to ensure category media files on startup")
+    finally:
+        session.close()
 
 
 def ensure_schema():

@@ -31,9 +31,13 @@ def main() -> None:
     try:
         parents, children = import_catalog(db, catalog, deactivate_legacy=args.deactivate_legacy)
         remapped = remap_master_entity_categories(db)
+        from app.category_media import ensure_category_media_files
+
+        files_restored, urls_assigned = ensure_category_media_files(db)
         db.commit()
         print(f"Imported {parents} parent categories and {children} subcategories from {path.name}")
         print(f"Remapped {remapped} entity category references")
+        print(f"Restored {files_restored} category image file(s), assigned {urls_assigned} image_url(s)")
     finally:
         db.close()
 

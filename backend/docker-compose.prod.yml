@@ -25,7 +25,7 @@ services:
     #   - "5432:5432"
 
   api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     environment:
@@ -39,6 +39,7 @@ services:
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
       RATE_LIMIT_PER_HOUR: ${RATE_LIMIT_PER_HOUR:-1000}
+      UPLOAD_FOLDER: uploads
     env_file:
       - .env
     depends_on:
@@ -55,11 +56,13 @@ services:
     restart: always
     networks:
       - app-network
+    volumes:
+      - uploads_data:/app/uploads
 
 volumes:
   pgdata:
+  uploads_data:
 
 networks:
   app-network:
     driver: bridge
-

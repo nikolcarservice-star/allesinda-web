@@ -16,12 +16,11 @@ if [ ! -d "$UPLOAD_DIR" ]; then
     echo ""
 fi
 
-# Copy img_backup to uploads if it exists
+# Copy img_backup to uploads if it exists (do not overwrite existing uploads)
 if [ -d "img_backup" ] && [ "$(ls -A img_backup 2>/dev/null)" ]; then
-    echo "Copying img_backup to uploads directory..."
-    # Copy all contents from img_backup to uploads, preserving directory structure
-    set +e  # Temporarily disable exit on error for copy operation
-    cp -r img_backup/* "$UPLOAD_DIR/" 2>/dev/null
+    echo "Copying img_backup to uploads directory (existing files preserved)..."
+    set +e
+    cp -rn img_backup/* "$UPLOAD_DIR/" 2>/dev/null
     copy_result=$?
     set -e  # Re-enable exit on error
     if [ $copy_result -eq 0 ]; then
@@ -64,6 +63,12 @@ else:
     print('  ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;')
     print('  Or run backend/scripts/create_user_reports_table.sql on PostgreSQL')
 " || echo "WARNING: schema ensure script failed, starting server anyway..."
+
+echo "Ensuring category image files exist on disk..."
+python -c "
+from app.database import _ensure_category_media_on_startup
+_ensure_category_media_on_startup()
+" || echo "WARNING: category media ensure failed, starting server anyway..."
 echo ""
 
 echo "Starting FastAPI server..."

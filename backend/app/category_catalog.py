@@ -50,6 +50,7 @@ def upsert_category(
         existing.parent_id = parent_id
         existing.is_active = is_active
         existing.type = CategoryType.master
+        # Preserve image_url — admin uploads must survive catalog sync / redeploy.
         return existing
 
     category = Category(
@@ -63,6 +64,10 @@ def upsert_category(
     )
     db.add(category)
     db.flush()
+    if parent is None and not category.image_url:
+        from .category_media import default_parent_category_image_url
+
+        category.image_url = default_parent_category_image_url(category)
     return category
 
 
@@ -252,13 +257,19 @@ def sync_master_categories_catalog(
         catalog = load_catalog(path)
         parents, children = import_catalog(session, catalog, deactivate_legacy=deactivate_legacy)
         remapped = remap_master_entity_categories(session)
+        from .category_media import ensure_category_media_files
+
+        files_restored, urls_assigned = ensure_category_media_files(session)
         session.commit()
         logger.info(
-            "Master category catalog synced: %s parents, %s children (legacy deactivated=%s, remapped=%s)",
+            "Master category catalog synced: %s parents, %s children (legacy deactivated=%s, remapped=%s, "
+            "category_images_restored=%s, category_urls_assigned=%s)",
             parents,
             children,
             deactivate_legacy,
             remapped,
+            files_restored,
+            urls_assigned,
         )
         return parents, children
     except Exception:

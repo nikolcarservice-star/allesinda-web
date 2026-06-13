@@ -25,6 +25,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      UPLOAD_FOLDER: uploads
     env_file:
       - .env
     depends_on:
@@ -39,5 +40,8 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
+    volumes:
+      - uploads_data:/app/uploads
 volumes:
   pgdata:
+  uploads_data:
