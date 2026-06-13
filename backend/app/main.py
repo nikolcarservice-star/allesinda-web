@@ -325,13 +325,18 @@ async def serve_media_file(
                     content_type = "image/jpeg" if file_ext in ('.jpg', '.jpeg') else f"image/{file_ext[1:]}"
                     if file_ext == '.webp':
                         content_type = "image/webp"
+
+                    if "/categories/" in file_path.replace("\\", "/").lower():
+                        cache_control = "public, max-age=300"
+                    else:
+                        cache_control = "public, max-age=31536000, immutable"
                     
                     # Create response with caching headers
                     response = Response(
                         content=optimized_bytes,
                         media_type=content_type,
                         headers={
-                            "Cache-Control": "public, max-age=31536000, immutable",  # 1 year
+                            "Cache-Control": cache_control,
                             "ETag": etag,
                             "Last-Modified": time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime)),
                             "Content-Length": str(len(optimized_bytes)),
@@ -341,11 +346,17 @@ async def serve_media_file(
             except Exception as e:
                 logger.warning(f"Image optimization failed for {file_path}: {e}, serving original")
         
+        # Category images change in admin — avoid immutable 1-year cache on same path.
+        if "/categories/" in file_path.replace("\\", "/").lower():
+            cache_control = "public, max-age=300"
+        else:
+            cache_control = "public, max-age=31536000, immutable"
+
         # Serve original file with caching headers
         response = FileResponse(
             full_path,
             headers={
-                "Cache-Control": "public, max-age=31536000, immutable",  # 1 year
+                "Cache-Control": cache_control,
                 "ETag": etag,
                 "Last-Modified": time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime)),
             }

@@ -75,6 +75,19 @@ def _is_remote_only_url(image_url: str) -> bool:
     return not os.path.isfile(local_path)
 
 
+def _is_seed_default_category_image(category: Category, relative: str) -> bool:
+    """True for auto-generated master-01.jpeg style paths, not admin slug uploads."""
+    import re
+
+    basename = os.path.basename(relative.replace("\\", "/")).lower()
+    if re.match(r"^(master|product|rental)-\d{2}\.(jpe?g|png|webp)$", basename):
+        return True
+    slug = (category.slug or "").lower()
+    if not slug:
+        return False
+    return not (basename.startswith(f"{slug}_") or basename.startswith(slug))
+
+
 def write_category_placeholder_file(full_path: str, label: str) -> bool:
     """Create a JPEG placeholder at full_path if missing."""
     if os.path.isfile(full_path):
@@ -141,6 +154,10 @@ def ensure_category_media_files(db: Session) -> tuple[int, int]:
 
         relative = _upload_relative_path(image_url)
         if not relative:
+            continue
+
+        if not _is_seed_default_category_image(category, relative):
+            # Admin-uploaded slug paths: do not overwrite with placeholders on redeploy.
             continue
 
         full_path = os.path.abspath(os.path.join(upload_root, relative.replace("/", os.sep)))

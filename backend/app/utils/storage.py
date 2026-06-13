@@ -170,13 +170,20 @@ def get_media_subfolder(
     return os.path.join(suffix, year, month)
 
 
-def build_media_url(subfolder: str, filename: str, use_cdn: bool = True) -> str:
+def build_media_url(
+    subfolder: str,
+    filename: str,
+    use_cdn: bool = True,
+    *,
+    relative_only: bool = False,
+) -> str:
     """Construct a media URL path using POSIX separators.
     
     Args:
         subfolder: Media subfolder path
         filename: Filename
         use_cdn: Whether to use CDN URL if configured
+        relative_only: If True, always return a site-relative /media/files/... path
     
     Returns:
         Full media URL (with CDN prefix if configured, otherwise local path or absolute URL if BASE_URL is set)
@@ -189,6 +196,11 @@ def build_media_url(subfolder: str, filename: str, use_cdn: bool = True) -> str:
         relative_path = posix_join(settings.MEDIA_URL_PREFIX.rstrip("/"), normalized_subfolder, filename)
     else:
         relative_path = posix_join(settings.MEDIA_URL_PREFIX.rstrip("/"), filename)
+
+    if relative_only:
+        if not relative_path.startswith("/"):
+            relative_path = f"/{relative_path}"
+        return relative_path
     
     # Use CDN URL if configured, enabled, and not a placeholder
     if use_cdn and settings.CDN_URL:

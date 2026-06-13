@@ -321,11 +321,11 @@ async def upload_media(
     if is_category_upload and category_obj:
         resolved_category_id = category_obj.id
     
-    # Generate filename: use category slug for category uploads, human-readable format for others
+    # Generate filename: unique per upload so browsers/CDN do not serve stale category images
     if is_category_upload and category_slug:
-        # Format: "{type}-{category-slug}.jpeg"
-        # Examples: "master-security.jpeg", "rental-concrete.jpeg", "product-power-tools.jpeg"
-        unique_filename = f"{category_slug}.jpeg"
+        now = datetime.now()
+        timestamp = now.strftime("%Y%m%d_%H%M%S")
+        unique_filename = f"{category_slug}_{timestamp}.jpeg"
     else:
         # Generate human-readable filename with user_id and timestamp
         # Format: {user_id}_{YYYYMMDD}_{HHMMSS}_{microseconds}.{ext}
@@ -360,6 +360,7 @@ async def upload_media(
         subfolder,
         unique_filename,
         use_cdn=not is_category_upload,
+        relative_only=is_category_upload,
     )
     
     # If this is a category image upload, update the category's image_url in the database
