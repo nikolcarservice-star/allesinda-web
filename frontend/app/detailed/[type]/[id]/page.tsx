@@ -143,30 +143,35 @@ function humanizeLabel(text: string): string {
 
 function buildMasterProfileCategories(detail: FeaturedDetail): string[] {
   const categories: string[] = []
-  const add = (value?: string | null) => {
+  const add = (value?: string | null, humanize = false) => {
     const trimmed = value?.trim()
     if (!trimmed) return
-    const normalized = trimmed.toLowerCase()
+    const label = humanize ? humanizeLabel(trimmed) : trimmed
+    const normalized = label.toLowerCase()
     if (categories.some((item) => item.toLowerCase() === normalized)) return
-    categories.push(trimmed)
-  }
-
-  if (detail.category) {
-    add(humanizeLabel(detail.category))
+    categories.push(label)
   }
 
   const extra = (detail.extra ?? {}) as Record<string, unknown>
-  const extraCategories = extra.categories ?? extra.category_names
+  const extraCategories = extra.category_names ?? extra.categories
   if (Array.isArray(extraCategories)) {
     extraCategories.forEach((item) => {
-      if (typeof item === "string") add(humanizeLabel(item))
+      if (typeof item === "string") add(item)
     })
   } else if (typeof extraCategories === "string") {
-    extraCategories.split(",").forEach((item) => add(humanizeLabel(item)))
+    extraCategories.split(",").forEach((item) => add(item))
+  }
+
+  if (detail.category) {
+    add(detail.category)
+  }
+
+  if (typeof extra.profession === "string") {
+    add(extra.profession)
   }
 
   const keywords = extra.keywords
-  if (typeof keywords === "string") {
+  if (typeof keywords === "string" && categories.length === 0) {
     keywords.split(",").forEach((item) => add(item.trim()))
   }
 
@@ -632,10 +637,12 @@ export default async function DetailedPage({ params }: DetailedPageProps) {
   const isAvailableForCart = type !== "master" ? detail.available !== false && cartStock > 0 : false
 
   const masterProfessionLabel = detail.category
-    ? humanizeLabel(detail.category)
-    : showSubtitle
-      ? subtitle
-      : null
+    ? detail.category
+    : typeof masterExtra.profession === "string" && masterExtra.profession.trim()
+      ? masterExtra.profession.trim()
+      : showSubtitle
+        ? subtitle
+        : null
 
   const masterProfileCategories = buildMasterProfileCategories(detail)
   const masterAbout = detail.description?.trim() || null

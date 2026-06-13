@@ -278,6 +278,7 @@ class FeaturedItemOut(BaseModel):
     city_id: Optional[int] = None
     city_name: Optional[str] = None
     category_id: Optional[int] = None
+    category: Optional[str] = None
     created_at: Optional[datetime] = None
     relationships: List[RelatedItemSummary] = Field(default_factory=list)
 

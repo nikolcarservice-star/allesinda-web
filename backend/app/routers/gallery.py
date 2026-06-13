@@ -7,6 +7,7 @@ from ..models import Media, MediaStatus, User, Profile
 from ..schemas import MediaOut, PaginationParams
 from ..security import get_current_user
 from ..helpers import paginate_query, create_paginated_response
+from ..utils.storage import media_out_with_local_urls, normalize_response_media_url
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/gallery", tags=["gallery"])
@@ -79,7 +80,7 @@ def get_work_gallery(
     enhanced_items = []
     for media in items:
         try:
-            media_dict = MediaOut.model_validate(media).model_dump()
+            media_dict = media_out_with_local_urls(media).model_dump()
             # Add master info
             if media.owner:
                 media_dict["master_name"] = media.owner.name
@@ -88,7 +89,7 @@ def get_work_gallery(
                 if profile:
                     media_dict["master_profile_id"] = profile.id
                     media_dict["master_verified"] = profile.verified
-                    media_dict["master_image_url"] = profile.image_url  # Include profile image URL
+                    media_dict["master_image_url"] = normalize_response_media_url(profile.image_url)
             # For before/after pairs, ensure both URLs are present
             if media.is_before_after:
                 if not media.before_url or not media.after_url:
@@ -124,7 +125,7 @@ def get_profile_gallery(
     
     items, total = paginate_query(query, page, page_size)
     
-    enhanced_items = [MediaOut.model_validate(media).model_dump() for media in items]
+    enhanced_items = [media_out_with_local_urls(media).model_dump() for media in items]
     
     return create_paginated_response(enhanced_items, total, page, page_size)
 

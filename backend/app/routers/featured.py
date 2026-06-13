@@ -15,6 +15,7 @@ from ..category_filter import resolve_category_ids
 from ..database import get_db
 from ..helpers import create_paginated_response
 from ..profile_queries import profile_query_with_user
+from ..utils.storage import normalize_response_media_url, media_out_with_local_urls
 from ..models import (
     Category,
     CategoryType,
@@ -119,6 +120,34 @@ def _load_like_counts(db: Session, item_type: CategoryType, item_ids: List[int])
         return {}
 
 
+def _collect_master_category_labels(profile: Profile) -> list[str]:
+    """Human-readable category labels for master profile display."""
+    labels: list[str] = []
+    seen: set[str] = set()
+
+    def add(value: Optional[str]) -> None:
+        text = (value or "").strip()
+        if not text:
+            return
+        key = text.casefold()
+        if key in seen:
+            return
+        seen.add(key)
+        labels.append(text)
+
+    if profile.profession:
+        add(profile.profession)
+
+    category = getattr(profile, "category_ref", None)
+    if category:
+        parent = getattr(category, "parent", None)
+        if parent:
+            add(parent.name)
+        add(category.name)
+
+    return labels
+
+
 def _serialize_master(profile: Profile, *, lowest_price: Optional[float] = None, likes_count: int = 0) -> dict:
     """
     Serialize a master profile to FeaturedItemOut format.
@@ -131,13 +160,14 @@ def _serialize_master(profile: Profile, *, lowest_price: Optional[float] = None,
     title = _master_display_title(user, profile.id)
     subtitle = profile.city_ref.name if getattr(profile, "city_ref", None) else None
     price_value = _safe_float(lowest_price)
+    category_labels = _collect_master_category_labels(profile)
     return {
         "id": profile.id,
         "type": CategoryType.master,
         "title": title,
         "subtitle": subtitle,
         "description": profile.about,
-        "image_url": profile.image_url,  # Always use profile image for masters (not portfolio/media)
+        "image_url": normalize_response_media_url(profile.image_url),
         "rating": _safe_float(profile.rating),
         "total_reviews": int(profile.total_reviews) if profile.total_reviews is not None else None,
         "price": price_value,
@@ -145,6 +175,7 @@ def _serialize_master(profile: Profile, *, lowest_price: Optional[float] = None,
         "city_id": profile.city_id,
         "city_name": profile.city_ref.name if getattr(profile, "city_ref", None) else None,
         "category_id": profile.category_id,
+        "category": category_labels[0] if category_labels else None,
         "created_at": profile.created_at,
         "likes_count": likes_count,
     }
@@ -253,7 +284,7 @@ def _load_item_summaries(db: Session, ids_by_type: Dict[CategoryType, set[int]])
 
     if CategoryType.master in ids_by_type and ids_by_type[CategoryType.master]:
         profiles = (
-            profile_query_with_user(db)
+            profile_query_with_user(db, with_category=True)
             .filter(Profile.id.in_(ids_by_type[CategoryType.master]))
             .all()
         )
@@ -261,7 +292,7 @@ def _load_item_summaries(db: Session, ids_by_type: Dict[CategoryType, set[int]])
             user = profile.user
             summaries[(CategoryType.master, profile.id)] = {
                 "title": _master_display_title(user, profile.id),
-                "image_url": profile.image_url,
+                "image_url": normalize_response_media_url(profile.image_url),
             }
 
     if CategoryType.product in ids_by_type and ids_by_type[CategoryType.product]:
@@ -437,7 +468,7 @@ def _record_recent_view(db: Session, user_id: int, item_type: CategoryType, item
 
 def _build_featured_item_from_type(db: Session, item_type: CategoryType, item_id: int) -> Optional[FeaturedItemOut]:
     if item_type == CategoryType.master:
-        profile = profile_query_with_user(db).filter(Profile.id == item_id).first()
+        profile = profile_query_with_user(db, with_category=True).filter(Profile.id == item_id).first()
         if not profile:
             return None
         lowest_price = (
@@ -554,7 +585,7 @@ def list_featured_items(
     aggregated: List[dict] = []
 
     if CategoryType.master in requested_types:
-        master_query = profile_query_with_user(db).filter(
+        master_query = profile_query_with_user(db, with_category=True).filter(
             User.role == Role.master,
             User.is_active.is_(True),
         )
@@ -807,7 +838,7 @@ def get_featured_detail(
 ):
     if item_type == CategoryType.master:
         profile = (
-            profile_query_with_user(db)
+            profile_query_with_user(db, with_category=True)
             .options(joinedload(Profile.services))
             .filter(Profile.id == item_id)
             .first()
@@ -838,13 +869,17 @@ def get_featured_detail(
             .order_by(Media.sort_order.asc().nullslast(), Media.created_at.desc())
             .all()
         )
-        detail.portfolio = [MediaOut.model_validate(m) for m in media_items]
+        detail.portfolio = [media_out_with_local_urls(m) for m in media_items]
+        category_labels = _collect_master_category_labels(profile)
         detail.extra = {
             "verified": profile.verified,
             "completed_jobs": profile.completed_jobs,
             "response_time_hours": profile.response_time_hours,
             "seller_id": profile.user_id,
             "profile_id": profile.id,
+            "keywords": profile.keywords,
+            "profession": profile.profession,
+            "category_names": category_labels,
         }
     elif item_type == CategoryType.product:
         product = (

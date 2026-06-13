@@ -86,6 +86,50 @@ def media_url_to_upload_relative_path(url: Optional[str]) -> Optional[str]:
     return normalized if normalized else None
 
 
+def normalize_response_media_url(value: Optional[str]) -> Optional[str]:
+    """Serve stored uploads through this API (/media/files), not CDN paths without files."""
+    if not value:
+        return None
+
+    stripped = value.strip()
+    if not stripped:
+        return None
+
+    lowered = stripped.lower()
+    if lowered.startswith("http://") or lowered.startswith("https://"):
+        if "your-cdn-url.com" in lowered:
+            stripped = urlparse(stripped).path or stripped
+        elif not media_url_to_upload_relative_path(stripped):
+            return stripped
+
+    relative = media_url_to_upload_relative_path(stripped)
+    if not relative:
+        return stripped
+
+    from posixpath import join as posix_join
+
+    prefix = settings.MEDIA_URL_PREFIX.strip("/")
+    if not prefix.startswith("/"):
+        prefix = f"/{prefix}"
+    prefix = prefix.rstrip("/")
+    return posix_join(prefix, relative.replace("\\", "/"))
+
+
+def media_out_with_local_urls(media) -> "MediaOut":
+    """Serialize media with URLs the frontend can load from this API."""
+    from ..schemas import MediaOut
+
+    item = MediaOut.model_validate(media)
+    return item.model_copy(
+        update={
+            "url": normalize_response_media_url(item.url) or item.url,
+            "thumbnail_url": normalize_response_media_url(item.thumbnail_url) or item.thumbnail_url,
+            "before_url": normalize_response_media_url(item.before_url) or item.before_url,
+            "after_url": normalize_response_media_url(item.after_url) or item.after_url,
+        }
+    )
+
+
 def get_upload_folder() -> str:
     """Return the absolute path to the upload/root media folder."""
     upload_folder = settings.UPLOAD_FOLDER

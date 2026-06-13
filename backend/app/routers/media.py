@@ -10,7 +10,7 @@ from ..models import Media, MediaStatus, User, Role, Profile
 from ..schemas import MediaIn, MediaOut
 from ..security import get_current_user, require_role
 from ..helpers import paginate_query, create_paginated_response
-from ..utils.storage import get_upload_folder, get_media_subfolder, build_media_url, media_url_to_upload_relative_path
+from ..utils.storage import get_upload_folder, get_media_subfolder, build_media_url, media_url_to_upload_relative_path, media_out_with_local_urls
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -611,7 +611,7 @@ async def list_media(
     items, total = paginate_query(query, page, page_size)
     
     # Convert SQLAlchemy models to Pydantic models
-    media_out_items = [MediaOut.model_validate(item) for item in items]
+    media_out_items = [media_out_with_local_urls(item) for item in items]
     
     return create_paginated_response(media_out_items, total, page, page_size)
 
@@ -633,7 +633,7 @@ async def my_media(
     items, total = paginate_query(query, page, page_size)
     
     # Convert SQLAlchemy models to Pydantic models
-    media_out_items = [MediaOut.model_validate(item) for item in items]
+    media_out_items = [media_out_with_local_urls(item) for item in items]
     
     return create_paginated_response(media_out_items, total, page, page_size)
 

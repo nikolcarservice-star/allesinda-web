@@ -19,16 +19,19 @@ from ..utils.user_reports import notify_user_report
 from ..security import require_role, get_current_user
 from ..helpers import paginate_query, create_paginated_response, calculate_distance
 from ..config import settings
-from ..utils.storage import get_upload_folder, build_media_url
+from ..utils.storage import get_upload_folder, build_media_url, normalize_response_media_url
 
 router = APIRouter(prefix="/masters", tags=["masters"])
 
 def _serialize_profile(profile: Profile) -> ProfileOut:
     data = ProfileOut.model_validate(profile)
+    updates: dict[str, object] = {
+        "image_url": normalize_response_media_url(data.image_url),
+    }
     city_name = profile.city_ref.name if getattr(profile, "city_ref", None) else None
     if city_name:
-        return data.model_copy(update={"city_name": city_name})
-    return data
+        updates["city_name"] = city_name
+    return data.model_copy(update=updates)
 
 def _get_user_profile(db: Session, user_id: int) -> Optional[Profile]:
     return (
