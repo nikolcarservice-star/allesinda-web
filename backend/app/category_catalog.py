@@ -134,6 +134,8 @@ def _normalize_category_name(value: Optional[str]) -> str:
 
 def remap_entity_categories(db: Session, model, category_type: CategoryType) -> int:
     """Move profiles/products/rentals from deactivated categories to active name matches."""
+    from .category_filter import _category_names_related, _normalize_name
+
     inactive = (
         db.query(Category)
         .filter(Category.type == category_type, Category.is_active.is_(False))
@@ -142,23 +144,73 @@ def remap_entity_categories(db: Session, model, category_type: CategoryType) -> 
     if not inactive:
         return 0
 
-    active_by_name: dict[str, list[Category]] = defaultdict(list)
-    for active in (
+    active_categories = (
         db.query(Category)
         .filter(Category.type == category_type, Category.is_active.is_(True))
         .all()
-    ):
-        active_by_name[_normalize_category_name(active.name)].append(active)
+    )
+    active_by_name: dict[str, list[Category]] = defaultdict(list)
+    for active in active_categories:
+        active_by_name[_normalize_name(active.name)].append(active)
+
+    def pick_target(candidates: list[Category]) -> Optional[int]:
+        if not candidates:
+            return None
+        if len(candidates) == 1:
+            return candidates[0].id
+        subcategories = [item for item in candidates if item.parent_id]
+        return subcategories[0].id if subcategories else candidates[0].id
+
+    def find_remap_target(old: Category) -> Optional[int]:
+        exact_targets = active_by_name.get(_normalize_name(old.name), [])
+        target_id = pick_target(exact_targets)
+        if target_id:
+            return target_id
+
+        same_level = [
+            active
+            for active in active_categories
+            if bool(active.parent_id) == bool(old.parent_id)
+            and _category_names_related(active.name, old.name)
+        ]
+        target_id = pick_target(same_level)
+        if target_id:
+            return target_id
+
+        if old.parent_id:
+            old_parent = db.get(Category, old.parent_id)
+            if old_parent:
+                related_parents = [
+                    active
+                    for active in active_categories
+                    if active.parent_id is None
+                    and _category_names_related(active.name, old_parent.name)
+                ]
+                if related_parents:
+                    parent = related_parents[0]
+                    children = [active for active in active_categories if active.parent_id == parent.id]
+                    child_matches = [
+                        child for child in children if _category_names_related(child.name, old.name)
+                    ]
+                    if child_matches:
+                        return child_matches[0].id
+                    if children:
+                        return children[0].id
+                    return parent.id
+
+        if old.parent_id is None:
+            related_parents = [
+                active
+                for active in active_categories
+                if active.parent_id is None and _category_names_related(active.name, old.name)
+            ]
+            return pick_target(related_parents)
+
+        return None
 
     updated = 0
     for old in inactive:
-        targets = active_by_name.get(_normalize_category_name(old.name), [])
-        new_id: Optional[int] = None
-        if len(targets) == 1:
-            new_id = targets[0].id
-        elif targets:
-            subcategories = [item for item in targets if item.parent_id]
-            new_id = subcategories[0].id if subcategories else targets[0].id
+        new_id = find_remap_target(old)
         if not new_id:
             continue
         count = (
