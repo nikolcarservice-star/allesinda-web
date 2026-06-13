@@ -15,6 +15,12 @@ if [ ! -d "$UPLOAD_DIR" ]; then
     echo "Uploads directory created successfully"
     echo ""
 fi
+mkdir -p "$UPLOAD_DIR/categories"
+# Coolify/docker volumes may be root-owned; ensure app user (uid 1000) can write uploads.
+if [ "$(id -u)" = "0" ]; then
+    chown -R 1000:1000 "$UPLOAD_DIR" 2>/dev/null || true
+fi
+chmod -R u+rwX "$UPLOAD_DIR" 2>/dev/null || true
 
 # Copy img_backup to uploads if it exists (do not overwrite existing uploads)
 if [ -d "img_backup" ] && [ "$(ls -A img_backup 2>/dev/null)" ]; then
@@ -73,6 +79,11 @@ echo ""
 
 echo "Starting FastAPI server..."
 echo ""
+
+APP_USER="appuser"
+if [ "$(id -u)" = "0" ] && id "$APP_USER" >/dev/null 2>&1; then
+    exec su -s /bin/bash "$APP_USER" -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info --no-access-log"
+fi
 
 # Start uvicorn
 # Using single worker to avoid async database connection pool issues

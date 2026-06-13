@@ -221,26 +221,29 @@ async def upload_media(
                 "Both before_url and after_url are required for before/after pairs"
             )
     
-    # Resolve profile context when user omits profile_id
+    # Category image uploads take precedence over the uploader's master profile.
+    is_category_upload = False
+    category_slug = None
+    category_obj = None
+    if not product_id and not rental_id and (category_id or category):
+        from ..models import Category
+
+        if category_id:
+            category_obj = db.get(Category, category_id)
+        elif category:
+            category_obj = db.query(Category).filter(Category.slug == category).first()
+        if category_obj and not category_obj.parent_id:
+            if user.role != Role.admin:
+                raise HTTPException(403, "Only admins can upload category images")
+            is_category_upload = True
+            category_slug = category_obj.slug
+
+    # Resolve profile context only for non-category uploads.
     final_profile_id = profile_id
-    if not final_profile_id:
+    if not is_category_upload and not final_profile_id:
         profile = db.query(Profile).filter(Profile.user_id == user.id).first()
         if profile:
             final_profile_id = profile.id
-    
-    # Check if this is a category image upload (only main categories, not subcategories)
-    is_category_upload = False
-    category_slug = None
-    if not product_id and not rental_id and not final_profile_id:
-        from ..models import Category
-        cat = None
-        if category_id:
-            cat = db.get(Category, category_id)
-        elif category:
-            cat = db.query(Category).filter(Category.slug == category).first()
-        if cat and not cat.parent_id:
-            is_category_upload = True
-            category_slug = cat.slug
     
     # Determine storage entity type for structured folders
     if is_category_upload:
@@ -312,9 +315,11 @@ async def upload_media(
     resolved_category_id = category_id
     if not resolved_category_id and category:
         from ..models import Category
-        category_obj = db.query(Category).filter(Category.slug == category).first()
-        if category_obj:
-            resolved_category_id = category_obj.id
+        category_obj_lookup = db.query(Category).filter(Category.slug == category).first()
+        if category_obj_lookup:
+            resolved_category_id = category_obj_lookup.id
+    if is_category_upload and category_obj:
+        resolved_category_id = category_obj.id
     
     # Generate filename: use category slug for category uploads, human-readable format for others
     if is_category_upload and category_slug:
@@ -333,9 +338,13 @@ async def upload_media(
     upload_folder = get_upload_folder()
     subfolder = get_media_subfolder(media_type, entity_type=entity_type)
     
-    # Create full directory path: uploads/photos/2024/03/ or uploads/videos/2024/03/
+    # Create full directory path: uploads/photos/2024/03/ or uploads/categories/
     full_dir_path = os.path.join(upload_folder, subfolder)
-    os.makedirs(full_dir_path, exist_ok=True)
+    try:
+        os.makedirs(full_dir_path, exist_ok=True)
+    except OSError as e:
+        logger.error("Cannot create upload directory %s: %s", full_dir_path, e)
+        raise HTTPException(500, f"Failed to create upload directory: {e}")
     
     # Save file to disk in the organized subfolder
     file_path = os.path.join(full_dir_path, unique_filename)
@@ -347,7 +356,11 @@ async def upload_media(
         raise HTTPException(500, f"Failed to save file: {str(e)}")
     
     # Generate URL for the saved file using structured format
-    file_url = build_media_url(subfolder, unique_filename)
+    file_url = build_media_url(
+        subfolder,
+        unique_filename,
+        use_cdn=not is_category_upload,
+    )
     
     # If this is a category image upload, update the category's image_url in the database
     if is_category_upload and category_slug:
@@ -412,7 +425,7 @@ async def upload_media(
     
     m = Media(
         owner_id=user.id,
-        profile_id=final_profile_id,
+        profile_id=None if is_category_upload else final_profile_id,
         product_id=product_id,
         rental_id=rental_id,
         url=file_url,

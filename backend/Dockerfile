@@ -47,8 +47,8 @@ RUN chmod +x /app/docker-entrypoint.sh
 # Ensure local bin directory is in PATH
 ENV PATH=/home/appuser/.local/bin:$PATH
 
-# Switch to non-root user
-USER appuser
+# Switch to root for entrypoint (fixes volume permissions), then drops to appuser for uvicorn
+USER root
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

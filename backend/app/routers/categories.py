@@ -86,6 +86,18 @@ def _normalize_media_url(value: Optional[str]) -> Optional[str]:
 
     segment = normalized.lstrip("/")
 
+    media_prefix = settings.MEDIA_URL_PREFIX.strip("/")
+    if media_prefix and (
+        segment == media_prefix
+        or segment.startswith(f"{media_prefix}/")
+        or segment.startswith("categories/")
+    ):
+        prefix = settings.MEDIA_URL_PREFIX if settings.MEDIA_URL_PREFIX.startswith("/") else f"/{settings.MEDIA_URL_PREFIX}"
+        prefix = prefix.rstrip("/")
+        if segment.startswith(media_prefix):
+            return f"/{segment}"
+        return f"{prefix}/{segment}"
+
     cdn_prefix = (settings.CDN_URL or "").strip()
     if cdn_prefix and "your-cdn-url.com" not in cdn_prefix.lower():
         base = cdn_prefix.rstrip("/")

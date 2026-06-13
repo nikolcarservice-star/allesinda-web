@@ -561,7 +561,6 @@ export function CategoriesTable() {
 
     try {
       setUploadingImage(true)
-      setFormData((prev) => ({ ...prev, image_url: "" }))
       await uploadCategoryImageFile()
       toast.success("Bild erfolgreich hochgeladen")
     } catch (error: any) {
