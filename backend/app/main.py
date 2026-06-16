@@ -33,12 +33,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize database tables (if they don't exist)
-# Heavy schema repair runs in startup_event (background) so uvicorn binds port quickly.
-try:
-    safe_create_all()
-except Exception as e:
-    logger.error(f"Error ensuring database tables exist: {e}")
+# DB table creation and schema repair run in startup_event (background) so uvicorn binds port quickly.
 
 # Create upload folder if it doesn't exist
 upload_folder = settings.UPLOAD_FOLDER
@@ -552,6 +547,12 @@ def root(request: Request):
         out["api_prefix"] = _api_prefix  # API routes live under this path (e.g. NEXT_PUBLIC_API_URL = base + prefix)
     return out
 
+@app.get("/health/live")
+def health_live():
+    """Liveness probe — returns immediately (Docker/Coolify before DB schema is ready)."""
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+
+
 @app.get("/health")
 def health_check():
     """Health check endpoint - no rate limiting for monitoring"""
@@ -622,6 +623,7 @@ async def periodic_cache_cleanup():
 def _run_deferred_schema_setup() -> None:
     """Run full schema repair off the event loop (category sync, media ensure, etc.)."""
     try:
+        safe_create_all()
         ensure_schema()
         logger.info("Deferred database schema ensure completed")
     except Exception as e:
@@ -631,7 +633,8 @@ def _run_deferred_schema_setup() -> None:
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup"""
-    asyncio.get_event_loop().run_in_executor(None, _run_deferred_schema_setup)
+    loop = asyncio.get_running_loop()
+    loop.run_in_executor(None, _run_deferred_schema_setup)
 
     logger.info("=" * 60)
     logger.info("Allesinda API starting up...")

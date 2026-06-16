@@ -26,6 +26,9 @@ RUN useradd -m -u 1000 appuser && \
 
 WORKDIR /app
 
+ENV PATH=/usr/local/bin:/usr/bin:/bin
+ENV PYTHONPATH=/app
+
 # Copy installed packages and console scripts from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
@@ -48,9 +51,9 @@ RUN chmod +x /app/docker-entrypoint.sh
 # Switch to root for entrypoint (fixes volume permissions), then drops to appuser for uvicorn
 USER root
 
-# Health check (allow time for uvicorn import + deferred schema repair on first deploy)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-    CMD curl -f http://localhost:8000/health || exit 1
+# Liveness only — /health/live does not wait for deferred schema repair
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:8000/health/live || exit 1
 
 EXPOSE 8000
 
