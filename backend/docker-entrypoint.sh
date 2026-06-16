@@ -56,27 +56,6 @@ if [ "${SEED_DB_ON_START}" = "true" ]; then
     echo ""
 fi
 
-echo "Ensuring database schema is up to date..."
-python -c "
-from app.database import ensure_schema, database_schema_ready
-ensure_schema()
-ready, err = database_schema_ready()
-if ready:
-    print('Database schema OK')
-else:
-    print(f'WARNING: schema incomplete after repair: {err}')
-    print('App will start; if login fails, run:')
-    print('  ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_requested_at TIMESTAMPTZ;')
-    print('  Or run backend/scripts/create_user_reports_table.sql on PostgreSQL')
-" || echo "WARNING: schema ensure script failed, starting server anyway..."
-
-echo "Ensuring category image files exist on disk..."
-python -c "
-from app.database import _ensure_category_media_on_startup
-_ensure_category_media_on_startup()
-" || echo "WARNING: category media ensure failed, starting server anyway..."
-echo ""
-
 echo "Starting FastAPI server..."
 echo ""
 

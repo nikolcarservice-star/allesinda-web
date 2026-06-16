@@ -34,14 +34,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Initialize database tables (if they don't exist)
-# This is safe to run at module level as it only creates missing tables
+# Heavy schema repair runs in startup_event (background) so uvicorn binds port quickly.
 try:
     safe_create_all()
-    ensure_schema()
 except Exception as e:
-    logger.error(f"Error ensuring database schema: {e}")
-    # Don't crash on startup - tables might already exist or DB might not be ready yet
-    # The startup event or entrypoint script will handle retries if needed
+    logger.error(f"Error ensuring database tables exist: {e}")
 
 # Create upload folder if it doesn't exist
 upload_folder = settings.UPLOAD_FOLDER
@@ -622,13 +619,19 @@ async def periodic_cache_cleanup():
             # Wait 1 hour before retrying on error
             await asyncio.sleep(60 * 60)
 
+def _run_deferred_schema_setup() -> None:
+    """Run full schema repair off the event loop (category sync, media ensure, etc.)."""
+    try:
+        ensure_schema()
+        logger.info("Deferred database schema ensure completed")
+    except Exception as e:
+        logger.error("Deferred schema ensure failed: %s", e, exc_info=True)
+
+
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup"""
-    try:
-        ensure_schema()
-    except Exception as e:
-        logger.error("Startup schema ensure failed: %s", e, exc_info=True)
+    asyncio.get_event_loop().run_in_executor(None, _run_deferred_schema_setup)
 
     logger.info("=" * 60)
     logger.info("Allesinda API starting up...")

@@ -48,8 +48,8 @@ RUN chmod +x /app/docker-entrypoint.sh
 # Switch to root for entrypoint (fixes volume permissions), then drops to appuser for uvicorn
 USER root
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Health check (allow time for uvicorn import + deferred schema repair on first deploy)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 EXPOSE 8000
