@@ -259,30 +259,45 @@ export function MasterCabinet() {
     }
   }, [])
 
+  const applyMasterMedia = useCallback((profileId: number, items: Media[]) => {
+    setMasterPhotos(
+      items.filter((item) => item.media_type === "photo" && item.profile_id === profileId),
+    )
+    setMasterVideos(
+      items.filter((item) => item.media_type === "video" && item.profile_id === profileId),
+    )
+  }, [])
+
+  const syncMasterMedia = useCallback(
+    async (profileId: number) => {
+      try {
+        const mediaData = await getMyMedia({ page: 1, page_size: 100 })
+        applyMasterMedia(profileId, mediaData.items || [])
+      } catch {
+        // Non-blocking refresh after failed delete
+      }
+    },
+    [applyMasterMedia],
+  )
+
   const loadData = useCallback(async () => {
     const requestId = ++loadRequestId.current
     setLoading(true)
     try {
-      const [cabinetData, categories, mediaData] = await Promise.all([
-        getMasterCabinet(),
-        getCategoriesByType("master", { activeOnly: true, rootOnly: true }),
-        getMyMedia({ page: 1, page_size: 100 }),
+      const cabinetData = await getMasterCabinet()
+      if (requestId !== loadRequestId.current) return
+
+      applyAccountAndProfile(cabinetData.user, cabinetData.profile, cabinetData.price_from)
+
+      const [categories, mediaData] = await Promise.all([
+        getCategoriesByType("master", { activeOnly: true, rootOnly: true }).catch(() => [] as Category[]),
+        getMyMedia({ page: 1, page_size: 100 }).catch(() => ({ items: [] as Media[] })),
       ])
 
       if (requestId !== loadRequestId.current) return
 
-      applyAccountAndProfile(cabinetData.user, cabinetData.profile, cabinetData.price_from)
       setMasterCategories(categories)
-      setMasterPhotos(
-        (mediaData.items || []).filter(
-          (item) => item.media_type === "photo" && item.profile_id === cabinetData.profile.id,
-        ),
-      )
-      setMasterVideos(
-        (mediaData.items || []).filter(
-          (item) => item.media_type === "video" && item.profile_id === cabinetData.profile.id,
-        ),
-      )
+      applyMasterMedia(cabinetData.profile.id, mediaData.items || [])
 
       const reviewsData = await getSellerReviews(cabinetData.profile.user_id, { page: 1, page_size: 20 }).catch(() => ({
         items: [] as Review[],
@@ -298,7 +313,7 @@ export function MasterCabinet() {
         setLoading(false)
       }
     }
-  }, [applyAccountAndProfile])
+  }, [applyAccountAndProfile, applyMasterMedia])
 
   useEffect(() => {
     if (user?.role === "master" && user.id) {
@@ -449,7 +464,6 @@ export function MasterCabinet() {
         const uploaded = await uploadMedia(file, {
           media_type: "photo",
           profile_id: profile.id,
-          category_id: profileForm.category_id,
         })
         uploadedPhotos.push(uploaded)
       }
@@ -469,12 +483,16 @@ export function MasterCabinet() {
   }
 
   const handleDeleteMasterPhoto = async (photoId: number) => {
+    const profileId = profile?.id
+    setDeletingMasterPhotoId(photoId)
+    setMasterPhotos((prev) => prev.filter((photo) => photo.id !== photoId))
     try {
-      setDeletingMasterPhotoId(photoId)
       await deleteMedia(photoId)
-      setMasterPhotos((prev) => prev.filter((photo) => photo.id !== photoId))
       toast.success("Foto gelöscht")
     } catch (err: unknown) {
+      if (profileId) {
+        await syncMasterMedia(profileId)
+      }
       const message = err instanceof Error ? err.message : "Foto konnte nicht gelöscht werden"
       toast.error(message)
     } finally {
@@ -517,7 +535,6 @@ export function MasterCabinet() {
         const uploaded = await uploadMedia(file, {
           media_type: "video",
           profile_id: profile.id,
-          category_id: profileForm.category_id,
           title: file.name,
         })
         uploadedVideos.push(uploaded)
@@ -545,12 +562,16 @@ export function MasterCabinet() {
   }
 
   const handleDeleteMasterVideo = async (videoId: number) => {
+    const profileId = profile?.id
+    setDeletingMasterVideoId(videoId)
+    setMasterVideos((prev) => prev.filter((video) => video.id !== videoId))
     try {
-      setDeletingMasterVideoId(videoId)
       await deleteMedia(videoId)
-      setMasterVideos((prev) => prev.filter((video) => video.id !== videoId))
       toast.success("Video gelöscht")
     } catch (err: unknown) {
+      if (profileId) {
+        await syncMasterMedia(profileId)
+      }
       const message = err instanceof Error ? err.message : "Video konnte nicht gelöscht werden"
       toast.error(message)
     } finally {

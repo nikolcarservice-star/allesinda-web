@@ -475,13 +475,19 @@ export default function MasterDashboardPage() {
 
   const handleDeleteMedia = useCallback(async (mediaId: number) => {
     if (!confirm("Sind Sie sicher, dass Sie dieses Medium löschen möchten?")) return
+    setDeletingMediaId(mediaId)
+    setMedia((prev: Media[]) => prev.filter((m: Media) => m.id !== mediaId))
     try {
-      setDeletingMediaId(mediaId)
       await deleteMedia(mediaId)
-      setMedia((prev: Media[]) => prev.filter((m: Media) => m.id !== mediaId))
       toast.success("Medium erfolgreich gelöscht")
       loadDataRef.current?.()
     } catch (error: any) {
+      try {
+        const mediaData = await getMyMedia({ page: 1, page_size: 100 })
+        setMedia(mediaData.items || [])
+      } catch {
+        // ignore refresh failure
+      }
       toast.error(error?.message || "Fehler beim Löschen des Mediums")
     } finally {
       setDeletingMediaId(null)

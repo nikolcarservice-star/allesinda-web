@@ -2,7 +2,7 @@
  * Media API functions
  */
 
-import { apiGet, apiPost, apiDelete, getApiBaseUrl } from './client';
+import { apiGet, apiPost, apiDelete, getApiBaseUrl, ApiClientError } from './client';
 import type { Media, PaginatedResponse } from './types';
 
 /** Prefer direct API URL for multipart uploads (large videos, mobile gallery MIME quirks). */
@@ -174,6 +174,13 @@ export async function getMyMedia(params?: {
  * Delete media
  */
 export async function deleteMedia(mediaId: number): Promise<void> {
-  return apiDelete<void>(`/media/me/${mediaId}`);
+  try {
+    await apiDelete<void>(`/media/me/${mediaId}`);
+  } catch (err) {
+    if (err instanceof ApiClientError && err.statusCode === 404) {
+      return;
+    }
+    throw err;
+  }
 }
 
