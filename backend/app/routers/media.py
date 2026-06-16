@@ -233,10 +233,14 @@ async def upload_media(
         elif category:
             category_obj = db.query(Category).filter(Category.slug == category).first()
         if category_obj and not category_obj.parent_id:
-            if user.role != Role.admin:
+            if profile_id:
+                # Master work gallery: category_id tags the media, not the category hero image.
+                pass
+            elif user.role != Role.admin:
                 raise HTTPException(403, "Only admins can upload category images")
-            is_category_upload = True
-            category_slug = category_obj.slug
+            else:
+                is_category_upload = True
+                category_slug = category_obj.slug
 
     # Resolve profile context only for non-category uploads.
     final_profile_id = profile_id
