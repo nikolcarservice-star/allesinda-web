@@ -235,8 +235,16 @@ def send_report_resolved_reporter_email(
     recipient_name: str,
     reported_name: str,
     report_id: int,
+    *,
+    action_label: str,
+    violation_label: str | None = None,
+    admin_note: str | None = None,
 ) -> bool:
     """Notify the client that their complaint was reviewed."""
+    violation_block = (
+        f"<li><strong>Einordnung:</strong> {violation_label}</li>" if violation_label else ""
+    )
+    note_block = f"<p><strong>Nachricht vom Team:</strong> {admin_note}</p>" if admin_note else ""
     subject = f"Ihre Meldung #{report_id} wurde bearbeitet"
     html_body = f"""
     <html>
@@ -245,8 +253,13 @@ def send_report_resolved_reporter_email(
         <p>Hallo {recipient_name},</p>
         <p>
           Vielen Dank für Ihre Meldung zu <strong>{reported_name}</strong>.
-          Unser Trust-Team hat den Fall geprüft und die Meldung als bearbeitet markiert.
+          Unser Trust-Team hat den Fall geprüft.
         </p>
+        <ul>
+          {violation_block}
+          <li><strong>Entscheidung:</strong> {action_label}</li>
+        </ul>
+        {note_block}
         <p>Bei weiteren Fragen erreichen Sie uns unter
           <a href="mailto:{settings.TRUST_EMAIL}">{settings.TRUST_EMAIL}</a>.
         </p>
@@ -258,6 +271,42 @@ def send_report_resolved_reporter_email(
 Hallo {recipient_name},
 
 Ihre Meldung zu {reported_name} wurde von unserem Trust-Team bearbeitet.
+"""
+    if violation_label:
+        text_body += f"Einordnung: {violation_label}\n"
+    text_body += f"Entscheidung: {action_label}\n"
+    if admin_note:
+        text_body += f"\nNachricht vom Team:\n{admin_note}\n"
+    text_body += f"\nKontakt: {settings.TRUST_EMAIL}\n"
+    return send_email(to_email, subject, html_body, text_body)
+
+
+def send_review_report_resolved_email(
+    to_email: str,
+    recipient_name: str,
+    review_id: int,
+    status_label: str,
+) -> bool:
+    """Notify a master that their review report was moderated."""
+    subject = f"Ihre Bewertungsmeldung #{review_id} wurde bearbeitet"
+    html_body = f"""
+    <html>
+      <body>
+        <h2>Meldung bearbeitet</h2>
+        <p>Hallo {recipient_name},</p>
+        <p>
+          Ihre Meldung zu Bewertung #{review_id} wurde bearbeitet:
+          <strong>{status_label}</strong>.
+        </p>
+        <p>Bei Fragen: <a href="mailto:{settings.TRUST_EMAIL}">{settings.TRUST_EMAIL}</a></p>
+      </body>
+    </html>
+    """
+    text_body = f"""Meldung bearbeitet
+
+Hallo {recipient_name},
+
+Ihre Meldung zu Bewertung #{review_id} wurde bearbeitet: {status_label}.
 
 Kontakt: {settings.TRUST_EMAIL}
 """

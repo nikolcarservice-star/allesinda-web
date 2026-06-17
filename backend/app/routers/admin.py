@@ -858,6 +858,7 @@ def moderate_review_report(
 ):
     """Resolve a master review report (admin only)."""
     from ..models import Review
+    from ..utils.email import send_review_report_resolved_email
     from ..utils.notifications import create_notification
 
     review = db.get(Review, review_id)
@@ -873,6 +874,9 @@ def moderate_review_report(
     order = review.order
     if order and order.seller_id:
         status_label = "Entfernt" if data.status == "removed" else "Abgelehnt"
+        seller = db.get(User, order.seller_id)
+        seller_email = (seller.email or "").strip() if seller else None
+        seller_name = (seller.name or seller_email or "Nutzer").strip() if seller else "Nutzer"
         try:
             create_notification(
                 db=db,
@@ -884,6 +888,20 @@ def moderate_review_report(
             )
         except Exception:
             pass
+        if seller_email:
+            try:
+                send_review_report_resolved_email(
+                    seller_email,
+                    seller_name,
+                    review.id,
+                    status_label,
+                )
+            except Exception as e:
+                logger.warning(
+                    "Review report resolution email failed for review %s: %s",
+                    review.id,
+                    e,
+                )
 
     return {"ok": True, "review_id": review.id, "report_status": review.report_status}
 
