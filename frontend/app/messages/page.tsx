@@ -141,6 +141,7 @@ function MessagesPageContent() {
   const messageInputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
+  const wsConnectedRef = useRef(false)
   const markingReadMapRef = useRef<Record<string, boolean>>({})
   const messagesTopRef = useRef<HTMLDivElement>(null)
   const pendingReadReceiptsRef = useRef<Set<string>>(new Set())
@@ -555,6 +556,41 @@ function MessagesPageContent() {
     return () => clearInterval(interval)
   }, [currentUserId, refreshConversationsList])
 
+  const pollOpenConversationMessages = useCallback(async () => {
+    if (!selectedConversation || wsConnectedRef.current) return
+    const conversationId = selectedConversation.id.toString()
+    try {
+      const response = await getMessages(parseInt(conversationId), { page: 1, page_size: 30 })
+      const mapped: Message[] = (response.items || [])
+        .slice()
+        .reverse()
+        .map((msg: any) => mapMessageResponse(msg))
+      registerSeenMessages(mapped)
+      setMessages((prev) => {
+        const existing = prev[conversationId] || []
+        const existingIds = new Set(existing.map((m) => String(m.id)))
+        const newcomers = mapped.filter((m) => !existingIds.has(String(m.id)))
+        if (newcomers.length === 0) return prev
+        const merged = [...existing, ...newcomers].sort(
+          (a, b) =>
+            new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(),
+        )
+        return { ...prev, [conversationId]: merged }
+      })
+    } catch {
+      // Silent fallback when WebSocket is unavailable
+    }
+  }, [selectedConversation, mapMessageResponse, registerSeenMessages])
+
+  // Fallback: poll active chat when WebSocket is not connected
+  useEffect(() => {
+    if (!selectedConversation || !currentUserId) return
+    const interval = setInterval(() => {
+      void pollOpenConversationMessages()
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [selectedConversation?.id, currentUserId, pollOpenConversationMessages])
+
   const markConversationAsRead = useCallback(async (conversationId: string, providedMessages?: Message[]) => {
     if (!currentUserId) return
     if (markingReadMapRef.current[conversationId]) return
@@ -791,6 +827,7 @@ function MessagesPageContent() {
   }, [selectedConversation, loadingMoreMessages, loadMoreMessages])
 
   const connectWebSocket = (conversationId: number) => {
+    wsConnectedRef.current = false
     // Close existing connection
     if (wsRef.current) {
       try {
@@ -813,6 +850,7 @@ function MessagesPageContent() {
       const ws = new WebSocket(wsUrl)
       
       ws.onopen = () => {
+        wsConnectedRef.current = true
         logger.log("WebSocket connected")
       }
       
@@ -1165,10 +1203,12 @@ function MessagesPageContent() {
       }
       
       ws.onerror = (error) => {
+        wsConnectedRef.current = false
         logger.error("WebSocket error:", error)
       }
       
       ws.onclose = () => {
+        wsConnectedRef.current = false
         logger.log("WebSocket disconnected")
         if (wsRef.current === ws) {
           wsRef.current = null
@@ -1177,8 +1217,9 @@ function MessagesPageContent() {
       
       wsRef.current = ws
     } catch (error) {
+      wsConnectedRef.current = false
       logger.error("Failed to connect WebSocket:", error)
-      // Continue without WebSocket - will use polling
+      // Polling fallback runs via pollOpenConversationMessages
     }
   }
 
@@ -1897,6 +1938,7 @@ function MessagesPageContent() {
         }
         wsRef.current = null
       }
+      wsConnectedRef.current = false
     }
   }, [])
 

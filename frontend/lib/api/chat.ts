@@ -77,14 +77,42 @@ export async function markConversationRead(
   return apiPost<{ ok: boolean; updated: number }>(`/chat/conversations/${conversationId}/read`, {});
 }
 
+/** Direct backend URL for WebSocket and multipart (Next /api-proxy cannot upgrade WS). */
+export function getChatDirectApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const direct = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '');
+    if (direct) return direct;
+    if (process.env.NODE_ENV === 'development') {
+      return 'http://127.0.0.1:8000';
+    }
+  }
+  return getApiBaseUrl();
+}
+
+function toWebSocketBaseUrl(httpBase: string): string {
+  if (httpBase.startsWith('https://')) {
+    return httpBase.replace(/^https:/, 'wss:');
+  }
+  if (httpBase.startsWith('http://')) {
+    return httpBase.replace(/^http:/, 'ws:');
+  }
+  // Relative paths (e.g. /api-proxy) cannot carry WebSocket — fall back to configured API.
+  const direct = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '');
+  if (direct) {
+    return direct.startsWith('https://')
+      ? direct.replace(/^https:/, 'wss:')
+      : direct.replace(/^http:/, 'ws:');
+  }
+  return `ws://${typeof window !== 'undefined' ? window.location.host : 'localhost:8000'}`;
+}
+
 /**
  * Get WebSocket URL for real-time chat
  */
 export function getWebSocketUrl(conversationId: number, token?: string): string {
-  const apiUrl = getApiBaseUrl();
-  const wsUrl = apiUrl.replace(/^http/, 'ws');
-  const tokenParam = token ? `?token=${token}` : '';
-  return `${wsUrl}/chat/ws/${conversationId}${tokenParam}`;
+  const wsBase = toWebSocketBaseUrl(getChatDirectApiBaseUrl()).replace(/\/$/, '');
+  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+  return `${wsBase}/chat/ws/${conversationId}${tokenParam}`;
 }
 
 /**
@@ -101,7 +129,7 @@ export async function uploadAttachment(
     formData.append('caption', caption);
   }
 
-  const apiUrl = getApiBaseUrl();
+  const apiUrl = getChatDirectApiBaseUrl();
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
   const headers: Record<string, string> = {};
   if (token) {
