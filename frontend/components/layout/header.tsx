@@ -388,10 +388,6 @@ export function Header() {
     if (typeof window === "undefined") return
 
     const getScrollY = () => window.scrollY || document.documentElement.scrollTop || 0
-    /** Только у самого верха страницы шапка закреплена (bounce / микродрожь). Дальше — скрытие при прокрутке вниз. */
-    const PIN_TOP = 20
-    const DELTA_HIDE = 10
-    const DELTA_SHOW = 6
 
     let raf = 0
     const media = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -400,9 +396,7 @@ export function Header() {
       if (raf) return
       raf = window.requestAnimationFrame(() => {
         raf = 0
-        const y = getScrollY()
-        const prev = lastScrollYRef.current
-        lastScrollYRef.current = y
+        lastScrollYRef.current = getScrollY()
 
         const lockOpen =
           isMobileMenuOpen ||
@@ -415,23 +409,8 @@ export function Header() {
           return
         }
 
-        // Desktop: keep header sticky/visible while scrolling
-        if (window.matchMedia("(min-width: 1024px)").matches) {
-          setIsHeaderVisible(true)
-          return
-        }
-
-        const delta = y - prev
-        if (y <= PIN_TOP) {
-          setIsHeaderVisible(true)
-          return
-        }
-
-        if (delta > DELTA_HIDE) {
-          setIsHeaderVisible(false)
-        } else if (delta < -DELTA_SHOW) {
-          setIsHeaderVisible(true)
-        }
+        // Mobile: header is in document flow (not fixed). Desktop: keep header visible.
+        setIsHeaderVisible(true)
       })
     }
 
@@ -1582,10 +1561,11 @@ return (
 
   return (
     <>
+      {/* Spacer only for fixed desktop header */}
       <div
         aria-hidden
         className={cn(
-          "shrink-0 overflow-hidden [overflow-anchor:none]",
+          "hidden lg:block shrink-0 overflow-hidden [overflow-anchor:none]",
           isMasterCabinetPage && "hidden",
         )}
         style={{ height: headerSpacerHeight }}
@@ -1593,7 +1573,7 @@ return (
       <header
         ref={headerRef}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50",
+          "relative z-50 lg:fixed lg:top-0 lg:left-0 lg:right-0",
           isMasterCabinetPage && "hidden lg:block",
           !isHeaderVisible && "pointer-events-none lg:pointer-events-auto",
         )}
@@ -1618,8 +1598,8 @@ return (
     <div
       className={cn(
         "bg-white text-black border-b border-gray-300",
-        "transition-transform duration-300 ease-out will-change-transform lg:transform-none lg:will-change-auto",
-        !isHeaderVisible && "-translate-y-full lg:translate-y-0",
+        "lg:transition-transform lg:duration-300 lg:ease-out lg:will-change-transform",
+        !isHeaderVisible && "lg:-translate-y-full",
       )}
     >
       {isMasterDetailPage && masterProfileId != null ? (
