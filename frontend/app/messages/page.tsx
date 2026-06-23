@@ -142,6 +142,9 @@ function MessagesPageContent() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const wsConnectedRef = useRef(false)
+  const wsReconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const wsReconnectAttemptRef = useRef(0)
+  const pollOpenConversationMessagesRef = useRef<(() => Promise<void>) | null>(null)
   const markingReadMapRef = useRef<Record<string, boolean>>({})
   const messagesTopRef = useRef<HTMLDivElement>(null)
   const pendingReadReceiptsRef = useRef<Set<string>>(new Set())
@@ -544,6 +547,14 @@ function MessagesPageContent() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("notifications:refresh"))
       }
+      if (selectedConversationIdRef.current) {
+        const viewingChat =
+          showMobileChatRef.current ||
+          (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches)
+        if (viewingChat) {
+          void pollOpenConversationMessagesRef.current?.()
+        }
+      }
     } catch {
       // Silent fail for background refresh
     }
@@ -557,7 +568,7 @@ function MessagesPageContent() {
   }, [currentUserId, refreshConversationsList])
 
   const pollOpenConversationMessages = useCallback(async () => {
-    if (!selectedConversation || wsConnectedRef.current) return
+    if (!selectedConversation) return
     const conversationId = selectedConversation.id.toString()
     try {
       const response = await getMessages(parseInt(conversationId), { page: 1, page_size: 30 })
@@ -582,14 +593,32 @@ function MessagesPageContent() {
     }
   }, [selectedConversation, mapMessageResponse, registerSeenMessages])
 
-  // Fallback: poll active chat when WebSocket is not connected
+  pollOpenConversationMessagesRef.current = pollOpenConversationMessages
+
+  // Keep open chat in sync via HTTP even when WebSocket is connected (WS can fail behind proxies / multi-instance).
   useEffect(() => {
     if (!selectedConversation || !currentUserId) return
+    const viewingChat = showMobileChat || !isMobile
+    if (!viewingChat) return
+
+    void pollOpenConversationMessages()
     const interval = setInterval(() => {
       void pollOpenConversationMessages()
-    }, 5000)
+    }, 4000)
     return () => clearInterval(interval)
-  }, [selectedConversation?.id, currentUserId, pollOpenConversationMessages])
+  }, [selectedConversation?.id, currentUserId, showMobileChat, isMobile, pollOpenConversationMessages])
+
+  useEffect(() => {
+    const onNotificationsRefresh = () => {
+      const viewingChat =
+        showMobileChatRef.current ||
+        (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches)
+      if (!viewingChat || !selectedConversationIdRef.current) return
+      void pollOpenConversationMessagesRef.current?.()
+    }
+    window.addEventListener("notifications:refresh", onNotificationsRefresh)
+    return () => window.removeEventListener("notifications:refresh", onNotificationsRefresh)
+  }, [])
 
   const markConversationAsRead = useCallback(async (conversationId: string, providedMessages?: Message[]) => {
     if (!currentUserId) return
@@ -827,6 +856,10 @@ function MessagesPageContent() {
   }, [selectedConversation, loadingMoreMessages, loadMoreMessages])
 
   const connectWebSocket = (conversationId: number) => {
+    if (wsReconnectTimeoutRef.current) {
+      clearTimeout(wsReconnectTimeoutRef.current)
+      wsReconnectTimeoutRef.current = null
+    }
     wsConnectedRef.current = false
     // Close existing connection
     if (wsRef.current) {
@@ -851,6 +884,7 @@ function MessagesPageContent() {
       
       ws.onopen = () => {
         wsConnectedRef.current = true
+        wsReconnectAttemptRef.current = 0
         logger.log("WebSocket connected")
       }
       
@@ -885,15 +919,11 @@ function MessagesPageContent() {
               )
               const alreadySeen = seenMessageIdsRef.current.has(incomingId)
 
-              if (existingIndex !== -1 || alreadySeen) {
+              if (existingIndex !== -1) {
                 seenMessageIdsRef.current.add(incomingId)
-                const idx = existingIndex !== -1 ? existingIndex : conversationMessages.findIndex((m) => String(m.id) === incomingId)
-                if (idx === -1) {
-                  return prev
-                }
                 const nextMessages = [...conversationMessages]
-                const existingMessage = nextMessages[idx]
-                nextMessages.splice(idx, 1, {
+                const existingMessage = nextMessages[existingIndex]
+                nextMessages.splice(existingIndex, 1, {
                   ...existingMessage,
                   ...newMessage,
                   attachments:
@@ -906,6 +936,14 @@ function MessagesPageContent() {
                 return {
                   ...prev,
                   [conversationKey]: nextMessages,
+                }
+              }
+
+              if (alreadySeen) {
+                updatedList = [...conversationMessages, newMessage]
+                return {
+                  ...prev,
+                  [conversationKey]: updatedList,
                 }
               }
 
@@ -1213,6 +1251,25 @@ function MessagesPageContent() {
         if (wsRef.current === ws) {
           wsRef.current = null
         }
+
+        const activeConversationId = selectedConversationIdRef.current
+        if (activeConversationId !== conversationId.toString()) {
+          return
+        }
+
+        const attempt = wsReconnectAttemptRef.current
+        if (attempt >= 8) {
+          return
+        }
+
+        const delay = Math.min(1000 * 2 ** attempt, 30000)
+        wsReconnectAttemptRef.current = attempt + 1
+        wsReconnectTimeoutRef.current = setTimeout(() => {
+          wsReconnectTimeoutRef.current = null
+          if (selectedConversationIdRef.current === conversationId.toString()) {
+            connectWebSocket(conversationId)
+          }
+        }, delay)
       }
       
       wsRef.current = ws
@@ -1924,6 +1981,10 @@ function MessagesPageContent() {
   // Cleanup WebSocket on unmount
   useEffect(() => {
     return () => {
+      if (wsReconnectTimeoutRef.current) {
+        clearTimeout(wsReconnectTimeoutRef.current)
+        wsReconnectTimeoutRef.current = null
+      }
       if (wsRef.current) {
         try {
           wsRef.current.onopen = null
