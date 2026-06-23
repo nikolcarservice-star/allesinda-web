@@ -4,6 +4,8 @@ import { useMemo, useState } from "react"
 import Image from "next/image"
 import { MapPin, Phone, Star, Play } from "lucide-react"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
+import { BeforeAfterCard } from "@/components/gallery/before-after-card"
+import { BeforeAfterFullscreenModal } from "@/components/gallery/gallery-fullscreen-modal"
 import type { Media } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
 import { ActionButton } from "@/components/detailed/action-button"
@@ -73,27 +75,22 @@ export function MasterProfileMobileView({
   const [activeTab, setActiveTab] = useState<TabId>("profile")
   const [selectedVideo, setSelectedVideo] = useState<GalleryMediaItem | null>(null)
   const [fullscreenPhotoIndex, setFullscreenPhotoIndex] = useState<number | null>(null)
+  const [heroViewerOpen, setHeroViewerOpen] = useState(false)
+  const [selectedBeforeAfter, setSelectedBeforeAfter] = useState<GalleryMediaItem | null>(null)
 
-  const photos = useMemo(
+  const regularPhotos = useMemo(
     () => galleryItems.filter((item) => !isVideoItem(item) && !item.is_before_after),
     [galleryItems],
   )
+  const beforeAfterItems = useMemo(
+    () =>
+      galleryItems.filter(
+        (item) => item.is_before_after && item.before_url && item.after_url,
+      ),
+    [galleryItems],
+  )
   const videos = useMemo(() => galleryItems.filter((item) => isVideoItem(item)), [galleryItems])
-
-  const photoItems = useMemo(() => {
-    if (photos.length > 0) return photos
-    return [
-      {
-        id: 0,
-        owner_id: 0,
-        url: heroImage,
-        media_type: "image",
-        status: "approved",
-        is_before_after: false,
-        created_at: new Date().toISOString(),
-      } satisfies GalleryMediaItem,
-    ]
-  }, [photos, heroImage])
+  const hasPhotoContent = regularPhotos.length > 0 || beforeAfterItems.length > 0
 
   const displayTitle = professionLabel
     ? `${title} | ${professionLabel}`.toUpperCase()
@@ -162,7 +159,7 @@ export function MasterProfileMobileView({
         <button
           type="button"
           className="relative mx-auto block aspect-square w-full max-w-[280px] overflow-hidden rounded-full border border-neutral-100 bg-neutral-50 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
-          onClick={() => setFullscreenPhotoIndex(0)}
+          onClick={() => setHeroViewerOpen(true)}
           aria-label="Profilfoto vergrößern"
         >
           <Image
@@ -253,27 +250,75 @@ export function MasterProfileMobileView({
         )}
 
         {activeTab === "photo" && (
-          <div
-            className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            role="tabpanel"
-          >
-            {photoItems.map((item, index) => (
-              <button
-                key={item.id}
-                type="button"
-                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm border border-neutral-200 bg-neutral-100"
-                onClick={() => setFullscreenPhotoIndex(index)}
-                aria-label={item.title || `Foto ${index + 1} anzeigen`}
-              >
-                <Image
-                  src={getItemImageUrl(item)}
-                  alt={item.title || "Arbeit"}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-              </button>
-            ))}
+          <div className="space-y-5 py-1" role="tabpanel">
+            {!hasPhotoContent ? (
+              <p className="py-4 text-center text-sm text-neutral-600">Noch keine Fotos</p>
+            ) : (
+              <>
+                {beforeAfterItems.length > 0 && (
+                  <section className="space-y-3">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+                      Vorher & Nachher
+                    </h2>
+                    <div className="space-y-3">
+                      {beforeAfterItems.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="group w-full overflow-hidden rounded-xl border border-neutral-200/80 bg-white text-left shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-transform active:scale-[0.99]"
+                          onClick={() => setSelectedBeforeAfter(item)}
+                          aria-label={item.title || "Vorher und Nachher anzeigen"}
+                        >
+                          <BeforeAfterCard
+                            beforeUrl={item.before_url!}
+                            afterUrl={item.after_url!}
+                            className="pointer-events-none rounded-none"
+                          />
+                          {item.title?.trim() ? (
+                            <p className="border-t border-neutral-100 px-3 py-2.5 text-sm font-medium text-foreground">
+                              {item.title.trim()}
+                            </p>
+                          ) : (
+                            <p className="border-t border-neutral-100 px-3 py-2 text-xs font-medium text-neutral-500">
+                              Zum Vergleich antippen
+                            </p>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {regularPhotos.length > 0 && (
+                  <section className="space-y-2">
+                    {beforeAfterItems.length > 0 && (
+                      <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+                        Weitere Fotos
+                      </h2>
+                    )}
+                    <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {regularPhotos.map((item, index) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 shadow-sm transition active:scale-95"
+                          onClick={() => setFullscreenPhotoIndex(index)}
+                          aria-label={item.title || `Foto ${index + 1} anzeigen`}
+                        >
+                          <Image
+                            src={getItemImageUrl(item)}
+                            alt={item.title || "Arbeit"}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
           </div>
         )}
 
@@ -345,14 +390,23 @@ export function MasterProfileMobileView({
       )}
 
       <FullscreenImageViewer
+        isOpen={heroViewerOpen}
+        onClose={() => setHeroViewerOpen(false)}
+        imageUrl={heroImage}
+        alt={title}
+      />
+
+      <FullscreenImageViewer
         isOpen={fullscreenPhotoIndex !== null}
         onClose={() => setFullscreenPhotoIndex(null)}
         imageUrl={
-          fullscreenPhotoIndex !== null ? getItemImageUrl(photoItems[fullscreenPhotoIndex]) : null
+          fullscreenPhotoIndex !== null
+            ? getItemImageUrl(regularPhotos[fullscreenPhotoIndex])
+            : null
         }
         alt={
           fullscreenPhotoIndex !== null
-            ? photoItems[fullscreenPhotoIndex]?.title || title
+            ? regularPhotos[fullscreenPhotoIndex]?.title || title
             : title
         }
         onPrevious={
@@ -361,11 +415,19 @@ export function MasterProfileMobileView({
             : undefined
         }
         onNext={
-          fullscreenPhotoIndex !== null && fullscreenPhotoIndex < photoItems.length - 1
+          fullscreenPhotoIndex !== null && fullscreenPhotoIndex < regularPhotos.length - 1
             ? () => setFullscreenPhotoIndex((index) => (index !== null ? index + 1 : null))
             : undefined
         }
       />
+
+      {selectedBeforeAfter && (
+        <BeforeAfterFullscreenModal
+          item={selectedBeforeAfter}
+          isOpen={!!selectedBeforeAfter}
+          onClose={() => setSelectedBeforeAfter(null)}
+        />
+      )}
     </div>
   )
 }
