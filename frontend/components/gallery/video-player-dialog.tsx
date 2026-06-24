@@ -1,18 +1,8 @@
 "use client"
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { getApiBaseUrl } from "@/lib/api/client"
-import { getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
+import { getOptimizedImageUrl, getVideoPlaybackUrl } from "@/lib/utils"
 import type { Media } from "@/lib/api/types"
-
-function getVideoSrc(pathOrUrl: string): string {
-  if (!pathOrUrl) return ""
-  const path = toMediaRelativePath(pathOrUrl)
-  if (!path) return ""
-  if (path.startsWith("http://") || path.startsWith("https://")) return path
-  const base = getApiBaseUrl().replace(/\/$/, "")
-  return path.startsWith("/") ? `${base}${path}` : `${base}/${path}`
-}
 
 interface VideoPlayerDialogProps {
   video: Media | null
@@ -23,7 +13,7 @@ interface VideoPlayerDialogProps {
 export function VideoPlayerDialog({ video, isOpen, onClose }: VideoPlayerDialogProps) {
   if (!video || !video.url) return null
 
-  const videoSrc = getVideoSrc(video.url)
+  const videoSrc = getVideoPlaybackUrl(video.url)
   const thumbnailUrl = video.thumbnail_url ? getOptimizedImageUrl(video.thumbnail_url, 'gallery') : undefined
 
   return (
@@ -35,6 +25,8 @@ export function VideoPlayerDialog({ video, isOpen, onClose }: VideoPlayerDialogP
             src={videoSrc}
             controls
             autoPlay
+            playsInline
+            muted
             className="h-full w-full object-contain"
             poster={thumbnailUrl}
           >

@@ -11,7 +11,7 @@ import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/context/auth-context"
 import type { Media } from "@/lib/api/types"
-import { getOptimizedImageUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
+import { getOptimizedImageUrl, getVideoPlaybackUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
 
 interface MasterPortfolioProps {
   masterId: string
@@ -336,9 +336,11 @@ export function MasterPortfolio({ masterId, profileId, isOwnProfile = false, ver
               <DialogTitle className="sr-only">{selectedVideo.title || "Video"}</DialogTitle>
               <div className="relative w-full aspect-video bg-black rounded-t-lg overflow-hidden">
                 <video
-                  src={toMediaRelativePath(selectedVideo.url)}
+                  src={getVideoPlaybackUrl(selectedVideo.url)}
                   controls
                   autoPlay
+                  playsInline
+                  muted
                   className="w-full h-full object-contain"
                   poster={getOptimizedImageUrl(selectedVideo.thumbnail_url, 'gallery')}
                 >

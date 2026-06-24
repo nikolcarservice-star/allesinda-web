@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Play, ChevronLeft, ChevronRight } from "lucide-react"
 import { FullscreenMediaViewer } from "@/components/ui/fullscreen-media-viewer"
 import type { Media } from "@/lib/api/types"
-import { getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
+import { getOptimizedImageUrl, getVideoPlaybackUrl, shouldUseUnoptimized } from "@/lib/utils"
 
 interface MediaGalleryProps {
   mediaItems: Media[]
@@ -207,8 +207,9 @@ export function MediaGallery({
         {currentMedia && currentMedia.media_type === "video" ? (
           <div className="relative w-full h-full">
             <video
-              src={getOptimizedImageUrl(currentMedia.url, 'original')}
+              src={getVideoPlaybackUrl(currentMedia.url)}
               controls
+              playsInline
               className="w-full h-full object-cover"
               poster={getOptimizedImageUrl(currentMedia.thumbnail_url, 'gallery')}
               onClick={(e) => e.stopPropagation()}

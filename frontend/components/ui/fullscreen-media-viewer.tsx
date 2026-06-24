@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { X, ChevronLeft, ChevronRight, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
+import { getOptimizedImageUrl, getVideoPlaybackUrl, shouldUseUnoptimized } from "@/lib/utils"
 import type { Media } from "@/lib/api/types"
 
 interface FullscreenMediaViewerProps {
@@ -238,8 +238,10 @@ export function FullscreenMediaViewer({
         {isVideo ? (
           <div className="relative w-full h-full flex items-center justify-center">
             <video
-              src={getOptimizedImageUrl(currentMedia.url, 'original')}
+              src={getVideoPlaybackUrl(currentMedia.url)}
               controls
+              playsInline
+              muted
               className="max-w-full max-h-full object-contain"
               poster={getOptimizedImageUrl(currentMedia.thumbnail_url, 'gallery')}
               autoPlay

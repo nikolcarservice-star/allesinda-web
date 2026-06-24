@@ -6,7 +6,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getOptimizedImageUrl, getMediaAbsoluteUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
+import { getOptimizedImageUrl, getMediaAbsoluteUrl, getVideoPlaybackFallbackUrl, getVideoPlaybackUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
 
 type GalleryItem = {
   before_url?: string | null
@@ -243,19 +243,11 @@ interface VideoFullscreenModalProps {
   onClose: () => void
 }
 
-function getVideoSrc(pathOrUrl: string): string {
-  if (!pathOrUrl) return ""
-  const path = toMediaRelativePath(pathOrUrl)
-  if (!path) return ""
-  if (path.startsWith("http://") || path.startsWith("https://")) return path
-  return path.startsWith("/") ? path : `/${path}`
-}
-
 export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenModalProps) {
-  const sameOriginSrc = item.url ? getVideoSrc(item.url) : null
-  const absoluteSrc = item.url ? getMediaAbsoluteUrl(item.url) : null
+  const primarySrc = item.url ? getVideoPlaybackUrl(item.url) : null
+  const fallbackSrc = item.url ? getVideoPlaybackFallbackUrl(item.url) : null
   const [mounted, setMounted] = useState(false)
-  const [videoSrc, setVideoSrc] = useState<string | null>(sameOriginSrc)
+  const [videoSrc, setVideoSrc] = useState<string | null>(primarySrc)
   const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
@@ -264,20 +256,20 @@ export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenM
 
   useEffect(() => {
     if (isOpen && item.url) {
-      setVideoSrc(sameOriginSrc)
+      setVideoSrc(getVideoPlaybackUrl(item.url))
       setLoadError(false)
     }
-  }, [isOpen, item.url, sameOriginSrc])
+  }, [isOpen, item.url])
 
   const handleVideoError = useCallback(() => {
-    if (videoSrc === sameOriginSrc && absoluteSrc && absoluteSrc !== sameOriginSrc) {
-      setVideoSrc(absoluteSrc)
+    if (fallbackSrc && videoSrc !== fallbackSrc) {
+      setVideoSrc(fallbackSrc)
     } else {
       setLoadError(true)
     }
-  }, [videoSrc, sameOriginSrc, absoluteSrc])
+  }, [videoSrc, fallbackSrc])
 
-  if (!isOpen || !sameOriginSrc || !mounted) return null
+  if (!isOpen || !primarySrc || !mounted) return null
 
   const content = (
     <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center" style={{ zIndex: 9999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>

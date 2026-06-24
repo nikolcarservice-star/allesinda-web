@@ -160,6 +160,33 @@ export function getMediaAbsoluteUrl(pathOrUrl: string | undefined | null): strin
 }
 
 /**
+ * Video playback URL — prefer direct API host for Range requests (iOS Safari).
+ * Same-origin /media rewrites often break streaming through Next.js.
+ */
+export function getVideoPlaybackUrl(pathOrUrl: string | undefined | null): string {
+  if (!pathOrUrl?.trim()) return '';
+
+  const absolute = getMediaAbsoluteUrl(pathOrUrl);
+  if (absolute.startsWith('http://') || absolute.startsWith('https://')) {
+    return absolute;
+  }
+
+  const path = toMediaRelativePath(pathOrUrl);
+  if (path.startsWith('/')) return path;
+
+  return pathOrUrl.trim();
+}
+
+/** Fallback when direct API URL fails (e.g. local dev without public API URL). */
+export function getVideoPlaybackFallbackUrl(pathOrUrl: string | undefined | null): string | null {
+  if (!pathOrUrl?.trim()) return null;
+  const path = toMediaRelativePath(pathOrUrl);
+  if (!path.startsWith('/')) return null;
+  const primary = getVideoPlaybackUrl(pathOrUrl);
+  return primary !== path ? path : null;
+}
+
+/**
  * Image optimization presets for different use cases
  */
 export type ImageOptimizationPreset = 

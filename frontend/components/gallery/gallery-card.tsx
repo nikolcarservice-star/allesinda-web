@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { BeforeAfterCard } from "./before-after-card"
 import { Play, Video, ImageIcon, Trash2 } from "lucide-react"
 import type { Media } from "@/lib/api/types"
-import { getMediaAbsoluteUrl, getOptimizedImageUrl, toMediaRelativePath, cn } from "@/lib/utils"
+import { getMediaAbsoluteUrl, getOptimizedImageUrl, getVideoPlaybackUrl, toMediaRelativePath, cn } from "@/lib/utils"
 import { BeforeAfterFullscreenModal, VideoFullscreenModal } from "./gallery-fullscreen-modal"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 
@@ -59,10 +59,7 @@ function GalleryCardInner({
   const videoSrcForFallback = useMemo(() => {
     if (imageData.type !== "video") return ""
     const url = getMediaUrl(item)
-    if (!url) return ""
-    const path = toMediaRelativePath(url)
-    if (!path) return ""
-    return path.startsWith("/") ? path : `/${path}`
+    return url ? getVideoPlaybackUrl(url) : ""
   }, [imageData.type, item])
 
   const captureVideoFrame = useCallback(() => {

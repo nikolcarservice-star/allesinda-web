@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { X } from "lucide-react"
-import { toMediaRelativePath } from "@/lib/utils"
+import { getVideoPlaybackFallbackUrl, getVideoPlaybackUrl, toMediaRelativePath } from "@/lib/utils"
 
 interface VideoPlayerProps {
   videoUrl: string
@@ -14,25 +14,15 @@ interface VideoPlayerProps {
 }
 
 const VIDEO_EXT = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i
+
 function isVideoUrl(url: string): boolean {
   const path = toMediaRelativePath(url) || url
   return VIDEO_EXT.test(path)
 }
 
-function getVideoSrc(pathOrUrl: string): string {
-  if (!pathOrUrl) return ""
-  const path = toMediaRelativePath(pathOrUrl)
-  if (!path) return ""
-  if (path.startsWith("/")) return path
-  if (path.startsWith("http://") || path.startsWith("https://")) return path
-  return `/${path}`
-}
-
 function getPosterSrc(thumbnailUrl: string | null | undefined): string | undefined {
   if (!thumbnailUrl || isVideoUrl(thumbnailUrl)) return undefined
-  const path = toMediaRelativePath(thumbnailUrl)
-  if (!path) return undefined
-  return path.startsWith("/") ? path : `/${path}`
+  return getVideoPlaybackUrl(thumbnailUrl) || undefined
 }
 
 export function VideoPlayer({
@@ -43,10 +33,20 @@ export function VideoPlayer({
   onClose,
 }: VideoPlayerProps) {
   const [mounted, setMounted] = useState(false)
+  const primarySrc = videoUrl ? getVideoPlaybackUrl(videoUrl) : ""
+  const fallbackSrc = videoUrl ? getVideoPlaybackFallbackUrl(videoUrl) : null
+  const [videoSrc, setVideoSrc] = useState(primarySrc)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    setVideoSrc(getVideoPlaybackUrl(videoUrl))
+    setLoadError(false)
+  }, [isOpen, videoUrl])
 
   useEffect(() => {
     if (!isOpen) return
@@ -65,9 +65,16 @@ export function VideoPlayer({
     }
   }, [isOpen, onClose])
 
+  const handleVideoError = useCallback(() => {
+    if (fallbackSrc && videoSrc !== fallbackSrc) {
+      setVideoSrc(fallbackSrc)
+      return
+    }
+    setLoadError(true)
+  }, [fallbackSrc, videoSrc])
+
   if (!isOpen || !mounted) return null
 
-  const videoSrc = videoUrl ? getVideoSrc(videoUrl) : ""
   const posterSrc = getPosterSrc(thumbnailUrl ?? undefined)
 
   return createPortal(
@@ -89,13 +96,18 @@ export function VideoPlayer({
         className="relative flex h-full w-full max-h-[100vh] max-w-[100vw] items-center justify-center p-4 pt-14"
         onClick={(e) => e.stopPropagation()}
       >
-        {videoSrc ? (
+        {loadError ? (
+          <p className="px-4 text-center text-sm text-white">Video konnte nicht geladen werden.</p>
+        ) : videoSrc ? (
           <video
+            key={videoSrc}
             src={videoSrc}
             controls
             autoPlay
             playsInline
+            muted
             preload="metadata"
+            onError={handleVideoError}
             className="max-h-full max-w-full object-contain"
             poster={posterSrc}
           >
