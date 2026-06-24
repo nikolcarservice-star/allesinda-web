@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CityCombobox } from "@/components/shared/city-combobox"
 import { AccountSessionSection } from "@/components/profile/account-session-section"
+import { BeforeAfterUploadSection } from "@/components/master/before-after-upload-section"
 import { cn, shouldUseUnoptimized } from "@/lib/utils"
 import type { Category, Media, Profile, ProfileInput, Review } from "@/lib/api/types"
 import { formatDistanceToNow } from "date-fns"
@@ -73,13 +74,20 @@ export type MasterCabinetDesktopProps = {
   onRemoveServiceTag: (tag: string) => void
   aboutLimit: number
   masterPhotos: Media[]
+  masterBeforeAfter: Media[]
   masterPhotoInputRef: RefObject<HTMLInputElement | null>
   masterPhotosUploading: boolean
+  beforeAfterUploading: boolean
   canAddMasterPhotos: boolean
+  canAddBeforeAfter: boolean
   onMasterPhotoInputChange: (event: ChangeEvent<HTMLInputElement>) => void
   onDeleteMasterPhoto: (photoId: number) => void
+  onBeforeAfterUpload: (beforeFile: File, afterFile: File, title?: string) => Promise<void>
+  onDeleteBeforeAfter: (mediaId: number) => void
   deletingMasterPhotoId: number | null
+  deletingBeforeAfterId: number | null
   photoLimit: number
+  beforeAfterLimit: number
   masterVideos: Media[]
   masterVideoInputRef: RefObject<HTMLInputElement | null>
   masterVideosUploading: boolean
@@ -139,13 +147,20 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
     onRemoveServiceTag,
     aboutLimit,
     masterPhotos,
+    masterBeforeAfter,
     masterPhotoInputRef,
     masterPhotosUploading,
+    beforeAfterUploading,
     canAddMasterPhotos,
+    canAddBeforeAfter,
     onMasterPhotoInputChange,
     onDeleteMasterPhoto,
+    onBeforeAfterUpload,
+    onDeleteBeforeAfter,
     deletingMasterPhotoId,
+    deletingBeforeAfterId,
     photoLimit,
+    beforeAfterLimit,
     masterVideos,
     masterVideoInputRef,
     masterVideosUploading,
@@ -482,7 +497,7 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
             </Card>
           </TabsContent>
 
-          <TabsContent value="photo" className="mt-0">
+          <TabsContent value="photo" className="mt-0 space-y-4">
             <Card className="border border-border/50 shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-semibold">
@@ -545,6 +560,20 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
                     )}
                   </button>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-border/50 shadow-sm">
+              <CardContent className="pt-6">
+                <BeforeAfterUploadSection
+                  items={masterBeforeAfter}
+                  uploading={beforeAfterUploading}
+                  canAdd={canAddBeforeAfter}
+                  limit={beforeAfterLimit}
+                  deletingId={deletingBeforeAfterId}
+                  onUpload={onBeforeAfterUpload}
+                  onDelete={onDeleteBeforeAfter}
+                />
               </CardContent>
             </Card>
           </TabsContent>

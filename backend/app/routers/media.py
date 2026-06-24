@@ -151,6 +151,122 @@ def generate_video_thumbnail(video_path: str, thumbnail_path: str, timestamp_sec
         logger.error(f"Error generating video thumbnail: {str(e)}")
         return False
 
+
+VALID_IMAGE_EXTS = frozenset({"jpg", "jpeg", "png", "gif", "webp", "bmp", "heic", "heif"})
+
+
+def _max_image_bytes() -> int:
+    return settings.MAX_IMAGE_UPLOAD_SIZE_MB * 1024 * 1024
+
+
+def _resolve_image_extension(content_type: str, file_ext: str) -> str:
+    ext = (file_ext or "").lower()
+    if ext in VALID_IMAGE_EXTS:
+        return "jpg" if ext == "jpeg" else ext
+    normalized_type = (content_type or "").lower().split(";")[0].strip()
+    mapping = {
+        "image/jpeg": "jpg",
+        "image/jpg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/gif": "gif",
+        "image/bmp": "bmp",
+        "image/heic": "heic",
+        "image/heif": "heif",
+    }
+    return mapping.get(normalized_type, "jpg")
+
+
+async def _save_master_photo_file(file: UploadFile, user: User) -> str:
+    """Validate and store one profile gallery photo; return its public URL."""
+    content_type = getattr(file, "content_type", None) or ""
+    file_ext = _extension_from_filename(file.filename)
+    resolved_ext = _resolve_image_extension(content_type, file_ext)
+
+    if (
+        file_ext
+        and file_ext not in VALID_IMAGE_EXTS
+        and not content_type.startswith("image/")
+    ):
+        raise HTTPException(400, "Invalid photo format. Supported: JPG, JPEG, PNG, GIF, WebP, BMP")
+
+    content = await file.read()
+    if len(content) == 0:
+        raise HTTPException(400, "Photo file is empty")
+    if len(content) > _max_image_bytes():
+        raise HTTPException(
+            400,
+            f"Photo file too large. Maximum size is {settings.MAX_IMAGE_UPLOAD_SIZE_MB}MB",
+        )
+
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    microseconds = f"{now.microsecond:06d}"
+    unique_filename = f"{user.id}_{timestamp}_{microseconds}.{resolved_ext}"
+
+    upload_folder = get_upload_folder()
+    subfolder = get_media_subfolder("photo", entity_type="master")
+    full_dir_path = os.path.join(upload_folder, subfolder)
+    try:
+        os.makedirs(full_dir_path, exist_ok=True)
+    except OSError as e:
+        logger.error("Cannot create upload directory %s: %s", full_dir_path, e)
+        raise HTTPException(500, f"Failed to create upload directory: {e}")
+
+    file_path = os.path.join(full_dir_path, unique_filename)
+    try:
+        with open(file_path, "wb") as f:
+            f.write(content)
+    except Exception as e:
+        raise HTTPException(500, f"Failed to save file: {str(e)}")
+
+    return build_media_url(subfolder, unique_filename, use_cdn=True, relative_only=False)
+
+
+@router.post("/upload/before-after", response_model=MediaOut)
+async def upload_before_after_media(
+    before_file: UploadFile = File(...),
+    after_file: UploadFile = File(...),
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    profile_id: Optional[int] = Form(None),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Upload a before/after photo pair for a master work gallery."""
+    final_profile_id = profile_id
+    if final_profile_id:
+        profile = db.query(Profile).filter(Profile.id == final_profile_id).first()
+        if not profile or profile.user_id != user.id:
+            raise HTTPException(400, "Profile not found or access denied")
+    else:
+        profile = db.query(Profile).filter(Profile.user_id == user.id).first()
+        if not profile:
+            raise HTTPException(400, "Profile not found")
+        final_profile_id = profile.id
+
+    before_url = await _save_master_photo_file(before_file, user)
+    after_url = await _save_master_photo_file(after_file, user)
+
+    m = Media(
+        owner_id=user.id,
+        profile_id=final_profile_id,
+        url=after_url,
+        thumbnail_url=after_url,
+        media_type="photo",
+        status=MediaStatus.approved,
+        title=title,
+        description=description,
+        before_url=before_url,
+        after_url=after_url,
+        is_before_after=True,
+    )
+    db.add(m)
+    db.commit()
+    db.refresh(m)
+    return media_out_with_local_urls(m)
+
+
 @router.post("/upload", response_model=MediaOut)
 async def upload_media(
     file: UploadFile = File(...),

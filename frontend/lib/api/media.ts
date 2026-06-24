@@ -107,6 +107,59 @@ export async function uploadMedia(
 }
 
 /**
+ * Upload a before/after photo pair for master work gallery (two files, one gallery item).
+ */
+export async function uploadBeforeAfterMedia(
+  beforeFile: File,
+  afterFile: File,
+  data: {
+    profile_id: number;
+    title?: string;
+    description?: string;
+  },
+): Promise<Media> {
+  const formData = new FormData();
+  formData.append('before_file', beforeFile);
+  formData.append('after_file', afterFile);
+  formData.append('profile_id', String(data.profile_id));
+  if (data.title) formData.append('title', data.title);
+  if (data.description) formData.append('description', data.description);
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90_000);
+
+  let response: Response;
+  try {
+    response = await fetch(`${getMediaUploadBaseUrl().replace(/\/$/, '')}/media/upload/before-after`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Upload hat zu lange gedauert');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Upload failed' }));
+    throw new Error(parseUploadError(error.detail ?? error.message));
+  }
+
+  return response.json();
+}
+
+/**
  * Upload multiple media files for products or rentals (batch upload)
  */
 export async function uploadMediaBatch(

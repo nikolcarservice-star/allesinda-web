@@ -13,7 +13,7 @@ import { useAuth } from "@/lib/context/auth-context"
 import { getMasterCabinet, updateMasterCabinet, uploadProfileImage } from "@/lib/api/masters"
 import { ApiClientError } from "@/lib/api/client"
 import { getCategoriesByType } from "@/lib/api/categories"
-import { getMyMedia, uploadMedia, deleteMedia } from "@/lib/api/media"
+import { getMyMedia, uploadMedia, uploadBeforeAfterMedia, deleteMedia } from "@/lib/api/media"
 import { getSellerReviews, replyToReview, reportReview } from "@/lib/api/reviews"
 import { cn, getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
 import { CityCombobox } from "@/components/shared/city-combobox"
@@ -22,12 +22,14 @@ import { toast } from "sonner"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { AccountSessionSection } from "@/components/profile/account-session-section"
 import { MasterCabinetDesktop } from "@/components/master/master-cabinet-desktop"
+import { BeforeAfterUploadSection } from "@/components/master/before-after-upload-section"
 import { formatDistanceToNow } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { MAX_VIDEO_UPLOAD_BYTES, MAX_VIDEO_UPLOAD_MB } from "@/lib/upload-limits"
 
 const ABOUT_LIMIT = 500
 const MASTER_PHOTO_LIMIT = 20
+const MASTER_BEFORE_AFTER_LIMIT = 10
 const MASTER_VIDEO_LIMIT = 5
 const REVIEW_REPORT_REASONS = ["Falsche Angaben", "Beleidigung", "Spam"] as const
 
@@ -206,10 +208,13 @@ export function MasterCabinet() {
   const [profileImageUploading, setProfileImageUploading] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [masterPhotos, setMasterPhotos] = useState<Media[]>([])
+  const [masterBeforeAfter, setMasterBeforeAfter] = useState<Media[]>([])
   const [masterVideos, setMasterVideos] = useState<Media[]>([])
   const [masterPhotosUploading, setMasterPhotosUploading] = useState(false)
+  const [beforeAfterUploading, setBeforeAfterUploading] = useState(false)
   const [masterVideosUploading, setMasterVideosUploading] = useState(false)
   const [deletingMasterPhotoId, setDeletingMasterPhotoId] = useState<number | null>(null)
+  const [deletingBeforeAfterId, setDeletingBeforeAfterId] = useState<number | null>(null)
   const [deletingMasterVideoId, setDeletingMasterVideoId] = useState<number | null>(null)
   const [masterReviews, setMasterReviews] = useState<Review[]>([])
   const [activeReplyReviewId, setActiveReplyReviewId] = useState<number | null>(null)
@@ -260,12 +265,20 @@ export function MasterCabinet() {
   }, [])
 
   const applyMasterMedia = useCallback((profileId: number, items: Media[]) => {
+    const profileItems = items.filter((item) => item.profile_id === profileId)
     setMasterPhotos(
-      items.filter((item) => item.media_type === "photo" && item.profile_id === profileId),
+      profileItems.filter((item) => item.media_type === "photo" && !item.is_before_after),
     )
-    setMasterVideos(
-      items.filter((item) => item.media_type === "video" && item.profile_id === profileId),
+    setMasterBeforeAfter(
+      profileItems.filter(
+        (item) =>
+          item.media_type === "photo" &&
+          item.is_before_after &&
+          item.before_url &&
+          item.after_url,
+      ),
     )
+    setMasterVideos(profileItems.filter((item) => item.media_type === "video"))
   }, [])
 
   const syncMasterMedia = useCallback(
@@ -327,6 +340,7 @@ export function MasterCabinet() {
     (tag) => !serviceTags.some((existingTag) => existingTag.toLowerCase() === tag.toLowerCase()),
   )
   const canAddMasterPhotos = masterPhotos.length < MASTER_PHOTO_LIMIT
+  const canAddBeforeAfter = masterBeforeAfter.length < MASTER_BEFORE_AFTER_LIMIT
   const canAddMasterVideos = masterVideos.length < MASTER_VIDEO_LIMIT
 
   const addServiceTag = (value: string) => {
@@ -500,6 +514,54 @@ export function MasterCabinet() {
     }
   }
 
+  const handleBeforeAfterUpload = async (beforeFile: File, afterFile: File, title?: string) => {
+    if (!profile?.id) {
+      toast.error("Profil wird geladen. Bitte versuchen Sie es erneut.")
+      return
+    }
+    if (!canAddBeforeAfter) {
+      toast.error(`Maximal ${MASTER_BEFORE_AFTER_LIMIT} Vorher/Nachher-Paare erlaubt`)
+      return
+    }
+
+    try {
+      setBeforeAfterUploading(true)
+      const uploaded = await uploadBeforeAfterMedia(beforeFile, afterFile, {
+        profile_id: profile.id,
+        title,
+      })
+      setMasterBeforeAfter((prev) => [...prev, uploaded].slice(0, MASTER_BEFORE_AFTER_LIMIT))
+      toast.success("Vorher/Nachher hochgeladen")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Upload fehlgeschlagen"
+      if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+        toast.error("Verbindung zum Server fehlgeschlagen. Prüfen Sie die Internetverbindung.")
+      } else {
+        toast.error(message)
+      }
+    } finally {
+      setBeforeAfterUploading(false)
+    }
+  }
+
+  const handleDeleteBeforeAfter = async (mediaId: number) => {
+    const profileId = profile?.id
+    setDeletingBeforeAfterId(mediaId)
+    setMasterBeforeAfter((prev) => prev.filter((item) => item.id !== mediaId))
+    try {
+      await deleteMedia(mediaId)
+      toast.success("Vorher/Nachher gelöscht")
+    } catch (err: unknown) {
+      if (profileId) {
+        await syncMasterMedia(profileId)
+      }
+      const message = err instanceof Error ? err.message : "Löschen fehlgeschlagen"
+      toast.error(message)
+    } finally {
+      setDeletingBeforeAfterId(null)
+    }
+  }
+
   const handleMasterVideoInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || [])
     if (event.target) event.target.value = ""
@@ -661,11 +723,18 @@ export function MasterCabinet() {
             onRemoveServiceTag={removeServiceTag}
             aboutLimit={ABOUT_LIMIT}
             masterPhotos={masterPhotos}
+            masterBeforeAfter={masterBeforeAfter}
             masterPhotoInputRef={masterPhotoInputRef}
             masterPhotosUploading={masterPhotosUploading}
+            beforeAfterUploading={beforeAfterUploading}
             canAddMasterPhotos={canAddMasterPhotos}
+            canAddBeforeAfter={canAddBeforeAfter}
             onMasterPhotoInputChange={handleMasterPhotoInputChange}
             onDeleteMasterPhoto={handleDeleteMasterPhoto}
+            onBeforeAfterUpload={handleBeforeAfterUpload}
+            onDeleteBeforeAfter={handleDeleteBeforeAfter}
+            deletingBeforeAfterId={deletingBeforeAfterId}
+            beforeAfterLimit={MASTER_BEFORE_AFTER_LIMIT}
             deletingMasterPhotoId={deletingMasterPhotoId}
             photoLimit={MASTER_PHOTO_LIMIT}
             masterVideos={masterVideos}
@@ -1009,6 +1078,17 @@ export function MasterCabinet() {
               </div>
               <p className="text-xs font-medium text-neutral-500">{masterPhotos.length}/{MASTER_PHOTO_LIMIT} Fotos</p>
             </CabinetSection>
+
+            <BeforeAfterUploadSection
+              className={cn(SECTION_CARD, "space-y-4")}
+              items={masterBeforeAfter}
+              uploading={beforeAfterUploading}
+              canAdd={canAddBeforeAfter}
+              limit={MASTER_BEFORE_AFTER_LIMIT}
+              deletingId={deletingBeforeAfterId}
+              onUpload={handleBeforeAfterUpload}
+              onDelete={handleDeleteBeforeAfter}
+            />
             </div>
             )}
 
