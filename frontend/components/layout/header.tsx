@@ -16,10 +16,7 @@ import {
   Star,
   X,
   Bell,
-  CalendarCheck,
   Shield,
-  Award,
-  Store,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -1764,36 +1761,16 @@ return (
                         <span>Benachrichtigungen</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/bookings" className="flex items-center gap-3 text-sm">
-                        <CalendarCheck className="h-4 w-4 text-neutral-500" />
-                        <span>Buchungen</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    {user.role === "master" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/dashboard/master" className="flex items-center gap-3 text-sm">
-                          <Award className="h-4 w-4 text-neutral-500" />
-                          <span>Mein Dashboard</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    {user.role === "seller" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/dashboard/seller" className="flex items-center gap-3 text-sm">
-                          <Store className="h-4 w-4 text-neutral-500" />
-                          <span>Mein Dashboard</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
                     {user.role === "admin" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin" className="flex items-center gap-3 text-sm">
-                          <Shield className="h-4 w-4 text-neutral-500" />
-                          <span>Admin-Panel</span>
-                        </Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="flex items-center gap-3 text-sm">
+                            <Shield className="h-4 w-4 text-neutral-500" />
+                            <span>Admin-Panel</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
