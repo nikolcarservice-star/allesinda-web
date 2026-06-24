@@ -8,10 +8,10 @@ import { Play, Loader2, Image as ImageIcon, ChevronDown, CheckCircle2 } from "lu
 import { getProfileGallery } from "@/lib/api/gallery"
 import { MediaUpload } from "./media-upload"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { VideoPlayer } from "@/components/shared/video-player"
 import { useAuth } from "@/lib/context/auth-context"
 import type { Media } from "@/lib/api/types"
-import { getOptimizedImageUrl, getVideoPlaybackUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
+import { getOptimizedImageUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
 
 interface MasterPortfolioProps {
   masterId: string
@@ -328,37 +328,13 @@ export function MasterPortfolio({ masterId, profileId, isOwnProfile = false, ver
         alt={selectedImage?.alt || "Portfolio image"}
       />
 
-      {/* Video Player Modal */}
-      <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
-        <DialogContent className="max-w-4xl w-full p-0 gap-0 overflow-hidden">
-          {selectedVideo && (
-            <>
-              <DialogTitle className="sr-only">{selectedVideo.title || "Video"}</DialogTitle>
-              <div className="relative w-full aspect-video bg-black rounded-t-lg overflow-hidden">
-                <video
-                  src={getVideoPlaybackUrl(selectedVideo.url)}
-                  controls
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-contain"
-                  poster={getOptimizedImageUrl(selectedVideo.thumbnail_url, 'gallery')}
-                >
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-              {selectedVideo.title && (
-                <div className="p-4 sm:p-6 rounded-b-lg bg-background">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{selectedVideo.title}</h3>
-                  {selectedVideo.description && (
-                    <p className="text-sm sm:text-base text-muted-foreground">{selectedVideo.description}</p>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <VideoPlayer
+        videoUrl={selectedVideo?.url || ""}
+        thumbnailUrl={selectedVideo?.thumbnail_url}
+        title={selectedVideo?.title}
+        isOpen={!!selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+      />
     </div>
   )
 }

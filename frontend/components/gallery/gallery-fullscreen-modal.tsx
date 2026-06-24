@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { createPortal } from "react-dom"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getOptimizedImageUrl, getMediaAbsoluteUrl, getVideoPlaybackFallbackUrl, getVideoPlaybackUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
+import { getOptimizedImageUrl, getVideoPlaybackFallbackUrl, getVideoPlaybackUrl, shouldUseUnoptimized, toMediaRelativePath } from "@/lib/utils"
+import { tryEnterVideoFullscreen } from "@/lib/video-fullscreen"
 
 type GalleryItem = {
   before_url?: string | null
@@ -244,6 +245,7 @@ interface VideoFullscreenModalProps {
 }
 
 export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenModalProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const primarySrc = item.url ? getVideoPlaybackUrl(item.url) : null
   const fallbackSrc = item.url ? getVideoPlaybackFallbackUrl(item.url) : null
   const [mounted, setMounted] = useState(false)
@@ -269,40 +271,48 @@ export function VideoFullscreenModal({ item, isOpen, onClose }: VideoFullscreenM
     }
   }, [videoSrc, fallbackSrc])
 
+  const handleCanPlay = useCallback(() => {
+    tryEnterVideoFullscreen(videoRef.current)
+  }, [])
+
   if (!isOpen || !primarySrc || !mounted) return null
 
   const content = (
-    <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center" style={{ zIndex: 9999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div
+      className="fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col bg-black"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
+      }}
+    >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 text-white hover:text-gray-300 transition-colors p-2.5 sm:p-3"
+        className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 rounded-full bg-black/60 p-2 text-white backdrop-blur-sm"
         aria-label="Schließen"
       >
         <X className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
 
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center">
         {loadError ? (
-          <p className="text-white text-center px-4">Video konnte nicht geladen werden.</p>
+          <p className="px-4 text-center text-white">Video konnte nicht geladen werden.</p>
         ) : (
           <video
+            ref={videoRef}
             key={videoSrc ?? ""}
             src={videoSrc ?? undefined}
             controls
             autoPlay
             playsInline
             muted
-            preload="metadata"
+            preload="auto"
+            onCanPlay={handleCanPlay}
+            onLoadedData={handleCanPlay}
+            onClick={() => tryEnterVideoFullscreen(videoRef.current)}
             onError={handleVideoError}
-            className="rounded-sm"
-            style={{
-              width: "auto",
-              height: "auto",
-              maxWidth: "calc(100vw - 6rem)",
-              maxHeight: "calc(100vh - 6rem)",
-              objectFit: "contain",
-              margin: "3rem"
-            }}
+            className="h-full w-full object-contain"
           >
             Ihr Browser unterstützt das Video-Tag nicht.
           </video>

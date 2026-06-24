@@ -1,7 +1,9 @@
 "use client"
 
+import { useCallback, useRef } from "react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { getOptimizedImageUrl, getVideoPlaybackUrl } from "@/lib/utils"
+import { tryEnterVideoFullscreen } from "@/lib/video-fullscreen"
 import type { Media } from "@/lib/api/types"
 
 interface VideoPlayerDialogProps {
@@ -11,6 +13,12 @@ interface VideoPlayerDialogProps {
 }
 
 export function VideoPlayerDialog({ video, isOpen, onClose }: VideoPlayerDialogProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const handleCanPlay = useCallback(() => {
+    tryEnterVideoFullscreen(videoRef.current)
+  }, [])
+
   if (!video || !video.url) return null
 
   const videoSrc = getVideoPlaybackUrl(video.url)
@@ -18,34 +26,32 @@ export function VideoPlayerDialog({ video, isOpen, onClose }: VideoPlayerDialogP
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-full max-w-3xl overflow-hidden border-none bg-black p-0 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:right-4 sm:[&_[data-slot=dialog-close]]:top-6 sm:[&_[data-slot=dialog-close]]:right-6">
+      <DialogContent className="fixed inset-0 z-[9999] flex h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-none bg-black p-0 [&_[data-slot=dialog-close]]:top-[max(0.75rem,env(safe-area-inset-top))] [&_[data-slot=dialog-close]]:right-3 [&_[data-slot=dialog-close]]:text-white">
         <DialogTitle className="sr-only">{video.title || "Video"}</DialogTitle>
-        <div className="relative aspect-video w-full bg-black">
+        <div
+          className="relative flex min-h-0 flex-1 items-center justify-center"
+          style={{
+            paddingTop: "env(safe-area-inset-top)",
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
+        >
           <video
+            ref={videoRef}
             src={videoSrc}
             controls
             autoPlay
             playsInline
             muted
+            preload="auto"
+            onCanPlay={handleCanPlay}
+            onLoadedData={handleCanPlay}
+            onClick={() => tryEnterVideoFullscreen(videoRef.current)}
             className="h-full w-full object-contain"
             poster={thumbnailUrl}
           >
             Your browser does not support the video tag.
           </video>
         </div>
-        {video.title && (
-          <div className="bg-background p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl font-semibold mb-2">{video.title}</h3>
-            {video.description && (
-              <p className="text-sm sm:text-base text-muted-foreground">{video.description}</p>
-            )}
-            {video.master_name && (
-              <p className="text-xs sm:text-sm text-muted-foreground mt-2">
-                by {video.master_name}
-              </p>
-            )}
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   )

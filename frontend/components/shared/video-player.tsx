@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { X } from "lucide-react"
 import { getVideoPlaybackFallbackUrl, getVideoPlaybackUrl, toMediaRelativePath } from "@/lib/utils"
+import { tryEnterVideoFullscreen } from "@/lib/video-fullscreen"
 
 interface VideoPlayerProps {
   videoUrl: string
@@ -32,6 +33,7 @@ export function VideoPlayer({
   isOpen,
   onClose,
 }: VideoPlayerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [mounted, setMounted] = useState(false)
   const primarySrc = videoUrl ? getVideoPlaybackUrl(videoUrl) : ""
   const fallbackSrc = videoUrl ? getVideoPlaybackFallbackUrl(videoUrl) : null
@@ -73,13 +75,23 @@ export function VideoPlayer({
     setLoadError(true)
   }, [fallbackSrc, videoSrc])
 
+  const handleCanPlay = useCallback(() => {
+    tryEnterVideoFullscreen(videoRef.current)
+  }, [])
+
   if (!isOpen || !mounted) return null
 
   const posterSrc = getPosterSrc(thumbnailUrl ?? undefined)
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black"
+      className="fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col bg-black"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)",
+      }}
       role="dialog"
       aria-modal="true"
       aria-label={title ?? "Video"}
@@ -87,28 +99,30 @@ export function VideoPlayer({
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 z-[10000] rounded-full bg-black/70 p-2 text-white shadow-lg transition hover:bg-black/90 hover:scale-110 active:scale-95"
+        className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[10001] rounded-full bg-black/60 p-2 text-white backdrop-blur-sm"
         aria-label="Schließen"
       >
-        <X className="h-6 w-6 sm:h-8 sm:w-8" />
+        <X className="h-6 w-6 sm:h-7 sm:w-7" />
       </button>
-      <div
-        className="relative flex h-full w-full max-h-[100vh] max-w-[100vw] items-center justify-center p-4 pt-14"
-        onClick={(e) => e.stopPropagation()}
-      >
+
+      <div className="relative flex min-h-0 flex-1 items-center justify-center">
         {loadError ? (
           <p className="px-4 text-center text-sm text-white">Video konnte nicht geladen werden.</p>
         ) : videoSrc ? (
           <video
+            ref={videoRef}
             key={videoSrc}
             src={videoSrc}
             controls
             autoPlay
             playsInline
             muted
-            preload="metadata"
+            preload="auto"
+            onCanPlay={handleCanPlay}
+            onLoadedData={handleCanPlay}
+            onClick={() => tryEnterVideoFullscreen(videoRef.current)}
             onError={handleVideoError}
-            className="max-h-full max-w-full object-contain"
+            className="h-full w-full object-contain"
             poster={posterSrc}
           >
             Your browser does not support the video tag.
