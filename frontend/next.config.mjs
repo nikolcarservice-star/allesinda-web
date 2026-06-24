@@ -209,7 +209,7 @@ const nextConfig = {
     }
     
     // Build img-src directive
-    let imgSrc = "img-src 'self' data: https:";
+    let imgSrc = "img-src 'self' data: blob: https:";
     if (isDevelopment || isLocalhostApi) {
       // In development OR when API URL is localhost (for local production testing)
       if (apiUrl) {
