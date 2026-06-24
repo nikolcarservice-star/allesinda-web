@@ -15,7 +15,7 @@ import { ApiClientError } from "@/lib/api/client"
 import { getCategoriesByType } from "@/lib/api/categories"
 import { getMyMedia, uploadMedia, uploadBeforeAfterMedia, deleteMedia } from "@/lib/api/media"
 import { getSellerReviews, replyToReview, reportReview } from "@/lib/api/reviews"
-import { cn, getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
+import { cn, getMediaAbsoluteUrl, getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
 import { CityCombobox } from "@/components/shared/city-combobox"
 import type { Category, Media, Profile, ProfileInput, Review, User } from "@/lib/api/types"
 import { toast } from "sonner"
@@ -229,6 +229,7 @@ export function MasterCabinet() {
   const masterPhotoInputRef = useRef<HTMLInputElement>(null)
   const masterVideoInputRef = useRef<HTMLInputElement>(null)
   const loadRequestId = useRef(0)
+  const hasLoadedOnce = useRef(false)
 
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
@@ -301,6 +302,7 @@ export function MasterCabinet() {
       if (requestId !== loadRequestId.current) return
 
       applyAccountAndProfile(cabinetData.user, cabinetData.profile, cabinetData.price_from)
+      hasLoadedOnce.current = true
 
       const [categories, mediaData] = await Promise.all([
         getCategoriesByType("master", { activeOnly: true, rootOnly: true }).catch(() => [] as Category[]),
@@ -320,7 +322,11 @@ export function MasterCabinet() {
     } catch (err: unknown) {
       if (requestId !== loadRequestId.current) return
       const message = err instanceof ApiClientError ? err.message : err instanceof Error ? err.message : "Profil konnte nicht geladen werden"
-      toast.error(message)
+      if (!hasLoadedOnce.current) {
+        toast.error(message)
+      } else {
+        console.error("Profil-Aktualisierung fehlgeschlagen:", message)
+      }
     } finally {
       if (requestId === loadRequestId.current) {
         setLoading(false)
@@ -1049,7 +1055,11 @@ export function MasterCabinet() {
               />
               <div className="grid grid-cols-3 gap-2 lg:grid-cols-4 lg:gap-3 xl:grid-cols-5">
                 {masterPhotos.map((photo) => {
-                  const photoUrl = getOptimizedImageUrl(photo.thumbnail_url || photo.url, "thumbnail")
+                  const photoUrl =
+                    getMediaAbsoluteUrl(photo.thumbnail_url || photo.url) ||
+                    photo.thumbnail_url ||
+                    photo.url ||
+                    ""
                   const isDeleting = deletingMasterPhotoId === photo.id
                   return (
                     <div key={photo.id} className="relative aspect-square overflow-hidden rounded-xl bg-neutral-100">

@@ -5,15 +5,8 @@
 import { apiGet, apiPost, apiDelete, getApiBaseUrl, ApiClientError } from './client';
 import type { Media, PaginatedResponse } from './types';
 
-/** Prefer direct API URL for multipart uploads (large videos, mobile gallery MIME quirks). */
+/** Same-origin /api-proxy — avoids CORS and mobile cross-origin upload failures. */
 function getMediaUploadBaseUrl(): string {
-  if (typeof window !== 'undefined') {
-    const direct = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '');
-    if (direct) return direct;
-    if (process.env.NODE_ENV === 'development') {
-      return '/api-proxy';
-    }
-  }
   return getApiBaseUrl();
 }
 

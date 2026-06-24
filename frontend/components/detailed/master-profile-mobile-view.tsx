@@ -7,7 +7,7 @@ import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
 import { BeforeAfterCard } from "@/components/gallery/before-after-card"
 import { BeforeAfterFullscreenModal } from "@/components/gallery/gallery-fullscreen-modal"
 import type { Media } from "@/lib/api/types"
-import { cn } from "@/lib/utils"
+import { cn, getMediaAbsoluteUrl, shouldUseUnoptimized } from "@/lib/utils"
 import { ActionButton } from "@/components/detailed/action-button"
 import { ShareProfileButton } from "@/components/detailed/share-profile-button"
 import { MasterFeaturedReview } from "@/components/detailed/master-featured-review"
@@ -49,9 +49,13 @@ function isVideoItem(item: GalleryMediaItem): boolean {
 
 function getItemImageUrl(item: GalleryMediaItem): string {
   if (isVideoItem(item)) {
-    return item.thumbnail_url || item.url || "/placeholder.svg"
+    const thumb = item.thumbnail_url
+    if (!thumb) return "/placeholder.svg"
+    return getMediaAbsoluteUrl(thumb) || thumb
   }
-  return item.thumbnail_url || item.url || "/placeholder.svg"
+  const raw = item.thumbnail_url || item.url || "/placeholder.svg"
+  if (raw === "/placeholder.svg") return raw
+  return getMediaAbsoluteUrl(raw) || raw
 }
 
 export function MasterProfileMobileView({
@@ -302,6 +306,7 @@ export function MasterProfileMobileView({
                             fill
                             className="object-cover"
                             sizes="80px"
+                            unoptimized={shouldUseUnoptimized(getItemImageUrl(item))}
                           />
                         </button>
                       ))}
@@ -335,6 +340,7 @@ export function MasterProfileMobileView({
                     fill
                     className="object-cover opacity-90"
                     sizes="80px"
+                    unoptimized={shouldUseUnoptimized(getItemImageUrl(item))}
                   />
                   <span className="absolute inset-0 flex items-center justify-center bg-black/25">
                     <Play className="h-6 w-6 fill-white text-white" />

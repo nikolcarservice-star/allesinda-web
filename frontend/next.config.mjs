@@ -239,6 +239,28 @@ const nextConfig = {
       }
     }
     imgSrc += ";";
+
+    let mediaSrc = "media-src 'self' blob: https:";
+    if (isDevelopment || isLocalhostApi) {
+      if (apiUrl) {
+        try {
+          const parsedUrl = new URL(apiUrl);
+          mediaSrc += ` ${parsedUrl.origin}`;
+        } catch {
+          mediaSrc += " http://localhost:8000 http://127.0.0.1:8000";
+        }
+      } else {
+        mediaSrc += " http://localhost:8000 http://127.0.0.1:8000";
+      }
+    } else if (apiUrl) {
+      try {
+        const parsedUrl = new URL(apiUrl);
+        mediaSrc += ` ${parsedUrl.origin}`;
+      } catch {
+        // continue
+      }
+    }
+    mediaSrc += ";";
  
     return [
       {
@@ -248,7 +270,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; ${imgSrc} font-src 'self' https: data:; ${connectSrc}; frame-ancestors 'self'; base-uri 'self'; form-action 'self'`,
+              `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; ${imgSrc} font-src 'self' https: data:; ${connectSrc}; ${mediaSrc} frame-ancestors 'self'; base-uri 'self'; form-action 'self'`,
           },
           {
             key: 'X-DNS-Prefetch-Control',

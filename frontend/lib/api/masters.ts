@@ -194,11 +194,25 @@ export async function uploadProfileImage(file: File): Promise<Profile> {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/masters/me/profile-image`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90_000);
+
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/masters/me/profile-image`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Upload hat zu lange gedauert');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Upload failed' }));

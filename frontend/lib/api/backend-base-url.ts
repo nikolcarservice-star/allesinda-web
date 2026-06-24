@@ -1,4 +1,4 @@
-/** Backend base URLs for /api-proxy upstream (public URL first for Coolify). */
+/** Backend base URLs for /api-proxy upstream. Prefer internal Docker URL first. */
 export function getBackendBaseUrlCandidates(): string[] {
   const seen = new Set<string>()
   const candidates: string[] = []
@@ -10,8 +10,9 @@ export function getBackendBaseUrlCandidates(): string[] {
     candidates.push(trimmed)
   }
 
-  add(process.env.NEXT_PUBLIC_API_URL)
+  // Internal API_URL first — avoids hairpin NAT / TLS hangs to the public API from inside the container.
   add(process.env.API_URL)
+  add(process.env.NEXT_PUBLIC_API_URL)
 
   return candidates
 }

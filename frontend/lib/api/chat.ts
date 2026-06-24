@@ -129,7 +129,7 @@ export async function uploadAttachment(
     formData.append('caption', caption);
   }
 
-  const apiUrl = getChatDirectApiBaseUrl();
+  const apiUrl = getApiBaseUrl();
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
   const headers: Record<string, string> = {};
   if (token) {

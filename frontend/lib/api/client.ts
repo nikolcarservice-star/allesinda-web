@@ -10,7 +10,6 @@ import { logger } from '@/lib/logger';
 // Export the API base URL getter for use in other files that need direct fetch calls
 function resolveConfiguredApiUrl(): string | undefined {
   if (typeof window === 'undefined') {
-    // Match api-proxy: public URL first (broken internal Docker hostnames are common in Coolify).
     return process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
   }
   return process.env.NEXT_PUBLIC_API_URL;
@@ -58,7 +57,8 @@ export function getApiBaseUrl(): string {
   return apiUrl.replace(/\/$/, '');
 }
 
-const API_TIMEOUT = 10000; // 10 seconds
+const API_TIMEOUT = 45_000;
+const API_MAX_RETRIES = 1;
 
 export interface ApiError {
   detail: string | Array<{ field?: string; message: string }>;
@@ -100,10 +100,17 @@ export function removeAuthToken(): void {
   localStorage.removeItem('auth_token');
 }
 
+function isRetryableApiError(error: unknown): boolean {
+  return (
+    error instanceof ApiClientError &&
+    (error.statusCode === 408 || error.statusCode === 0)
+  );
+}
+
 /**
  * Make API request with authentication and error handling
  */
-async function apiRequest<T>(
+async function apiRequestOnce<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
@@ -223,6 +230,25 @@ async function apiRequest<T>(
       500
     );
   }
+}
+
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= API_MAX_RETRIES; attempt++) {
+    try {
+      return await apiRequestOnce<T>(endpoint, options);
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableApiError(error) || attempt === API_MAX_RETRIES) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    }
+  }
+  throw lastError;
 }
 
 /**

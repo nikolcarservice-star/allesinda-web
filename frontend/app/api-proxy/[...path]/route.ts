@@ -1,8 +1,13 @@
 import https from "node:https"
+import type { ClientRequest } from "node:http"
 import { NextRequest, NextResponse } from "next/server"
 import { getBackendBaseUrlCandidates } from "@/lib/api/backend-base-url"
 
 export const runtime = "nodejs"
+export const maxDuration = 300
+
+const UPSTREAM_TIMEOUT_MS = 25_000
+const UPSTREAM_UPLOAD_TIMEOUT_MS = 180_000
 
 const HOP_BY_HOP = new Set([
   "connection",
@@ -93,10 +98,21 @@ async function upstreamFetch(
   targetUrl: string,
   init: RequestInit
 ): Promise<Response> {
-  if (shouldUseInsecureTls(targetUrl)) {
-    return insecureHttpsFetch(targetUrl, init)
+  const method = (init.method ?? "GET").toUpperCase()
+  const hasBody = init.body != null && method !== "GET" && method !== "HEAD"
+  const timeoutMs = hasBody ? UPSTREAM_UPLOAD_TIMEOUT_MS : UPSTREAM_TIMEOUT_MS
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+  const mergedInit: RequestInit = { ...init, signal: controller.signal }
+
+  try {
+    if (shouldUseInsecureTls(targetUrl)) {
+      return await insecureHttpsFetch(targetUrl, mergedInit)
+    }
+    return await fetch(targetUrl, mergedInit)
+  } finally {
+    clearTimeout(timeoutId)
   }
-  return fetch(targetUrl, init)
 }
 
 function shouldUseInsecureTls(targetUrl: string): boolean {
@@ -143,11 +159,23 @@ async function readRequestBody(body: BodyInit | null | undefined): Promise<Buffe
 function insecureHttpsFetch(targetUrl: string, init: RequestInit): Promise<Response> {
   const parsed = new URL(targetUrl)
   const method = (init.method ?? "GET").toUpperCase()
+  const signal = init.signal
 
   return readRequestBody(init.body).then(
     (body) =>
       new Promise((resolve, reject) => {
-        const req = https.request(
+        let req: ClientRequest | null = null
+        const onAbort = () => {
+          req?.destroy()
+          reject(new DOMException("The operation was aborted.", "AbortError"))
+        }
+        if (signal?.aborted) {
+          onAbort()
+          return
+        }
+        signal?.addEventListener("abort", onAbort, { once: true })
+
+        req = https.request(
           {
             hostname: parsed.hostname,
             port: parsed.port || 443,
@@ -160,6 +188,7 @@ function insecureHttpsFetch(targetUrl: string, init: RequestInit): Promise<Respo
             const chunks: Buffer[] = []
             res.on("data", (chunk) => chunks.push(chunk))
             res.on("end", () => {
+              signal?.removeEventListener("abort", onAbort)
               const responseHeaders = new Headers()
               for (const [key, value] of Object.entries(res.headers)) {
                 if (value == null) continue
@@ -178,7 +207,10 @@ function insecureHttpsFetch(targetUrl: string, init: RequestInit): Promise<Respo
             })
           }
         )
-        req.on("error", reject)
+        req.on("error", (error) => {
+          signal?.removeEventListener("abort", onAbort)
+          reject(error)
+        })
         if (body && body.length > 0) req.write(body)
         req.end()
       })
