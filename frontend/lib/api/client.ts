@@ -57,6 +57,19 @@ export function getApiBaseUrl(): string {
   return apiUrl.replace(/\/$/, '');
 }
 
+/** Direct backend URL for large multipart uploads (video) — bypasses Next.js body-size limits on /api-proxy. */
+export function getDirectUploadApiBaseUrl(): string {
+  const direct = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '');
+  if (direct) return direct;
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+    return 'http://127.0.0.1:8000';
+  }
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://127.0.0.1:8000';
+  }
+  return getApiBaseUrl();
+}
+
 const API_TIMEOUT = 45_000;
 const API_MAX_RETRIES = 1;
 

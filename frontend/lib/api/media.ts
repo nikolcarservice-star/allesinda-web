@@ -2,16 +2,20 @@
  * Media API functions
  */
 
-import { apiGet, apiPost, apiDelete, getApiBaseUrl, ApiClientError } from './client';
+import { apiGet, apiDelete, getApiBaseUrl, getDirectUploadApiBaseUrl, ApiClientError } from './client';
 import type { Media, PaginatedResponse } from './types';
 
-/** Same-origin /api-proxy — avoids CORS and mobile cross-origin upload failures. */
-function getMediaUploadBaseUrl(): string {
+/** Photos via same-origin proxy; videos direct to API (large files exceed reverse-proxy limits on /api-proxy). */
+function getMediaUploadBaseUrl(mediaType?: string): string {
+  const isVideo = mediaType === 'video';
+  if (typeof window !== 'undefined' && isVideo) {
+    return getDirectUploadApiBaseUrl();
+  }
   return getApiBaseUrl();
 }
 
-function getMediaUploadUrl(): string {
-  const base = getMediaUploadBaseUrl().replace(/\/$/, '');
+function getMediaUploadUrl(mediaType?: string): string {
+  const base = getMediaUploadBaseUrl(mediaType).replace(/\/$/, '');
   return `${base}/media/upload`;
 }
 
@@ -23,6 +27,17 @@ function parseUploadError(detail: unknown): string {
       .join(', ');
   }
   return 'Upload failed';
+}
+
+function isNetworkUploadError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message.toLowerCase();
+  return (
+    msg.includes('failed to fetch') ||
+    msg.includes('networkerror') ||
+    msg.includes('load failed') ||
+    msg.includes('network request failed')
+  );
 }
 
 /**
@@ -71,12 +86,12 @@ export async function uploadMedia(
 
   const isVideo = data.media_type === 'video';
   const controller = new AbortController();
-  const timeoutMs = isVideo ? 180_000 : 90_000;
+  const timeoutMs = isVideo ? 300_000 : 90_000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   let response: Response;
   try {
-    response = await fetch(getMediaUploadUrl(), {
+    response = await fetch(getMediaUploadUrl(data.media_type), {
       method: 'POST',
       headers,
       body: formData,
@@ -85,6 +100,13 @@ export async function uploadMedia(
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
       throw new Error(isVideo ? 'Video-Upload hat zu lange gedauert' : 'Upload hat zu lange gedauert');
+    }
+    if (isNetworkUploadError(err)) {
+      throw new Error(
+        isVideo
+          ? 'Video-Upload fehlgeschlagen. Prüfen Sie die Internetverbindung oder wählen Sie ein kleineres Video (max. 100 MB).'
+          : 'Verbindung zum Server fehlgeschlagen.',
+      );
     }
     throw err;
   } finally {
@@ -129,7 +151,7 @@ export async function uploadBeforeAfterMedia(
 
   let response: Response;
   try {
-    response = await fetch(`${getMediaUploadBaseUrl().replace(/\/$/, '')}/media/upload/before-after`, {
+    response = await fetch(`${getMediaUploadBaseUrl('photo').replace(/\/$/, '')}/media/upload/before-after`, {
       method: 'POST',
       headers,
       body: formData,
@@ -177,11 +199,30 @@ export async function uploadMediaBatch(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${getMediaUploadBaseUrl()}/media/upload/batch`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
+  const isVideo = data.media_type === 'video';
+  const controller = new AbortController();
+  const timeoutMs = isVideo ? 300_000 : 90_000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(`${getMediaUploadBaseUrl(data.media_type).replace(/\/$/, '')}/media/upload/batch`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(isVideo ? 'Video-Upload hat zu lange gedauert' : 'Upload hat zu lange gedauert');
+    }
+    if (isNetworkUploadError(err)) {
+      throw new Error('Verbindung zum Server fehlgeschlagen.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Upload failed' }));
@@ -229,4 +270,3 @@ export async function deleteMedia(mediaId: number): Promise<void> {
     throw err;
   }
 }
-

@@ -618,11 +618,7 @@ export function MasterCabinet() {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Video konnte nicht hochgeladen werden"
-      if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
-        toast.error("Verbindung zum Server fehlgeschlagen. Prüfen Sie die Internetverbindung.")
-      } else {
-        toast.error(message)
-      }
+      toast.error(message)
       console.error("Video upload failed:", err)
     } finally {
       setMasterVideosUploading(false)

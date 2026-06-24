@@ -120,6 +120,15 @@ if settings.IS_PRODUCTION and not allow_all_origins and settings.FRONTEND_URL:
         if origin not in cors_origins:
             cors_origins.append(origin)
 
+# Production site origins (video upload from browser uses direct cross-origin POST)
+if settings.IS_PRODUCTION and not allow_all_origins:
+    for origin in (
+        "https://allesinda.de",
+        "https://www.allesinda.de",
+    ):
+        if origin not in cors_origins:
+            cors_origins.append(origin)
+
 # Ensure localhost:3000 is always included in development (unless allow_all_origins is True)
 if not settings.IS_PRODUCTION and not allow_all_origins:
     dev_origins = [
