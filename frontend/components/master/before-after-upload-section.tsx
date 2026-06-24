@@ -211,32 +211,27 @@ export function BeforeAfterUploadSection({
       )}
 
       {items.length > 0 ? (
-        <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-2 lg:grid-cols-4 lg:gap-3 xl:grid-cols-5">
           {items.map((item) => {
             const isDeleting = deletingId === item.id
             return (
               <div
                 key={item.id}
-                className="relative overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
+                className="relative aspect-square overflow-hidden rounded-xl bg-neutral-100"
               >
                 <BeforeAfterCard
                   beforeUrl={item.before_url!}
                   afterUrl={item.after_url!}
-                  className="pointer-events-none rounded-none"
+                className="pointer-events-none absolute inset-0 rounded-none"
                 />
-                {item.title?.trim() && (
-                  <p className="border-t border-neutral-100 px-3 py-2 text-sm font-medium text-neutral-800">
-                    {item.title.trim()}
-                  </p>
-                )}
                 <button
                   type="button"
                   onClick={() => onDelete(item.id)}
                   disabled={isDeleting || uploading}
-                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-60"
+                  className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-60"
                   aria-label="Vorher/Nachher löschen"
                 >
-                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                  {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-4 w-4" />}
                 </button>
               </div>
             )
@@ -277,7 +272,7 @@ function PhotoSlot({
         onClick={onClick}
         disabled={disabled}
         className={cn(
-          "relative flex aspect-[4/5] w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition active:scale-[0.98]",
+          "relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition active:scale-[0.98]",
           selected
             ? "border-emerald-400 bg-emerald-50/50"
             : "border-neutral-200 bg-neutral-50 hover:border-emerald-300",

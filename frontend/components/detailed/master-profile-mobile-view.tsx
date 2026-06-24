@@ -256,33 +256,24 @@ export function MasterProfileMobileView({
             ) : (
               <>
                 {beforeAfterItems.length > 0 && (
-                  <section className="space-y-3">
+                  <section className="space-y-2">
                     <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
                       Vorher & Nachher
                     </h2>
-                    <div className="space-y-3">
+                    <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                       {beforeAfterItems.map((item) => (
                         <button
                           key={item.id}
                           type="button"
-                          className="group w-full overflow-hidden rounded-xl border border-neutral-200/80 bg-white text-left shadow-[0_4px_20px_rgba(0,0,0,0.06)] transition-transform active:scale-[0.99]"
+                          className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 shadow-sm transition active:scale-95"
                           onClick={() => setSelectedBeforeAfter(item)}
                           aria-label={item.title || "Vorher und Nachher anzeigen"}
                         >
                           <BeforeAfterCard
                             beforeUrl={item.before_url!}
                             afterUrl={item.after_url!}
-                            className="pointer-events-none rounded-none"
+                            className="pointer-events-none absolute inset-0 rounded-none"
                           />
-                          {item.title?.trim() ? (
-                            <p className="border-t border-neutral-100 px-3 py-2.5 text-sm font-medium text-foreground">
-                              {item.title.trim()}
-                            </p>
-                          ) : (
-                            <p className="border-t border-neutral-100 px-3 py-2 text-xs font-medium text-neutral-500">
-                              Zum Vergleich antippen
-                            </p>
-                          )}
                         </button>
                       ))}
                     </div>

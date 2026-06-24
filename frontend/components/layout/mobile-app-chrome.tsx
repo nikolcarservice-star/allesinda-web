@@ -28,8 +28,7 @@ function MobileBottomNav() {
 
   const insertHref = useMemo(() => {
     if (!user) return "/signup"
-    if (user.role === "seller") return "/dashboard/seller"
-    if (user.role === "master") return "/dashboard/master"
+    if (user.role === "seller" || user.role === "master") return "/profile"
     return "/signup"
   }, [user])
 
@@ -54,8 +53,9 @@ function MobileBottomNav() {
         center: true,
         match: (p) =>
           p.startsWith("/signup") ||
-          p.startsWith("/dashboard/seller") ||
-          p.startsWith("/dashboard/master"),
+          (Boolean(user) &&
+            (user?.role === "seller" || user?.role === "master") &&
+            p.startsWith("/profile")),
       },
       {
         href: "/messages",

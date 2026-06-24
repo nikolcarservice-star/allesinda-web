@@ -199,7 +199,7 @@ export default function AdminPage() {
         {/* Compact Header */}
         <div className="mb-3 sm:mb-4 md:mb-6">
           <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight mb-1">
-            Mein Dashboard
+            Admin-Panel
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">Verwalten Sie Ihren Marktplatz</p>
         </div>

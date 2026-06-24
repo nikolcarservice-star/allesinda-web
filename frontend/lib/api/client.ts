@@ -10,9 +10,15 @@ import { logger } from '@/lib/logger';
 // Export the API base URL getter for use in other files that need direct fetch calls
 function resolveConfiguredApiUrl(): string | undefined {
   if (typeof window === 'undefined') {
-    return process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+    // Match api-proxy: public URL first (broken internal Docker hostnames are common in Coolify).
+    return process.env.NEXT_PUBLIC_API_URL || process.env.API_URL;
   }
   return process.env.NEXT_PUBLIC_API_URL;
+}
+
+function getServerApiProxyBaseUrl(): string {
+  const port = process.env.PORT || '3000';
+  return `http://127.0.0.1:${port}/api-proxy`;
 }
 
 export function getApiBaseUrl(): string {
@@ -26,6 +32,11 @@ export function getApiBaseUrl(): string {
   // Server-side in dev: talk to backend on loopback (LAN IP often times out locally).
   if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
     return 'http://127.0.0.1:8000';
+  }
+
+  // Server-side production: use the same /api-proxy handler as the browser (URL candidates + TLS).
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+    return getServerApiProxyBaseUrl();
   }
   
   if (!apiUrl) {

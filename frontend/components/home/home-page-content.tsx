@@ -538,26 +538,16 @@ export function HomePageContent({ initialContent }: HomePageContentProps) {
   }, [isMounted])
 
   const isAuthenticated = Boolean(user)
-  const dashboardCta = (() => {
-    if (!user) return null
-    switch (user.role) {
-      case "master":
-        return { href: "/dashboard/master", label: "Meister-Dashboard öffnen" }
-      case "seller":
-        return { href: "/dashboard/seller", label: "Verkäufer-Dashboard öffnen" }
-      case "admin":
-        return { href: "/admin", label: "Zum Admin-Panel" }
-      default:
-        return { href: "/profile", label: "Profil verwalten" }
-    }
-  })()
-
   const featuredTarget = `/?types=${recentlyViewedFilter}`
   const primaryCta = isAuthenticated
     ? { href: featuredTarget, label: "Empfohlene durchsuchen" }
     : { href: featuredTarget, label: "Empfohlene erkunden" }
 
-  const secondaryCta = isAuthenticated ? dashboardCta ?? { href: "/profile", label: "Profil verwalten" } : null
+  const secondaryCta = isAuthenticated
+    ? user?.role === "admin"
+      ? { href: "/admin", label: "Zum Admin-Panel" }
+      : { href: "/profile", label: "Profil verwalten" }
+    : null
 
   const tertiaryCta = isAuthenticated ? null : { href: "/login", label: "Anmelden" }
 

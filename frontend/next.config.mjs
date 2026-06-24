@@ -142,6 +142,13 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/dashboard/master", destination: "/profile", permanent: true },
+      { source: "/dashboard/seller", destination: "/profile", permanent: true },
+      { source: "/dashboard", destination: "/profile", permanent: true },
+    ];
+  },
   images: {
     // Enable image optimization for better performance
     unoptimized: false,

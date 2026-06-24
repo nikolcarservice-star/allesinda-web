@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { VideoPlayer } from "@/components/shared/video-player"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
+import { BeforeAfterCard } from "@/components/gallery/before-after-card"
 import { cn } from "@/lib/utils"
 import { logger } from "@/lib/logger"
 
@@ -301,64 +302,28 @@ export function MasterGallery({ items, edgeToEdge = true }: MasterGalleryProps) 
     flex: `0 0 ${flexBasis}`,
     maxWidth: flexBasis,
   }
-  const beforeAfterCardStyle: CSSProperties = baseCardStyle
 
   const renderCard = (item: MasterGalleryItem) => {
     if (item.kind === "before-after") {
-      const beforeKey = `${item.key}-before`
-      const afterKey = `${item.key}-after`
-
       return (
-        <div key={item.key} data-gallery-card className="flex flex-col snap-start" style={beforeAfterCardStyle}>
-          <div className="overflow-hidden border border-border/60 bg-background/80 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-            <div className="grid grid-cols-2 gap-0.5 bg-muted/40">
-              <button
-                type="button"
-                onClick={() => openImage(beforeKey)}
-                className="relative aspect-square overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <Image
-                  src={item.before}
-                  alt={item.title ? `${item.title} – vorher` : "Vorher"}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <Badge className="absolute left-2 top-2 bg-black/70 text-white">Vorher</Badge>
-                <Maximize2 className="absolute bottom-2 right-2 h-4 w-4 text-white opacity-80" />
-              </button>
-              <button
-                type="button"
-                onClick={() => openImage(afterKey)}
-                className="relative aspect-square overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <Image
-                  src={item.after}
-                  alt={item.title ? `${item.title} – nachher` : "Nachher"}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <Badge className="absolute right-2 top-2 bg-primary text-black font-bold">Nachher</Badge>
-                <Maximize2 className="absolute bottom-2 right-2 h-4 w-4 text-white opacity-80" />
-              </button>
-            </div>
-
+        <div key={item.key} data-gallery-card className="flex snap-start" style={baseCardStyle}>
+          <button
+            type="button"
+            onClick={() => setActiveBeforeAfter(item)}
+            className="group relative aspect-[4/5] w-full overflow-hidden border border-border/60 bg-muted text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+          >
+            <BeforeAfterCard
+              beforeUrl={item.before}
+              afterUrl={item.after}
+              className="absolute inset-0 rounded-none"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
             {item.title && (
-              <div className="space-y-1 border-t border-border/60 bg-background/90 p-4">
-                <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                <button
-                  type="button"
-                  onClick={() => setActiveBeforeAfter(item)}
-                  className="text-xs font-medium text-primary hover:underline"
-                >
-                  Vergleich anzeigen
-                </button>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <p className="text-sm font-semibold text-white">{item.title}</p>
               </div>
             )}
-          </div>
+          </button>
         </div>
       )
     }

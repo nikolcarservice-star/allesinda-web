@@ -1,5 +1,6 @@
 import https from "node:https"
 import { NextRequest, NextResponse } from "next/server"
+import { getBackendBaseUrlCandidates } from "@/lib/api/backend-base-url"
 
 export const runtime = "nodejs"
 
@@ -14,24 +15,6 @@ const HOP_BY_HOP = new Set([
   "upgrade",
   "host",
 ])
-
-function getBackendBaseUrlCandidates(): string[] {
-  const seen = new Set<string>()
-  const candidates: string[] = []
-
-  const add = (value?: string | null) => {
-    const trimmed = value?.trim().replace(/\/$/, "")
-    if (!trimmed || seen.has(trimmed)) return
-    seen.add(trimmed)
-    candidates.push(trimmed)
-  }
-
-  // Prefer public URL — survives wrong internal docker hostnames in Coolify.
-  add(process.env.NEXT_PUBLIC_API_URL)
-  add(process.env.API_URL)
-
-  return candidates
-}
 
 function buildTargetUrl(base: string, pathSegments: string[], search: string): string {
   const path = pathSegments.map(encodeURIComponent).join("/")

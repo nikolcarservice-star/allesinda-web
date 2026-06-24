@@ -14,7 +14,6 @@ export function getMobileBackFallback(pathname: string): string {
   if (detailedMatch) {
     return `/?types=${detailedMatch[1]}`
   }
-  if (pathname.startsWith("/dashboard")) return "/"
   if (pathname.startsWith("/booking")) return "/"
   if (pathname.startsWith("/messages")) return "/messages"
   if (pathname.startsWith("/admin")) return "/admin"
