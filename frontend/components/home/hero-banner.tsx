@@ -7,7 +7,7 @@ import { Search, ChevronRight, ChevronLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CityCombobox } from "@/components/shared/city-combobox"
-import { cn, getOptimizedImageUrl, toMediaRelativePath } from "@/lib/utils"
+import { cn, getOptimizedImageUrl, shouldUseUnoptimized } from "@/lib/utils"
 import type { CategoryTree, CategoryType } from "@/lib/api"
 import { SubcategorySection } from "@/components/home/subcategory-section"
 
@@ -389,13 +389,9 @@ export function HeroBanner({
                     .filter((cat) => cat.id !== -1)
                     .map((category) => {
                       const rawImageUrl = category.image_url?.trim() ? category.image_url : null
-                      const relativePath = rawImageUrl ? toMediaRelativePath(rawImageUrl) : ""
                       const imageSrc = rawImageUrl
-                        ? relativePath.startsWith("/")
-                          ? relativePath
-                          : getOptimizedImageUrl(rawImageUrl, "thumbnail")
+                        ? getOptimizedImageUrl(rawImageUrl, "thumbnail")
                         : PLACEHOLDER_IMAGE
-                      const isLocal = imageSrc.startsWith("/") && !imageSrc.startsWith("//")
                       const urlCategorySlug = searchParams?.get("category")
                       const matchesUrlCategory =
                         Boolean(urlCategorySlug) &&
@@ -428,7 +424,7 @@ export function HeroBanner({
                             fill
                             sizes="(max-width: 640px) 148px, 172px"
                             className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                            unoptimized={isLocal}
+                            unoptimized={shouldUseUnoptimized(imageSrc)}
                           />
                           <div
                             className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/5"
