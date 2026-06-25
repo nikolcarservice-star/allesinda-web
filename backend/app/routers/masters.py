@@ -19,6 +19,7 @@ from ..utils.user_reports import notify_user_report
 from ..security import require_role, get_current_user
 from ..helpers import paginate_query, create_paginated_response, calculate_distance
 from ..config import settings
+from ..profile_queries import get_public_master_profile
 from ..utils.storage import get_upload_folder, build_media_url, normalize_response_media_url
 
 router = APIRouter(prefix="/masters", tags=["masters"])
@@ -389,7 +390,7 @@ def list_services(
     page_size: int = Query(20, ge=1, le=100)
 ):
     """List services for a master profile (all services are automatically approved) with pagination"""
-    profile = db.get(Profile, profile_id)
+    profile = get_public_master_profile(db, profile_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     # All services are automatically approved
@@ -507,12 +508,9 @@ def delete_availability_slot(
 @router.get("/{profile_id}", response_model=ProfileDetailedOut)
 def get_master(profile_id: int, db: Session = Depends(get_db)):
     """Get master profile by ID"""
-    profile = db.get(Profile, profile_id)
+    profile = get_public_master_profile(db, profile_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Master profile not found")
-    
-    if profile.user.role != Role.master:
-        raise HTTPException(status_code=404, detail="Profile is not a master")
     
     return profile
 # Promotions endpoints

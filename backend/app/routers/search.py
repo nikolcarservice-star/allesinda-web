@@ -10,7 +10,7 @@ from ..config import settings
 from ..category_filter import resolve_category_ids
 from ..database import get_db
 from ..helpers import calculate_distance, create_paginated_response, paginate_query
-from ..profile_queries import profile_query_with_user
+from ..profile_queries import public_master_profile_query
 
 from ..models import (
     CategoryType,
@@ -371,7 +371,7 @@ def _perform_search(
         resolved_category_ids = resolve_category_ids(db, category)
     
     if scope in ["masters", "all"]:
-        query = profile_query_with_user(db).filter(User.role == Role.master)
+        query = public_master_profile_query(db)
         price_stats_subq = None
         likes_subq = (
             db.query(

@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import logging
 from ..database import get_db
-from ..models import Media, MediaStatus, User, Profile
+from ..models import Media, MediaStatus, User, Profile, Role
+from ..profile_queries import get_public_master_profile
 from ..schemas import MediaOut, PaginationParams
 from ..security import get_current_user
 from ..helpers import paginate_query, create_paginated_response
@@ -112,7 +113,7 @@ def get_profile_gallery(
     approved_only: bool = Query(True, description="Deprecated: All media is now automatically approved")
 ):
     """Get work gallery for a specific master profile"""
-    profile = db.get(Profile, profile_id)
+    profile = get_public_master_profile(db, profile_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     

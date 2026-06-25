@@ -172,7 +172,7 @@ def _get_trending_masters(db: Session, page: int, page_size: int) -> dict:
         .outerjoin(likes_subquery, Profile.id == likes_subquery.c.profile_id)
         .outerjoin(service_prices, Profile.id == service_prices.c.profile_id)
         .options(joinedload(Profile.user))
-        .filter(User.role == Role.master)
+        .filter(User.role == Role.master, User.is_active.is_(True))
         .order_by(likes_column.desc(), Profile.rating.desc(), Profile.created_at.desc())
     )
 

@@ -14,7 +14,7 @@ from ..config import settings
 from ..category_filter import resolve_category_ids
 from ..database import get_db
 from ..helpers import create_paginated_response
-from ..profile_queries import profile_query_with_user
+from ..profile_queries import public_master_profile_query
 from ..utils.storage import normalize_response_media_url, media_out_with_local_urls
 from ..models import (
     Category,
@@ -284,7 +284,7 @@ def _load_item_summaries(db: Session, ids_by_type: Dict[CategoryType, set[int]])
 
     if CategoryType.master in ids_by_type and ids_by_type[CategoryType.master]:
         profiles = (
-            profile_query_with_user(db, with_category=True)
+            public_master_profile_query(db, with_category=True)
             .filter(Profile.id.in_(ids_by_type[CategoryType.master]))
             .all()
         )
@@ -468,7 +468,7 @@ def _record_recent_view(db: Session, user_id: int, item_type: CategoryType, item
 
 def _build_featured_item_from_type(db: Session, item_type: CategoryType, item_id: int) -> Optional[FeaturedItemOut]:
     if item_type == CategoryType.master:
-        profile = profile_query_with_user(db, with_category=True).filter(Profile.id == item_id).first()
+        profile = public_master_profile_query(db, with_category=True).filter(Profile.id == item_id).first()
         if not profile:
             return None
         lowest_price = (
@@ -585,10 +585,7 @@ def list_featured_items(
     aggregated: List[dict] = []
 
     if CategoryType.master in requested_types:
-        master_query = profile_query_with_user(db, with_category=True).filter(
-            User.role == Role.master,
-            User.is_active.is_(True),
-        )
+        master_query = public_master_profile_query(db, with_category=True)
         if category:
             category_ids = resolve_category_ids(db, category)
             if category_ids:
@@ -838,7 +835,7 @@ def get_featured_detail(
 ):
     if item_type == CategoryType.master:
         profile = (
-            profile_query_with_user(db, with_category=True)
+            public_master_profile_query(db, with_category=True)
             .options(joinedload(Profile.services))
             .filter(Profile.id == item_id)
             .first()
