@@ -82,8 +82,10 @@ export type MasterCabinetDesktopProps = {
   canAddBeforeAfter: boolean
   onMasterPhotoInputChange: (event: ChangeEvent<HTMLInputElement>) => void
   onDeleteMasterPhoto: (photoId: number) => void
+  onViewMasterPhoto: (photo: Media) => void
   onBeforeAfterUpload: (beforeFile: File, afterFile: File, title?: string) => Promise<void>
   onDeleteBeforeAfter: (mediaId: number) => void
+  onViewBeforeAfter: (item: Media) => void
   deletingMasterPhotoId: number | null
   deletingBeforeAfterId: number | null
   photoLimit: number
@@ -94,6 +96,7 @@ export type MasterCabinetDesktopProps = {
   canAddMasterVideos: boolean
   onMasterVideoInputChange: (event: ChangeEvent<HTMLInputElement>) => void
   onDeleteMasterVideo: (videoId: number) => void
+  onViewMasterVideo: (video: Media) => void
   deletingMasterVideoId: number | null
   videoLimit: number
   getVideoTitle: (video: Media) => string
@@ -155,8 +158,10 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
     canAddBeforeAfter,
     onMasterPhotoInputChange,
     onDeleteMasterPhoto,
+    onViewMasterPhoto,
     onBeforeAfterUpload,
     onDeleteBeforeAfter,
+    onViewBeforeAfter,
     deletingMasterPhotoId,
     deletingBeforeAfterId,
     photoLimit,
@@ -167,6 +172,7 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
     canAddMasterVideos,
     onMasterVideoInputChange,
     onDeleteMasterVideo,
+    onViewMasterVideo,
     deletingMasterVideoId,
     videoLimit,
     getVideoTitle,
@@ -527,12 +533,22 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
                         key={photo.id}
                         className="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
                       >
-                        <img src={photoUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
                         <button
                           type="button"
-                          onClick={() => onDeleteMasterPhoto(photo.id)}
+                          onClick={() => onViewMasterPhoto(photo)}
+                          className="absolute inset-0 h-full w-full cursor-pointer"
+                          aria-label="Foto anzeigen"
+                        >
+                          <img src={photoUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onDeleteMasterPhoto(photo.id)
+                          }}
                           disabled={isDeleting || masterPhotosUploading}
-                          className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                          className="absolute right-1.5 top-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white opacity-0 transition-opacity group-hover:opacity-100 disabled:opacity-50"
                           aria-label="Foto löschen"
                         >
                           {isDeleting ? (
@@ -573,6 +589,7 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
                   deletingId={deletingBeforeAfterId}
                   onUpload={onBeforeAfterUpload}
                   onDelete={onDeleteBeforeAfter}
+                  onView={onViewBeforeAfter}
                 />
               </CardContent>
             </Card>
@@ -608,8 +625,15 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
                           key={video.id}
                           className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3"
                         >
-                          <Video className="h-5 w-5 shrink-0 text-muted-foreground" />
-                          <p className="min-w-0 flex-1 truncate text-sm font-medium">{getVideoTitle(video)}</p>
+                          <button
+                            type="button"
+                            onClick={() => onViewMasterVideo(video)}
+                            className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                            aria-label="Video ansehen"
+                          >
+                            <Video className="h-5 w-5 shrink-0 text-muted-foreground" />
+                            <p className="min-w-0 flex-1 truncate text-sm font-medium">{getVideoTitle(video)}</p>
+                          </button>
                           <Button
                             type="button"
                             variant="ghost"
@@ -617,6 +641,7 @@ export function MasterCabinetDesktop(props: MasterCabinetDesktopProps) {
                             onClick={() => onDeleteMasterVideo(video.id)}
                             disabled={isDeleting || masterVideosUploading}
                             className="shrink-0 text-destructive hover:text-destructive"
+                            aria-label="Video löschen"
                           >
                             {isDeleting ? (
                               <Loader2 className="h-4 w-4 animate-spin" />

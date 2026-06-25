@@ -23,9 +23,28 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { AccountSessionSection } from "@/components/profile/account-session-section"
 import { MasterCabinetDesktop } from "@/components/master/master-cabinet-desktop"
 import { BeforeAfterUploadSection } from "@/components/master/before-after-upload-section"
+import { BeforeAfterFullscreenModal } from "@/components/gallery/gallery-fullscreen-modal"
+import { FullscreenImageViewer } from "@/components/ui/fullscreen-image-viewer"
+import { VideoPlayer } from "@/components/shared/video-player"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { formatDistanceToNow } from "date-fns"
 import { de } from "date-fns/locale/de"
 import { MAX_VIDEO_UPLOAD_BYTES, MAX_VIDEO_UPLOAD_MB } from "@/lib/upload-limits"
+
+type PendingMediaDelete =
+  | { kind: "photo"; id: number }
+  | { kind: "video"; id: number }
+  | { kind: "before-after"; id: number }
+  | null
 
 const ABOUT_LIMIT = 500
 const MASTER_PHOTO_LIMIT = 20
@@ -216,6 +235,10 @@ export function MasterCabinet() {
   const [deletingMasterPhotoId, setDeletingMasterPhotoId] = useState<number | null>(null)
   const [deletingBeforeAfterId, setDeletingBeforeAfterId] = useState<number | null>(null)
   const [deletingMasterVideoId, setDeletingMasterVideoId] = useState<number | null>(null)
+  const [pendingMediaDelete, setPendingMediaDelete] = useState<PendingMediaDelete>(null)
+  const [selectedPhoto, setSelectedPhoto] = useState<Media | null>(null)
+  const [selectedVideo, setSelectedVideo] = useState<Media | null>(null)
+  const [selectedBeforeAfter, setSelectedBeforeAfter] = useState<Media | null>(null)
   const [masterReviews, setMasterReviews] = useState<Review[]>([])
   const [activeReplyReviewId, setActiveReplyReviewId] = useState<number | null>(null)
   const [activeReportReviewId, setActiveReportReviewId] = useState<number | null>(null)
@@ -348,6 +371,28 @@ export function MasterCabinet() {
   const canAddMasterPhotos = masterPhotos.length < MASTER_PHOTO_LIMIT
   const canAddBeforeAfter = masterBeforeAfter.length < MASTER_BEFORE_AFTER_LIMIT
   const canAddMasterVideos = masterVideos.length < MASTER_VIDEO_LIMIT
+
+  const selectedPhotoIndex = selectedPhoto
+    ? masterPhotos.findIndex((photo) => photo.id === selectedPhoto.id)
+    : -1
+
+  const pendingDeleteTitle =
+    pendingMediaDelete?.kind === "photo"
+      ? "Foto löschen"
+      : pendingMediaDelete?.kind === "video"
+        ? "Video löschen"
+        : pendingMediaDelete?.kind === "before-after"
+          ? "Vorher/Nachher löschen"
+          : ""
+
+  const pendingDeleteDescription =
+    pendingMediaDelete?.kind === "photo"
+      ? "Möchten Sie dieses Foto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+      : pendingMediaDelete?.kind === "video"
+        ? "Möchten Sie dieses Video wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+        : pendingMediaDelete?.kind === "before-after"
+          ? "Möchten Sie dieses Vorher/Nachher-Paar wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+          : ""
 
   const addServiceTag = (value: string) => {
     const tag = value.replace(/,/g, " ").trim()
@@ -499,6 +544,31 @@ export function MasterCabinet() {
       toast.error(message)
     } finally {
       setMasterPhotosUploading(false)
+    }
+  }
+
+  const requestDeleteMasterPhoto = (photoId: number) => {
+    setPendingMediaDelete({ kind: "photo", id: photoId })
+  }
+
+  const requestDeleteBeforeAfter = (mediaId: number) => {
+    setPendingMediaDelete({ kind: "before-after", id: mediaId })
+  }
+
+  const requestDeleteMasterVideo = (videoId: number) => {
+    setPendingMediaDelete({ kind: "video", id: videoId })
+  }
+
+  const handleConfirmMediaDelete = async () => {
+    if (!pendingMediaDelete) return
+    const { kind, id } = pendingMediaDelete
+    setPendingMediaDelete(null)
+    if (kind === "photo") {
+      await handleDeleteMasterPhoto(id)
+    } else if (kind === "before-after") {
+      await handleDeleteBeforeAfter(id)
+    } else {
+      await handleDeleteMasterVideo(id)
     }
   }
 
@@ -732,9 +802,11 @@ export function MasterCabinet() {
             canAddMasterPhotos={canAddMasterPhotos}
             canAddBeforeAfter={canAddBeforeAfter}
             onMasterPhotoInputChange={handleMasterPhotoInputChange}
-            onDeleteMasterPhoto={handleDeleteMasterPhoto}
+            onDeleteMasterPhoto={requestDeleteMasterPhoto}
+            onViewMasterPhoto={setSelectedPhoto}
             onBeforeAfterUpload={handleBeforeAfterUpload}
-            onDeleteBeforeAfter={handleDeleteBeforeAfter}
+            onDeleteBeforeAfter={requestDeleteBeforeAfter}
+            onViewBeforeAfter={setSelectedBeforeAfter}
             deletingBeforeAfterId={deletingBeforeAfterId}
             beforeAfterLimit={MASTER_BEFORE_AFTER_LIMIT}
             deletingMasterPhotoId={deletingMasterPhotoId}
@@ -744,7 +816,8 @@ export function MasterCabinet() {
             masterVideosUploading={masterVideosUploading}
             canAddMasterVideos={canAddMasterVideos}
             onMasterVideoInputChange={handleMasterVideoInputChange}
-            onDeleteMasterVideo={handleDeleteMasterVideo}
+            onDeleteMasterVideo={requestDeleteMasterVideo}
+            onViewMasterVideo={setSelectedVideo}
             deletingMasterVideoId={deletingMasterVideoId}
             videoLimit={MASTER_VIDEO_LIMIT}
             getVideoTitle={getVideoTitle}
@@ -1059,12 +1132,22 @@ export function MasterCabinet() {
                   const isDeleting = deletingMasterPhotoId === photo.id
                   return (
                     <div key={photo.id} className="relative aspect-square overflow-hidden rounded-xl bg-neutral-100">
-                      <img src={photoUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
                       <button
                         type="button"
-                        onClick={() => handleDeleteMasterPhoto(photo.id)}
+                        onClick={() => setSelectedPhoto(photo)}
+                        className="absolute inset-0 h-full w-full cursor-pointer"
+                        aria-label="Foto anzeigen"
+                      >
+                        <img src={photoUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          requestDeleteMasterPhoto(photo.id)
+                        }}
                         disabled={isDeleting || masterPhotosUploading}
-                        className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
+                        className="absolute right-1 top-1 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
                         aria-label="Foto löschen"
                       >
                         {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-4 w-4" />}
@@ -1093,7 +1176,8 @@ export function MasterCabinet() {
               limit={MASTER_BEFORE_AFTER_LIMIT}
               deletingId={deletingBeforeAfterId}
               onUpload={handleBeforeAfterUpload}
-              onDelete={handleDeleteBeforeAfter}
+              onDelete={requestDeleteBeforeAfter}
+              onView={setSelectedBeforeAfter}
             />
             </div>
             )}
@@ -1119,11 +1203,18 @@ export function MasterCabinet() {
                         key={video.id}
                         className="flex items-center gap-3 rounded-xl border border-neutral-100 bg-neutral-50 p-3.5"
                       >
-                        <Video className="h-5 w-5 shrink-0 text-neutral-400" />
-                        <p className="min-w-0 flex-1 truncate text-sm font-medium">{getVideoTitle(video)}</p>
                         <button
                           type="button"
-                          onClick={() => handleDeleteMasterVideo(video.id)}
+                          onClick={() => setSelectedVideo(video)}
+                          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                          aria-label="Video ansehen"
+                        >
+                          <Video className="h-5 w-5 shrink-0 text-neutral-400" />
+                          <p className="min-w-0 flex-1 truncate text-sm font-medium">{getVideoTitle(video)}</p>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => requestDeleteMasterVideo(video.id)}
                           disabled={isDeleting || masterVideosUploading}
                           className="shrink-0 text-red-500 hover:text-red-700"
                           aria-label="Video löschen"
@@ -1294,6 +1385,68 @@ export function MasterCabinet() {
           </div>
           </div>
         </>
+      )}
+
+      <AlertDialog
+        open={pendingMediaDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingMediaDelete(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{pendingDeleteTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{pendingDeleteDescription}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => void handleConfirmMediaDelete()}
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <FullscreenImageViewer
+        isOpen={!!selectedPhoto}
+        onClose={() => setSelectedPhoto(null)}
+        imageUrl={
+          selectedPhoto
+            ? getMediaAbsoluteUrl(selectedPhoto.url || selectedPhoto.thumbnail_url) ||
+              selectedPhoto.url ||
+              selectedPhoto.thumbnail_url
+            : null
+        }
+        alt={selectedPhoto?.title || "Foto"}
+        onPrevious={
+          selectedPhotoIndex > 0
+            ? () => setSelectedPhoto(masterPhotos[selectedPhotoIndex - 1])
+            : undefined
+        }
+        onNext={
+          selectedPhotoIndex >= 0 && selectedPhotoIndex < masterPhotos.length - 1
+            ? () => setSelectedPhoto(masterPhotos[selectedPhotoIndex + 1])
+            : undefined
+        }
+      />
+
+      <VideoPlayer
+        videoUrl={selectedVideo?.url || ""}
+        thumbnailUrl={selectedVideo?.thumbnail_url}
+        title={selectedVideo?.title || (selectedVideo ? getVideoTitle(selectedVideo) : undefined)}
+        isOpen={!!selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+      />
+
+      {selectedBeforeAfter && (
+        <BeforeAfterFullscreenModal
+          item={selectedBeforeAfter}
+          isOpen={!!selectedBeforeAfter}
+          onClose={() => setSelectedBeforeAfter(null)}
+        />
       )}
     </ProtectedRoute>
   )

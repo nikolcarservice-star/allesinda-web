@@ -37,6 +37,7 @@ interface BeforeAfterUploadSectionProps {
   deletingId: number | null
   onUpload: (beforeFile: File, afterFile: File, title?: string) => Promise<void>
   onDelete: (id: number) => void
+  onView?: (item: Media) => void
   className?: string
 }
 
@@ -48,6 +49,7 @@ export function BeforeAfterUploadSection({
   deletingId,
   onUpload,
   onDelete,
+  onView,
   className,
 }: BeforeAfterUploadSectionProps) {
   const beforeInputRef = useRef<HTMLInputElement>(null)
@@ -219,16 +221,27 @@ export function BeforeAfterUploadSection({
                 key={item.id}
                 className="relative aspect-square overflow-hidden rounded-xl bg-neutral-100"
               >
-                <BeforeAfterCard
-                  beforeUrl={item.before_url!}
-                  afterUrl={item.after_url!}
-                className="pointer-events-none absolute inset-0 rounded-none"
-                />
                 <button
                   type="button"
-                  onClick={() => onDelete(item.id)}
+                  onClick={() => onView?.(item)}
+                  disabled={!onView}
+                  className="absolute inset-0 h-full w-full cursor-pointer disabled:cursor-default"
+                  aria-label="Vorher/Nachher anzeigen"
+                >
+                  <BeforeAfterCard
+                    beforeUrl={item.before_url!}
+                    afterUrl={item.after_url!}
+                    className="pointer-events-none absolute inset-0 rounded-none"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(item.id)
+                  }}
                   disabled={isDeleting || uploading}
-                  className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-60"
+                  className="absolute right-1 top-1 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white disabled:opacity-60"
                   aria-label="Vorher/Nachher löschen"
                 >
                   {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-4 w-4" />}
