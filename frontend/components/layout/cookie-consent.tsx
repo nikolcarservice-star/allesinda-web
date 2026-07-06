@@ -150,7 +150,7 @@ export function CookieConsent() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 px-sides py-4 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/85">
+    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] z-[70] max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-border bg-background/95 px-sides py-4 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/85 lg:bottom-0">
       <div className="container mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2 text-sm leading-relaxed text-muted-foreground">
           <p className="font-semibold text-foreground">Cookie-Einstellungen</p>
