@@ -14,6 +14,7 @@ import { GlobalMessageNotifier } from "../components/layout/global-message-notif
 import { ConditionalFooter } from "../components/layout/conditional-footer"
 import { InstallPrompt } from "../components/layout/install-prompt"
 import { PushSubscriptionSetup } from "../components/layout/push-subscription-setup"
+import { CookieConsent } from "../components/layout/cookie-consent"
 import dynamic from "next/dynamic"
 import { V0Provider } from "../lib/context"
 import { AuthProvider } from "../lib/context/auth-context"
@@ -135,6 +136,7 @@ export default async function RootLayout({
               <ConditionalFooter />
               <InstallPrompt />
               <PushSubscriptionSetup />
+              <CookieConsent />
               {isDevelopment && <DebugGrid />}
               <AppToaster />
               </NuqsAdapter>
