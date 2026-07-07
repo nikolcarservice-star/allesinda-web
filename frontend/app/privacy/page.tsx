@@ -153,7 +153,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="leading-relaxed text-muted-foreground">
               Beim ersten Besuch erscheint ein Cookie-Banner. Eine erteilte Einwilligung können Sie jederzeit
-              über die Cookie-Einstellungen im Footer widerrufen.
+              durch Löschen der gespeicherten Website-Daten in Ihrem Browser widerrufen.
             </p>
           </section>
 

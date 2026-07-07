@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { CookieSettingsLink } from "./cookie-settings-link"
 
 const linkClass =
   "text-slate-200 hover:text-primary transition-colors underline-offset-2 hover:underline"
@@ -27,8 +26,6 @@ export function Footer() {
           <Link href="/terms" className={linkClass}>
             AGB
           </Link>
-          {" | "}
-          <CookieSettingsLink className={linkClass} />
         </p>
         <p>
           Kontakt:{" "}

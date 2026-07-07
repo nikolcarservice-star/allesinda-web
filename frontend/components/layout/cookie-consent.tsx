@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 
 const GA_MEASUREMENT_ID = "G-69NP5395Z3"
 const CONSENT_STORAGE_KEY = "allesinda_consent"
-export const COOKIE_SETTINGS_EVENT = "allesinda:open-cookie-settings"
 
 type Consent = {
   necessary: true
@@ -119,18 +118,6 @@ export function CookieConsent() {
 
     if (consent.analytics) {
       loadGoogleAnalytics()
-    }
-  }, [])
-
-  useEffect(() => {
-    const openSettings = () => {
-      setIsVisible(true)
-    }
-
-    window.addEventListener(COOKIE_SETTINGS_EVENT, openSettings)
-
-    return () => {
-      window.removeEventListener(COOKIE_SETTINGS_EVENT, openSettings)
     }
   }, [])
 
