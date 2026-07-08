@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { CONTACT_EMAIL } from "@/lib/constants/trust"
 
 const linkClass =
   "text-slate-200 hover:text-primary transition-colors underline-offset-2 hover:underline"
@@ -29,13 +30,9 @@ export function Footer() {
         </p>
         <p>
           Kontakt:{" "}
-          <a href="mailto:kontakt@allesinda.de" className={linkClass}>
-            E-Mail
+          <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>
+            {CONTACT_EMAIL}
           </a>
-          {" / "}
-          <Link href="/contact" className={linkClass}>
-            Kontaktformular
-          </Link>
         </p>
         <p className="text-slate-400 text-xs sm:text-sm">
           © {currentYear} Allesinda. Alle Rechte vorbehalten.

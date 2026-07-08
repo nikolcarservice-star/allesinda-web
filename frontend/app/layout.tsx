@@ -15,6 +15,7 @@ import { ConditionalFooter } from "../components/layout/conditional-footer"
 import { InstallPrompt } from "../components/layout/install-prompt"
 import { PushSubscriptionSetup } from "../components/layout/push-subscription-setup"
 import { CookieConsent } from "../components/layout/cookie-consent"
+import { GoogleAnalytics } from "../components/layout/google-analytics"
 import dynamic from "next/dynamic"
 import { V0Provider } from "../lib/context"
 import { AuthProvider } from "../lib/context/auth-context"
@@ -136,6 +137,7 @@ export default async function RootLayout({
               <ConditionalFooter />
               <InstallPrompt />
               <PushSubscriptionSetup />
+              <GoogleAnalytics />
               <CookieConsent />
               {isDevelopment && <DebugGrid />}
               <AppToaster />

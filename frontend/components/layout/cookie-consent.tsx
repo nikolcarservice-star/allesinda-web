@@ -3,136 +3,24 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-
-const GA_MEASUREMENT_ID = "G-69NP5395Z3"
-const CONSENT_STORAGE_KEY = "allesinda_consent"
-
-type Consent = {
-  necessary: true
-  analytics: boolean
-  timestamp: string
-}
-
-type GtagCommand = [command: string, ...args: unknown[]]
-
-declare global {
-  interface Window {
-    dataLayer: GtagCommand[]
-    gtag?: (...args: GtagCommand) => void
-  }
-}
-
-function ensureGtag() {
-  window.dataLayer = window.dataLayer || []
-  window.gtag =
-    window.gtag ||
-    ((...args: GtagCommand) => {
-      window.dataLayer.push(args)
-    })
-}
-
-function updateAnalyticsConsent(granted: boolean) {
-  ensureGtag()
-  window.gtag?.("consent", "update", {
-    analytics_storage: granted ? "granted" : "denied",
-    ad_storage: "denied",
-  })
-}
-
-function setDefaultConsent() {
-  ensureGtag()
-  window.gtag?.("consent", "default", {
-    analytics_storage: "denied",
-    ad_storage: "denied",
-    wait_for_update: 500,
-  })
-}
-
-function readConsent(): Consent | null {
-  try {
-    const rawConsent = localStorage.getItem(CONSENT_STORAGE_KEY)
-
-    if (!rawConsent) {
-      return null
-    }
-
-    const parsed = JSON.parse(rawConsent) as Partial<Consent>
-
-    if (parsed.necessary !== true || typeof parsed.analytics !== "boolean") {
-      return null
-    }
-
-    return {
-      necessary: true,
-      analytics: parsed.analytics,
-      timestamp: typeof parsed.timestamp === "string" ? parsed.timestamp : new Date().toISOString(),
-    }
-  } catch {
-    return null
-  }
-}
-
-function saveConsent(analytics: boolean) {
-  const consent: Consent = {
-    necessary: true,
-    analytics,
-    timestamp: new Date().toISOString(),
-  }
-
-  localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(consent))
-}
-
-function loadGoogleAnalytics() {
-  if (document.getElementById("ga-script")) {
-    return
-  }
-
-  ensureGtag()
-
-  const script = document.createElement("script")
-  script.id = "ga-script"
-  script.async = true
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`
-  script.onload = () => {
-    window.gtag?.("js", new Date())
-    updateAnalyticsConsent(true)
-    window.gtag?.("config", GA_MEASUREMENT_ID, {
-      anonymize_ip: true,
-      send_page_view: true,
-    })
-  }
-
-  document.head.appendChild(script)
-}
+import {
+  readConsent,
+  saveConsent,
+  updateAnalyticsConsent,
+} from "@/lib/analytics/consent"
 
 export function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    setDefaultConsent()
-
-    const consent = readConsent()
-
-    if (!consent) {
+    if (!readConsent()) {
       setIsVisible(true)
-      return
-    }
-
-    updateAnalyticsConsent(consent.analytics)
-
-    if (consent.analytics) {
-      loadGoogleAnalytics()
     }
   }, [])
 
   const handleConsent = (analytics: boolean) => {
     saveConsent(analytics)
     updateAnalyticsConsent(analytics)
-
-    if (analytics) {
-      loadGoogleAnalytics()
-    }
-
     setIsVisible(false)
   }
 
@@ -147,8 +35,8 @@ export function CookieConsent() {
           <p className="font-semibold text-foreground">Cookie-Einstellungen</p>
           <p>
             Diese Website verwendet Cookies. Technisch notwendige Cookies sind immer aktiv. Analyse-Cookies
-            (Google Analytics {GA_MEASUREMENT_ID}) werden nur mit Ihrer Zustimmung gesetzt. Weitere Informationen
-            finden Sie in unserer{" "}
+            (Google Analytics) werden nur mit Ihrer Zustimmung gesetzt. Weitere Informationen finden Sie in
+            unserer{" "}
             <Link className="font-medium text-primary underline-offset-2 hover:underline" href="/privacy">
               Datenschutzerklärung
             </Link>
