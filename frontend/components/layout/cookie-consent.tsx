@@ -95,7 +95,11 @@ function loadGoogleAnalytics() {
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`
   script.onload = () => {
     window.gtag?.("js", new Date())
-    window.gtag?.("config", GA_MEASUREMENT_ID, { anonymize_ip: true })
+    updateAnalyticsConsent(true)
+    window.gtag?.("config", GA_MEASUREMENT_ID, {
+      anonymize_ip: true,
+      send_page_view: true,
+    })
   }
 
   document.head.appendChild(script)

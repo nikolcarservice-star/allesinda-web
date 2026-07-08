@@ -261,6 +261,10 @@ const nextConfig = {
       }
     }
     mediaSrc += ";";
+
+    // Google Analytics 4 (loaded after cookie consent)
+    const googleAnalyticsScriptSrc =
+      "https://www.googletagmanager.com https://www.google-analytics.com";
  
     return [
       {
@@ -270,7 +274,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; ${imgSrc} font-src 'self' https: data:; ${connectSrc}; ${mediaSrc} frame-ancestors 'self'; base-uri 'self'; form-action 'self'`,
+              `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ${googleAnalyticsScriptSrc}; style-src 'self' 'unsafe-inline'; ${imgSrc} font-src 'self' https: data:; ${connectSrc}; ${mediaSrc} frame-ancestors 'self'; base-uri 'self'; form-action 'self'`,
           },
           {
             key: 'X-DNS-Prefetch-Control',
